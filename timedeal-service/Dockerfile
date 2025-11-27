@@ -1,8 +1,14 @@
-FROM eclipse-temurin:17-jre-alpine
+FROM gradle:8.5-jdk17 AS builder
+WORKDIR /app
 
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
+COPY . .
+RUN gradle clean bootJar
 
-ENV JAVA_OPTS="-Duser.timezone=Asia/Seoul"
+FROM eclipse-temurin:17-jre
+WORKDIR /app
 
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+EXPOSE 8087
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
