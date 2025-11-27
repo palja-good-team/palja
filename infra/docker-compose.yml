@@ -1,4 +1,6 @@
 services:
+
+  # 데이터베이스
   postgres:
     image: postgres:18
     container_name: postgres-palja
@@ -14,6 +16,19 @@ services:
     networks:
       - msa-network
 
+  # Redis
+  redis:
+    image: redis:7.2
+    container_name: redis-palja
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - msa-network
+
+  # Kafka & Zookeeper
   zookeeper:
     image: wurstmeister/zookeeper:latest
     platform: linux/amd64
@@ -41,6 +56,7 @@ services:
     networks:
       - msa-network
 
+  # Kafka UI (관리 페이지)
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     platform: linux/amd64
@@ -54,6 +70,7 @@ services:
     networks:
       - msa-network
 
+  # Zipkin
   zipkin:
     image: openzipkin/zipkin:latest
     platform: linux/amd64
@@ -64,20 +81,11 @@ services:
     networks:
       - msa-network
 
-  redis:
-    image: redis:7.2
-    container_name: redis-palja
-    ports:
-      - "6379:6379"
-    restart: always
-    volumes:
-      - redis_data:/data
-    networks:
-      - msa-network
-
+# 볼륨
 volumes:
   redis_data:
 
+# 네트워크
 networks:
   msa-network:
     driver: bridge
