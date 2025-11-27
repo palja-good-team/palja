@@ -1,0 +1,11 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: order-service
+
+  profiles:
+    include:
+      - datasource
+      - zipkin

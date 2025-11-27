@@ -1,0 +1,11 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: payment-service
+
+  profiles:
+    include:
+      - datasource
+      - zipkin

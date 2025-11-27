@@ -1,0 +1,97 @@
+services:
+
+  # Eureka Discovery
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - msa-network
+
+  # API Gateway
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8080:8080"
+    networks:
+      - msa-network
+
+  # 도메인 서비스
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8081:8081"
+    networks:
+      - msa-network
+
+  review-service:
+    build: ./review-service
+    container_name: review-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8082:8082"
+    networks:
+      - msa-network
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8083:8083"
+    networks:
+      - msa-network
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8084:8084"
+    networks:
+      - msa-network
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8085:8085"
+    networks:
+      - msa-network
+
+  coupon-service:
+    build: ./coupon-service
+    container_name: coupon-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8086:8086"
+    networks:
+      - msa-network
+
+  timedeal-service:
+    build: ./timedeal-service
+    container_name: timedeal-service
+    depends_on:
+      - discovery-service
+    ports:
+      - "8087:8087"
+    networks:
+      - msa-network
+
+# 네트워크
+networks:
+  msa-network:
+    driver: bridge
