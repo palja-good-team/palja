@@ -44,7 +44,8 @@ public class Customer extends BaseEntity {
 	private String address;
 
 	@Builder
-	private Customer(String name, String email, String address) {
+	private Customer(User user, String name, String email, String address) {
+		this.user = user;
 		this.name = name;
 		this.email = email;
 		this.address = address;

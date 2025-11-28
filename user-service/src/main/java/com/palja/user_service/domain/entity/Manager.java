@@ -41,7 +41,8 @@ public class Manager extends BaseEntity {
 	private String email;
 
 	@Builder
-	private Manager(String name, String email) {
+	private Manager(User user, String name, String email) {
+		this.user = user;
 		this.name = name;
 		this.email = email;
 	}
