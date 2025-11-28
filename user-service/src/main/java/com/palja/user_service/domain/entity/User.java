@@ -7,6 +7,8 @@ import com.palja.user_service.domain.vo.UserStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,9 +35,13 @@ public class User {
 	private String password;
 
 	@Column(name = "role", nullable = false)
+	@Enumerated(EnumType.STRING)
+	// @JdbcTypeCode(SqlTypes.NAMED_ENUM)
 	private UserRole role;
 
 	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	// @JdbcTypeCode(SqlTypes.NAMED_ENUM)
 	private UserStatus status;
 
 	@Column(name = "deletedAt")
