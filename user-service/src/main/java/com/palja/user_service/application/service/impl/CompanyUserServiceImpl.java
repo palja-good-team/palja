@@ -2,6 +2,7 @@ package com.palja.user_service.application.service.impl;
 
 import java.util.UUID;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	private final CompanyUserRepository companyUserRepository;
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	@Transactional
@@ -34,7 +36,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 		User user = User.builder()
 			.loginId(command.loginId())
-			.password(command.password())
+			.password(passwordEncoder.encode(command.password()))
 			.role(UserRole.COMPANY_USER)
 			.build();
 
