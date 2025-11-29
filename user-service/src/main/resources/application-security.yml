@@ -1,0 +1,5 @@
+jwt:
+  access:
+    secret: ${ACCESS_SECRET_KEY}
+  refresh:
+    secret: ${REFRESH_SECRET_KEY}
