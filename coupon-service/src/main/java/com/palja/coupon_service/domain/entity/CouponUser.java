@@ -35,7 +35,7 @@ public class CouponUser extends BaseEntity {
 
     private LocalDateTime usedAt; // 사용일시
 
-    private Long orderId; // 사용한 주문 ID
+    private UUID orderId; // 사용한 주문 ID
     
     private Long discount_amount; // 할인된 금액
 }
