@@ -1,25 +1,25 @@
 package com.palja.user_service.presentation.dto.validation.validator;
 
-import com.palja.user_service.presentation.dto.validation.annotation.ValidPassword;
+import com.palja.user_service.presentation.dto.validation.annotation.ValidCompanyNumber;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class PasswordValidator implements ConstraintValidator<ValidPassword, String> {
+public class CompanyNumberValidator implements ConstraintValidator<ValidCompanyNumber, String> {
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
 		if (value == null || value.isBlank()) {
 			context.disableDefaultConstraintViolation();
-			context.buildConstraintViolationWithTemplate("비밀번호를 입력해주세요.")
+			context.buildConstraintViolationWithTemplate("사업자 등록 번호를 입력해주세요.")
 				.addConstraintViolation();
 
 			return false;
 		}
 
-		if (!value.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,15}$")) {
+		if (!value.matches("^[0-9]{3}-[0-9]{2}-[0-9]{5}$")) {
 			context.disableDefaultConstraintViolation();
-			context.buildConstraintViolationWithTemplate("비밀번호는 8~15자로 알파벳 대문자, 소문자, 숫자, 특수문자를 모두 포함해야 합니다.")
+			context.buildConstraintViolationWithTemplate("사업자 등록 번호 형식이 올바르지 않습니다.")
 				.addConstraintViolation();
 
 			return false;

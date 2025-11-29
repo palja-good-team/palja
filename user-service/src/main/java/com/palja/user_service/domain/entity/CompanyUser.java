@@ -37,10 +37,10 @@ public class CompanyUser extends BaseEntity {
 	@Column(name = "name", length = 10, nullable = false, unique = true)
 	private String name;
 
-	@Column(name = "company_number", length = 50)
+	@Column(name = "company_number", length = 12, nullable = false)
 	private String companyNumber;
 
-	@Column(name = "email", nullable = false)
+	@Column(name = "email", nullable = false, unique = true)
 	private String email;
 
 	@Column(name = "address", nullable = false)
