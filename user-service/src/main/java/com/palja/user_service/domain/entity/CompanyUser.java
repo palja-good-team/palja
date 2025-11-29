@@ -55,4 +55,8 @@ public class CompanyUser extends BaseEntity {
 		this.address = address;
 	}
 
+	public void updateStatus(String status) {
+		this.user.updateStatus(status);
+	}
+
 }

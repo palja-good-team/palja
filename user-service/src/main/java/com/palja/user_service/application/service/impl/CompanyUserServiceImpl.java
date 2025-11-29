@@ -1,11 +1,14 @@
 package com.palja.user_service.application.service.impl;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
+import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
@@ -46,6 +49,13 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		companyUserRepository.save(companyUser);
 	}
 
+	@Override
+	@Transactional
+	public void updateCompanyUserStatus(UUID companyUserId, UpdateCompanyUserStatusCommand command) {
+		CompanyUser companyUser = getCompanyUserById(companyUserId);
+		companyUser.updateStatus(command.status());
+	}
+
 	// TODO: 예외코드 생성
 	private void validateDuplicateLoginId(String loginId) {
 		if (userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
@@ -61,6 +71,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		if (companyUserRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
 		}
+	}
+
+	private CompanyUser getCompanyUserById(UUID companyUserId) {
+		return companyUserRepository.findByIdAndDeletedAtIsNull(companyUserId).orElseThrow(
+			() -> new BusinessException(CommonErrorCode.DOMAIN_ERROR)
+		);
 	}
 
 }

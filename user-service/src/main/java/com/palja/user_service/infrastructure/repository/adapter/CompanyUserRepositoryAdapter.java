@@ -1,5 +1,8 @@
 package com.palja.user_service.infrastructure.repository.adapter;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -22,6 +25,11 @@ public class CompanyUserRepositoryAdapter implements CompanyUserRepository {
 	@Override
 	public boolean existsByEmailAndDeletedAtIsNull(String email) {
 		return jpaCompanyUserRepository.existsByEmailAndDeletedAtIsNull(email);
+	}
+
+	@Override
+	public Optional<CompanyUser> findByIdAndDeletedAtIsNull(UUID companyUserId) {
+		return jpaCompanyUserRepository.findByIdAndDeletedAtIsNull(companyUserId);
 	}
 
 }
