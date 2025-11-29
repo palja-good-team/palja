@@ -37,7 +37,7 @@ public class Manager extends BaseEntity {
 	@Column(name = "name", length = 10, nullable = false, unique = true)
 	private String name;
 
-	@Column(name = "email", nullable = false)
+	@Column(name = "email", nullable = false, unique = true)
 	private String email;
 
 	@Builder
