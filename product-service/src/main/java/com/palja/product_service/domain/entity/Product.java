@@ -1,5 +1,7 @@
 package com.palja.product_service.domain.entity;
 
+import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.domain.vo.Money;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -63,5 +65,21 @@ public class Product {
     public ProductStock decreaseStock(Integer quantity) {
         this.productStock = productStock.decrease(quantity);
         return this.productStock;
+    }
+
+    public Money increasePrice(Double amount) {
+        if(amount > 0 && amount < 1)
+            this.price = price.multiply(Money.of(1.0 + amount));
+        else this.price = price.plus(Money.of(amount));
+
+        return this.price;
+    }
+
+    public Money discountPrice(Double amount) {
+        if(amount > 0 && amount < 1)
+            this.price = price.multiply(Money.of(1.0 - amount));
+        else this.price = price.minus(Money.of(amount));
+
+        return this.price;
     }
 }
