@@ -12,8 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class AuthenticationFailureHandlerImpl implements AuthenticationFailureHandler {
 
 	@Override
@@ -25,6 +27,8 @@ public class AuthenticationFailureHandlerImpl implements AuthenticationFailureHa
 			: exception.getMessage();
 
 		setResponse(response, message);
+
+		log.info(message);
 	}
 
 	private void setResponse(HttpServletResponse response, String message) throws IOException {

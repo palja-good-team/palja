@@ -47,7 +47,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	protected void successfulAuthentication(
 		HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult
 	) throws IOException, ServletException {
-		log.info("로그인이 성공했습니다.");
 		getSuccessHandler().onAuthenticationSuccess(request, response, authResult);
 	}
 
@@ -55,7 +54,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	protected void unsuccessfulAuthentication(
 		HttpServletRequest request, HttpServletResponse response, AuthenticationException failed
 	) throws IOException, ServletException {
-		log.info(failed.getMessage());
 		getFailureHandler().onAuthenticationFailure(request, response, failed);
 	}
 

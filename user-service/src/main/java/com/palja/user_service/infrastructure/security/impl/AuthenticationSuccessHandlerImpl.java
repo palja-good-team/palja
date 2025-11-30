@@ -12,17 +12,23 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palja.user_service.infrastructure.external.redis.RedisRepository;
 import com.palja.user_service.infrastructure.security.util.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHandler {
 
 	private final JwtUtil jwtUtil;
+	private final RedisRepository redisRepository;
+
+	private static final String REFRESH_TOKEN_PREFIX = "AUTH:WL:RT:";
 
 	@Override
 	public void onAuthenticationSuccess(
@@ -36,8 +42,11 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
 		String refreshToken = jwtUtil.generateRefreshToken(userId, userRole);
 		addRefreshTokenToCookie(response, refreshToken);
+		redisRepository.save(REFRESH_TOKEN_PREFIX + userId, refreshToken, jwtUtil.getRefreshKeyExpirationTime());
 
 		setResponse(response);
+
+		log.info("로그인이 성공했습니다.");
 	}
 
 	private void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {

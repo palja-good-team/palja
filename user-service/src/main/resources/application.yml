@@ -10,3 +10,4 @@ spring:
       - datasource
       - zipkin
       - security
+      - redis
