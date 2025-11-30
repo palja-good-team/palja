@@ -1,6 +1,9 @@
 package com.palja.user_service.infrastructure.security.util;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
@@ -8,6 +11,8 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import com.palja.user_service.application.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -22,16 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class JwtUtil {
+public class JwtUtilImpl implements JwtUtil {
 
 	private final Key accessKey;
-	private final long accessKeyExpirationTime;
+	@Getter private final long accessKeyExpirationTime;
 	private final Key refreshKey;
 	@Getter private final long refreshKeyExpirationTime;
 
 	private final String BEARER_PREFIX = "Bearer ";
 
-	public JwtUtil(
+	public JwtUtilImpl(
 		@Value("${jwt.access.secret}") String accessSecret, @Value("${jwt.access.expiration}") Duration accessExpiration,
 		@Value("${jwt.refresh.secret}") String refreshSecret, @Value("${jwt.refresh.expiration}") Duration refreshExpiration
 	) {
@@ -41,22 +46,27 @@ public class JwtUtil {
 		this.refreshKeyExpirationTime = refreshExpiration.toMillis();
 	}
 
+	@Override
 	public String generateAccessToken(Long userId, String role) {
 		return generateToken(userId, role, accessKey, accessKeyExpirationTime);
 	}
 
+	@Override
 	public String generateRefreshToken(Long userId, String role) {
 		return generateToken(userId, role, refreshKey, refreshKeyExpirationTime);
 	}
 
+	@Override
 	public boolean validateAccessToken(String accessToken) {
 		return validateToken(accessToken, accessKey);
 	}
 
+	@Override
 	public boolean validateRefreshToken(String refreshToken) {
 		return validateToken(refreshToken, refreshKey);
 	}
 
+	@Override
 	public String substringToken(String token) {
 		if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
 			return token.substring(BEARER_PREFIX.length());
@@ -65,12 +75,29 @@ public class JwtUtil {
 		}
 	}
 
+	@Override
 	public Claims parseAccessToken(String accessToken) {
 		return parseToken(accessToken, accessKey);
 	}
 
+	@Override
 	public Claims parseRefreshToken(String refreshToken) {
 		return parseToken(refreshToken, refreshKey);
+	}
+
+	@Override
+	public String hashingTokenToSHA256(String token) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			md.update(token.getBytes(StandardCharsets.UTF_8));
+			StringBuilder sb = new StringBuilder();
+			for (byte b : md.digest()) {
+				sb.append(String.format("%02x", b));
+			}
+			return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.");
+		}
 	}
 
 	private String generateToken(Long userId, String role, Key key, long expirationTime) {

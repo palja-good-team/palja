@@ -1,5 +1,7 @@
 package com.palja.user_service.infrastructure.security.impl;
 
+import static com.palja.user_service.application.util.RedisKeyConstants.*;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -12,8 +14,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palja.user_service.infrastructure.external.redis.RedisRepository;
-import com.palja.user_service.infrastructure.security.util.JwtUtil;
+import com.palja.user_service.application.util.JwtUtil;
+import com.palja.user_service.domain.external.redis.RedisRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +30,6 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 	private final JwtUtil jwtUtil;
 	private final RedisRepository redisRepository;
 
-	private static final String REFRESH_TOKEN_PREFIX = "AUTH:WL:RT:";
 
 	@Override
 	public void onAuthenticationSuccess(
@@ -42,7 +43,8 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
 		String refreshToken = jwtUtil.generateRefreshToken(userId, userRole);
 		addRefreshTokenToCookie(response, refreshToken);
-		redisRepository.save(REFRESH_TOKEN_PREFIX + userId, refreshToken, jwtUtil.getRefreshKeyExpirationTime());
+		refreshToken = jwtUtil.substringToken(refreshToken);
+		redisRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, refreshToken, jwtUtil.getRefreshKeyExpirationTime());
 
 		setResponse(response);
 

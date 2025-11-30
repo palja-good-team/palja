@@ -5,11 +5,13 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.palja.user_service.domain.external.redis.RedisRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class RedisRepository {
+public class RedisRepositoryImpl implements RedisRepository {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
