@@ -1,12 +1,10 @@
 package com.palja.user_service.presentation.controller;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,15 +23,32 @@ public class AuthController {
 
 	private final AuthService authService;
 
+	@PostMapping("/refresh")
+	public ResponseEntity<ApiResponse<Void>> refresh(
+		@RequestHeader("X-USER-ID") Long userId, @RequestHeader("X-USER-ROLE") String userRole,
+		@RequestHeader(value = "Authorization", required = false) String accessToken,
+		@CookieValue(value = "refresh_token", required = false) String refreshToken,
+		HttpServletResponse response
+	) {
+		String newAccessToken = authService.refreshAccessToken(userId, userRole, accessToken, refreshToken);
+		addAccessTokenToHeader(response, newAccessToken);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("토큰이 재발급 되었습니다."));
+	}
+
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
 		@RequestHeader("X-USER-ID") Long userId,
-		HttpServletResponse response, @RequestHeader("Authorization") String token
+		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
 	) {
-		authService.logout(userId, token);
+		authService.logout(userId, accessToken);
 		expireRefreshTokenToCookie(response);
-		System.out.println(userId);
+
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
+	}
+
+	private void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
+		response.setHeader("Authorization", accessToken);
 	}
 
 	private void expireRefreshTokenToCookie(HttpServletResponse response) {

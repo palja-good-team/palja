@@ -2,6 +2,8 @@ package com.palja.user_service.application.service;
 
 public interface AuthService {
 
-	void logout(Long userId, String authHeader);
+	String refreshAccessToken(Long userId, String userRole, String accessToken, String refreshToken);
+
+	void logout(Long userId, String accessToken);
 
 }

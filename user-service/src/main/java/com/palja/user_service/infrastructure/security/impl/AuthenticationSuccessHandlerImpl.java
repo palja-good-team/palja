@@ -43,8 +43,8 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
 		String refreshToken = jwtUtil.generateRefreshToken(userId, userRole);
 		addRefreshTokenToCookie(response, refreshToken);
-		refreshToken = jwtUtil.substringToken(refreshToken);
-		redisRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, refreshToken, jwtUtil.getRefreshKeyExpirationTime());
+		String substringRefreshToken = jwtUtil.substringToken(refreshToken);
+		redisRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, substringRefreshToken, jwtUtil.getRefreshKeyExpirationTime());
 
 		setResponse(response);
 
@@ -58,7 +58,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 	private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
 		refreshToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 		ResponseCookie cookie = ResponseCookie
-			.from("refreshToken", refreshToken)
+			.from("refresh_token", refreshToken)
 			.path("/")
 			.httpOnly(true)
 			.secure(false) // HTTPS
