@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.vo.UserStatus;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,10 @@ public class UserDetailsImpl implements UserDetails {
 
 	public String getUserRole() {
 		return user.getRole().toString();
+	}
+
+	public UserStatus getUserStatus() {
+		return user.getStatus();
 	}
 
 	@Override

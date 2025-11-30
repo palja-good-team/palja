@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import com.palja.user_service.infrastructure.security.filter.AuthenticationFilter;
 
@@ -29,15 +31,19 @@ public class SpringSecurityConfig {
 	}
 
 	@Bean
-	public AuthenticationFilter authenticationFilter() throws Exception {
+	public AuthenticationFilter authenticationFilter(
+		AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationFailureHandler authenticationFailureHandler
+	) throws Exception {
 		AuthenticationFilter authenticationFilter = new AuthenticationFilter();
 		authenticationFilter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
+		authenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
+		authenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
 
 		return authenticationFilter;
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationFilter authenticationFilter) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable)
 
 			.sessionManagement(session -> session
@@ -52,7 +58,7 @@ public class SpringSecurityConfig {
 				.anyRequest().permitAll()
 			)
 
-			.addFilterBefore(authenticationFilter(), AuthenticationFilter.class)
+			.addFilterBefore(authenticationFilter, AuthenticationFilter.class)
 		;
 
 		return http.build();
