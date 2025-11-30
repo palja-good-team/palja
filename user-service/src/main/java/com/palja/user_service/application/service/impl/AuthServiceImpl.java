@@ -21,9 +21,8 @@ public class AuthServiceImpl implements AuthService {
 	private final JwtUtil jwtUtil;
 
 	@Override
-	public void logout(String token) {
+	public void logout(Long userId, String token) {
 		String accessToken = jwtUtil.substringToken(token);
-		String userId = jwtUtil.parseAccessToken(accessToken).getSubject();
 		String hashKey = jwtUtil.hashingTokenToSHA256(accessToken);
 
 		redisRepository.save(

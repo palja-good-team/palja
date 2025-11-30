@@ -27,11 +27,12 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
+		@RequestHeader("X-USER-ID") Long userId,
 		HttpServletResponse response, @RequestHeader("Authorization") String token
 	) {
-		authService.logout(token);
+		authService.logout(userId, token);
 		expireRefreshTokenToCookie(response);
-
+		System.out.println(userId);
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
 	}
 
