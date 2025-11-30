@@ -57,13 +57,25 @@ public class Payment extends BaseEntity {
     private LocalDateTime completedAt;
 
     @Builder
-    public Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod) {
+    public Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
         this.orderId = orderId;
         this.userId = userId;
         this.amount = amount;
         this.currency = currency;
         this.paymentMethod = paymentMethod;
+        this.paymentKey = paymentKey;
         this.status = PaymentStatus.PENDING;
         this.requestedAt = LocalDateTime.now();
+    }
+
+    public void approve(String paymentKey) {
+        this.status = PaymentStatus.APPROVED;
+        this.paymentKey = paymentKey;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void fail(String pgMessage) {
+        this.status = PaymentStatus.FAILED;
+        this.cancelReason = pgMessage;
     }
 }
