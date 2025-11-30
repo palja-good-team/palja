@@ -22,6 +22,14 @@ configurations {
 
 repositories {
 	mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri(System.getenv("PACKAGES_URL") ?: findProperty("PACKAGES_URL"))
+        credentials {
+            username = System.getenv("USERNAME") ?: findProperty("USERNAME")
+            password = System.getenv("TOKEN") ?: findProperty("TOKEN")
+        }
+    }
 }
 
 ext {
@@ -43,6 +51,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.palja:common-module:0.3.6'
 }
 
 dependencyManagement {
