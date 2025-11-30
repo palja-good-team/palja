@@ -15,10 +15,10 @@ public class AuthenticationProviderConfig {
 	public DaoAuthenticationProvider authenticationProvider(
 		UserDetailsService userDetailsService, PasswordEncoder passwordEncoder
 	) {
-		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setUserDetailsService(userDetailsService);
-		provider.setPasswordEncoder(passwordEncoder);
-		provider.setPostAuthenticationChecks(new UserDetailCheckerImpl()); // Pending 상태 체크
-		return provider;
+		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+		daoAuthenticationProvider.setPostAuthenticationChecks(new UserDetailCheckerImpl());
+		return daoAuthenticationProvider;
 	}
+
 }

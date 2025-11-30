@@ -1,4 +1,4 @@
-package com.palja.user_service.infrastructure.security.handler;
+package com.palja.user_service.infrastructure.security.impl;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,6 +24,10 @@ public class AuthenticationFailureHandlerImpl implements AuthenticationFailureHa
 			? "로그인 정보가 잘못되었습니다."
 			: exception.getMessage();
 
+		setResponse(response, message);
+	}
+
+	private void setResponse(HttpServletResponse response, String message) throws IOException {
 		Map<String, Object> body = Map.of(
 			"success", false,
 			"code", "UNAUTHORIZED",

@@ -22,7 +22,7 @@ public class UserDetailsImpl implements UserDetails {
 	}
 
 	public String getUserRole() {
-		return user.getRole().toString();
+		return user.getRole().name();
 	}
 
 	public UserStatus getUserStatus() {

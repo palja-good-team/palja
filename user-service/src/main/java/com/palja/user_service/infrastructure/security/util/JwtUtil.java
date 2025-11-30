@@ -17,6 +17,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -26,7 +27,7 @@ public class JwtUtil {
 	private final Key accessKey;
 	private final long accessKeyExpirationTime;
 	private final Key refreshKey;
-	private final long refreshKeyExpirationTime;
+	@Getter private final long refreshKeyExpirationTime;
 
 	private final String BEARER_PREFIX = "Bearer ";
 
