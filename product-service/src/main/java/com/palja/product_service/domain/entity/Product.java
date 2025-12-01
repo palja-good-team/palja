@@ -30,6 +30,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private Category category;
 
+    @Column(scale = 1, precision = 2)
     private BigDecimal avgRating;
 
     private Long companyUserId;
