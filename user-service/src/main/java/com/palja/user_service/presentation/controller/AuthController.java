@@ -53,7 +53,7 @@ public class AuthController {
 
 	private void expireRefreshTokenToCookie(HttpServletResponse response) {
 		ResponseCookie cookie = ResponseCookie
-			.from("refreshToken")
+			.from("refresh_token")
 			.maxAge(0)
 			.build();
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
