@@ -33,7 +33,7 @@ public class Product {
     @Column(scale = 1, precision = 2)
     private BigDecimal avgRating;
 
-    private Long companyUserId;
+    private UUID companyUserId;
 
     private String companyName;
 
@@ -42,7 +42,7 @@ public class Product {
 
     protected Product() {}
 
-    public static Product create(String name, String description, Double price, String category, Long companyUserId, String companyName, Integer stock) {
+    public static Product create(String name, String description, Long price, String category, UUID companyUserId, String companyName, Integer stock) {
 
         Product product = new Product();
 
@@ -68,19 +68,25 @@ public class Product {
         return this.productStock;
     }
 
-    public Money increasePrice(Double amount) {
-        if(amount > 0 && amount < 1)
-            this.price = price.multiply(Money.of(1.0 + amount));
-        else this.price = price.plus(Money.of(amount));
-
+    public Money increaseFixPrice(Long amount) {
+        this.price = price.plus(Money.of(amount));
         return this.price;
     }
 
-    public Money discountPrice(Double amount) {
-        if(amount > 0 && amount < 1)
-            this.price = price.multiply(Money.of(1.0 - amount));
-        else this.price = price.minus(Money.of(amount));
+    public Money increaseRatePrice(Double amount) {
+        BigDecimal rate = BigDecimal.ONE.add(BigDecimal.valueOf(amount));
+        this.price = price.multiply(rate);
+        return this.price;
+    }
 
+    public Money discountFixPrice(Long amount) {
+        this.price = price.minus(Money.of(amount));
+        return this.price;
+    }
+
+    public Money discountRatePrice(Double amount) {
+        BigDecimal rate = BigDecimal.ONE.subtract(BigDecimal.valueOf(amount));
+        this.price = price.multiply(rate);
         return this.price;
     }
 }
