@@ -4,8 +4,7 @@ import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponDTO;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
-import com.palja.coupon_service.domain.vo.CouponStatus;
-import com.palja.coupon_service.domain.vo.DiscountType;
+import com.palja.coupon_service.domain.vo.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,20 +44,15 @@ class CouponManagerServiceImplTest {
                 .minOrderAmount(10000)
                 .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                 .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
-                .validityDays(30)
                 .build();
 
         Coupon savedCoupon = Coupon.create(
                 command.couponName(),
                 command.description(),
-                command.discountType(),
-                command.discountValue(),
+                DiscountPolicy.of(command.discountType(), command.discountValue()),
                 command.totalQuantity(),
-                command.maxDiscountAmount(),
-                command.minOrderAmount(),
-                command.issueStartAt(),
-                command.issueEndAt(),
-                command.validityDays()
+                AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
+                IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
         );
 
         given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
@@ -77,7 +71,6 @@ class CouponManagerServiceImplTest {
         assertThat(result.getMinOrderAmount()).isEqualTo(10000);
         assertThat(result.getIssueStartAt()).isEqualTo(LocalDateTime.of(2025, 12, 1, 0, 0));
         assertThat(result.getIssueEndAt()).isEqualTo(LocalDateTime.of(2025, 12, 31, 23, 59));
-        assertThat(result.getValidityDays()).isEqualTo(30);
         assertThat(result.getStatus()).isEqualTo(CouponStatus.ACTIVE);
 
         verify(couponRepository).save(any(Coupon.class));
@@ -97,7 +90,6 @@ class CouponManagerServiceImplTest {
                 .minOrderAmount(10000)
                 .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                 .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
-                .validityDays(30)
                 .build();
 
         assertThatThrownBy(() -> couponManagerService.createCoupon(command))
@@ -119,7 +111,6 @@ class CouponManagerServiceImplTest {
                 .minOrderAmount(10000)
                 .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                 .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
-                .validityDays(30)
                 .build();
 
         assertThatThrownBy(() -> couponManagerService.createCoupon(command))
@@ -141,7 +132,6 @@ class CouponManagerServiceImplTest {
                 .minOrderAmount(10000)
                 .issueStartAt(LocalDateTime.of(2025, 12, 31, 23, 59))
                 .issueEndAt(LocalDateTime.of(2025, 12, 1, 0, 0))
-                .validityDays(30)
                 .build();
 
         assertThatThrownBy(() -> couponManagerService.createCoupon(command))

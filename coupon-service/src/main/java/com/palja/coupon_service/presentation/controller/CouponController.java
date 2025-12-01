@@ -1,7 +1,7 @@
 package com.palja.coupon_service.presentation.controller;
 
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 public class CouponController {
 }

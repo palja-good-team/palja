@@ -43,10 +43,6 @@ public class CreateCouponReq {
     @Future(message = "발급 종료일은 현재 시간 이후여야 합니다")
     private LocalDateTime issueEndAt;
 
-    @NotNull(message = "유효 기간은 필수입니다.")
-    @Min(value = 1, message = "유효 기간은 최소 1일 이상이여야 합니다.")
-    private Integer validityDays;
-
     public static CreateCouponCommand of (CreateCouponReq request) {
         return CreateCouponCommand.builder()
                 .couponName(request.getCouponName())
@@ -58,7 +54,6 @@ public class CreateCouponReq {
                 .minOrderAmount(request.getMinOrderAmount())
                 .issueStartAt(request.getIssueStartAt())
                 .issueEndAt(request.getIssueEndAt())
-                .validityDays(request.getValidityDays())
                 .build();
     }
 }

@@ -11,20 +11,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/manager/coupons")
 public class CouponManagerController {
 
     private final CouponManagerService couponManagerService;
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<ApiResponse<CreateCouponRes>> createCoupon(
             @Valid @RequestBody CreateCouponReq request) {
         log.info("POST /api/v1/manager/coupons - 쿠폰 생성 요청");

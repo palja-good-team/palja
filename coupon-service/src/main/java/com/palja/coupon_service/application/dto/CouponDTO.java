@@ -7,34 +7,35 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class CouponDTO {
+    private UUID couponId;
     private String couponName;
     private String description;
     private DiscountType discountType;
-    private int discountValue;
-    private int totalQuantity;
-    private int maxDiscountAmount;
-    private int minOrderAmount;
+    private Integer discountValue;
+    private Integer totalQuantity;
+    private Integer maxDiscountAmount;
+    private Integer minOrderAmount;
     private LocalDateTime issueStartAt;
     private LocalDateTime issueEndAt;
-    private int validityDays;
     private CouponStatus status;
 
     public static CouponDTO from(Coupon coupon) {
         return CouponDTO.builder()
+                .couponId(coupon.getId())
                 .couponName(coupon.getName())
                 .description(coupon.getDescription())
-                .discountType(coupon.getDiscountType())
-                .discountValue(coupon.getDiscountValue())
+                .discountType(coupon.getDiscountPolicy().getDiscountType())
+                .discountValue(coupon.getDiscountPolicy().getDiscountValue())
                 .totalQuantity(coupon.getTotalQuantity())
-                .maxDiscountAmount(coupon.getMaxDiscountAmount())
-                .minOrderAmount(coupon.getMinOrderAmount())
-                .issueStartAt(coupon.getIssueStartAt())
-                .issueEndAt(coupon.getIssueEndAt())
-                .validityDays(coupon.getValidityDays())
+                .maxDiscountAmount(coupon.getAmountPolicy().getMaxDiscountAmount())
+                .minOrderAmount(coupon.getAmountPolicy().getMinOrderAmount())
+                .issueStartAt(coupon.getIssuePeriod().getIssueStartAt())
+                .issueEndAt(coupon.getIssuePeriod().getIssueEndAt())
                 .status(coupon.getStatus())
                 .build();
     }

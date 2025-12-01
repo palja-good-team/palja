@@ -15,7 +15,6 @@ public record CreateCouponCommand(
         Integer maxDiscountAmount,
         Integer minOrderAmount,
         LocalDateTime issueStartAt,
-        LocalDateTime issueEndAt,
-        Integer validityDays
+        LocalDateTime issueEndAt
 ) {
 }

@@ -5,6 +5,9 @@ import com.palja.coupon_service.application.dto.CouponDTO;
 import com.palja.coupon_service.application.service.CouponManagerService;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
+import com.palja.coupon_service.domain.vo.AmountPolicy;
+import com.palja.coupon_service.domain.vo.DiscountPolicy;
+import com.palja.coupon_service.domain.vo.IssuePeriod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,14 +28,10 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         Coupon coupon = Coupon.create(
                 command.couponName(),
                 command.description(),
-                command.discountType(),
-                command.discountValue(),
+                DiscountPolicy.of(command.discountType(),  command.discountValue()),
                 command.totalQuantity(),
-                command.maxDiscountAmount(),
-                command.minOrderAmount(),
-                command.issueStartAt(),
-                command.issueEndAt(),
-                command.validityDays()
+                AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
+                IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
         );
 
         Coupon savedCoupon = couponRepository.save(coupon);
