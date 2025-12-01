@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.application.util.JwtUtil;
-import com.palja.user_service.domain.external.redis.RedisRepository;
+import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthServiceImpl implements AuthService {
 
 	private final UserRepository userRepository;
-	private final RedisRepository redisRepository;
+	private final TokenRepository tokenRepository;
 
 	private final JwtUtil jwtUtil;
 
@@ -38,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public void logout(Long userId, String accessToken) {
 		addAccessTokenToBlackList(userId, accessToken);
-		redisRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + userId);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + userId);
 	}
 
 	private void validateRefreshToken(String refreshToken) {
@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
-		redisRepository.save(
+		tokenRepository.save(
 			ACCESS_TOKEN_BLACKLIST_PREFIX + userId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 	}

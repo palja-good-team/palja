@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.user_service.application.util.JwtUtil;
-import com.palja.user_service.domain.external.redis.RedisRepository;
+import com.palja.user_service.domain.repository.TokenRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHandler {
 
 	private final JwtUtil jwtUtil;
-	private final RedisRepository redisRepository;
+	private final TokenRepository tokenRepository;
 
 
 	@Override
@@ -44,7 +44,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 		String refreshToken = jwtUtil.generateRefreshToken(userId, userRole);
 		addRefreshTokenToCookie(response, refreshToken);
 		String substringRefreshToken = jwtUtil.substringToken(refreshToken);
-		redisRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, substringRefreshToken, jwtUtil.getRefreshKeyExpirationTime());
+		tokenRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, substringRefreshToken, jwtUtil.getRefreshKeyExpirationTime());
 
 		setResponse(response);
 

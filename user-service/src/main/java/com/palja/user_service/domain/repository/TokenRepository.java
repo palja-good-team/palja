@@ -1,6 +1,6 @@
-package com.palja.user_service.domain.external.redis;
+package com.palja.user_service.domain.repository;
 
-public interface RedisRepository {
+public interface TokenRepository {
 
 	void save(String key, String value, long ttl);
 
