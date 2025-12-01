@@ -57,7 +57,7 @@ public class JwtUtilTest {
 		@DisplayName("생성")
 		@Order(1)
 		void generate() {
-			String token = jwtUtil.generateAccessToken(manager.getId(), manager.getRole().name());
+			String token = jwtUtil.generateAccessToken(manager.getLoginId(), manager.getRole().name());
 			assertThat(token).startsWith(BEARER_PREFIX);
 			accessToken = token;
 		}
@@ -84,7 +84,7 @@ public class JwtUtilTest {
 		@Order(4)
 		void parse() {
 			Claims claims = jwtUtil.parseAccessToken(accessToken);
-			assertThat(claims.getSubject()).isEqualTo(manager.getId().toString());
+			assertThat(claims.getSubject()).isEqualTo(manager.getLoginId());
 			assertThat(claims.get("role", String.class)).isEqualTo(manager.getRole().name());
 		}
 
@@ -110,7 +110,7 @@ public class JwtUtilTest {
 		@DisplayName("생성")
 		@Order(1)
 		void generate() {
-			String token = jwtUtil.generateRefreshToken(manager.getId(), manager.getRole().name());
+			String token = jwtUtil.generateRefreshToken(manager.getLoginId());
 			assertThat(token).startsWith(BEARER_PREFIX);
 			refreshToken = token;
 		}
@@ -137,8 +137,7 @@ public class JwtUtilTest {
 		@Order(4)
 		void parse() {
 			Claims claims = jwtUtil.parseRefreshToken(refreshToken);
-			assertThat(claims.getSubject()).isEqualTo(manager.getId().toString());
-			assertThat(claims.get("role", String.class)).isEqualTo(manager.getRole().name());
+			assertThat(claims.getSubject()).isEqualTo(manager.getLoginId());
 		}
 
 		@Test

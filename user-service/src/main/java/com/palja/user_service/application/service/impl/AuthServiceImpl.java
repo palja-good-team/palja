@@ -24,21 +24,21 @@ public class AuthServiceImpl implements AuthService {
 	private final JwtUtil jwtUtil;
 
 	@Override
-	public String refreshAccessToken(Long userId, String userRole, String accessToken, String refreshToken) {
+	public String refreshAccessToken(String loginId, String userRole, String accessToken, String refreshToken) {
 		String substringRefreshToken = jwtUtil.substringToken(URLDecoder.decode(refreshToken, StandardCharsets.UTF_8));
 		validateRefreshToken(substringRefreshToken);
 
 		if (accessToken != null) {
-			addAccessTokenToBlackList(userId, accessToken);
+			addAccessTokenToBlackList(loginId, accessToken);
 		}
 
-		return jwtUtil.generateAccessToken(userId, userRole);
+		return jwtUtil.generateAccessToken(loginId, userRole);
 	}
 
 	@Override
-	public void logout(Long userId, String accessToken) {
-		addAccessTokenToBlackList(userId, accessToken);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + userId);
+	public void logout(String loginId, String accessToken) {
+		addAccessTokenToBlackList(loginId, accessToken);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
 	}
 
 	private void validateRefreshToken(String refreshToken) {
@@ -47,12 +47,12 @@ public class AuthServiceImpl implements AuthService {
 		}
 	}
 
-	private void addAccessTokenToBlackList(Long userId, String accessToken) {
+	private void addAccessTokenToBlackList(String loginId, String accessToken) {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
 		tokenRepository.save(
-			ACCESS_TOKEN_BLACKLIST_PREFIX + userId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+			ACCESS_TOKEN_BLACKLIST_PREFIX + loginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 	}
 

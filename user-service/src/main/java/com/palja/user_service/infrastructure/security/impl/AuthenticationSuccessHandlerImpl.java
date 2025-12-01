@@ -35,16 +35,16 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 	public void onAuthenticationSuccess(
 		HttpServletRequest request, HttpServletResponse response, Authentication authentication
 	) throws IOException {
-		Long userId = ((UserDetailsImpl)authentication.getPrincipal()).getUserId();
+		String loginId = ((UserDetailsImpl)authentication.getPrincipal()).getUsername();
 		String userRole = ((UserDetailsImpl)authentication.getPrincipal()).getUserRole();
 
-		String accessToken = jwtUtil.generateAccessToken(userId, userRole);
+		String accessToken = jwtUtil.generateAccessToken(loginId, userRole);
 		addAccessTokenToHeader(response, accessToken);
 
-		String refreshToken = jwtUtil.generateRefreshToken(userId, userRole);
+		String refreshToken = jwtUtil.generateRefreshToken(loginId);
 		addRefreshTokenToCookie(response, refreshToken);
 		String substringRefreshToken = jwtUtil.substringToken(refreshToken);
-		tokenRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + userId, substringRefreshToken, jwtUtil.getRefreshKeyExpirationTime());
+		tokenRepository.save(REFRESH_TOKEN_WHITELIST_PREFIX + loginId, substringRefreshToken, jwtUtil.getRefreshKeyExpirationTime());
 
 		setResponse(response);
 

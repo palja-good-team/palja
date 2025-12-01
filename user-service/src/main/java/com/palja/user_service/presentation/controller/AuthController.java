@@ -25,12 +25,12 @@ public class AuthController {
 
 	@PostMapping("/refresh")
 	public ResponseEntity<ApiResponse<Void>> refresh(
-		@RequestHeader("X-USER-ID") Long userId, @RequestHeader("X-USER-ROLE") String userRole,
+		@RequestHeader("X-USER-LOGIN-ID") String loginId, @RequestHeader("X-USER-ROLE") String userRole,
 		@RequestHeader(value = "Authorization", required = false) String accessToken,
 		@CookieValue(value = "refresh_token", required = false) String refreshToken,
 		HttpServletResponse response
 	) {
-		String newAccessToken = authService.refreshAccessToken(userId, userRole, accessToken, refreshToken);
+		String newAccessToken = authService.refreshAccessToken(loginId, userRole, accessToken, refreshToken);
 		addAccessTokenToHeader(response, newAccessToken);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("토큰이 재발급 되었습니다."));
@@ -38,10 +38,10 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("X-USER-ID") Long userId,
+		@RequestHeader("X-USER-LOGIN-ID") String loginId,
 		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
 	) {
-		authService.logout(userId, accessToken);
+		authService.logout(loginId, accessToken);
 		expireRefreshTokenToCookie(response);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
