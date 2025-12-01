@@ -3,7 +3,7 @@ name: "\U0001F41B [Bug]"
 about: Bug 작업 이슈를 생성해주세요!
 title: "\U0001F41B [Bug]"
 labels: BUGFIX
-assignees: bitamin707
+assignees: ''
 
 ---
 

@@ -14,3 +14,8 @@ spring:
         format_sql: true
         show_sql: true
         default_schema: palja_user
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
