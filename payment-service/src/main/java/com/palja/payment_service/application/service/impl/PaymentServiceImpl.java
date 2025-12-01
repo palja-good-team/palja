@@ -59,7 +59,12 @@ public class PaymentServiceImpl implements PaymentService {
         }
         paymentRepository.save(payment);
 
-        PaymentLog resultLog = paymentDomainService.createResultLog(payment, pgRes);
+        PaymentLog resultLog = paymentDomainService.createResultLog(
+                payment,
+                pgRes.getPaymentKey(),
+                pgRes.getPgResponseCode(),
+                pgRes.getPgResponseMessage()
+        );
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {

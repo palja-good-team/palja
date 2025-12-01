@@ -1,6 +1,5 @@
 package com.palja.payment_service.domain.service;
 
-import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +21,17 @@ public class PaymentDomainService {
         return PaymentLog.createRequestLog(payment);
     }
 
-    public PaymentLog createResultLog(Payment payment, PGPaymentRes pgRes) {
+    public PaymentLog createResultLog(
+            Payment payment,
+            String paymentKey,
+            String pgResponseCode,
+            String pgResponseMessage
+    ) {
         return PaymentLog.createResultLog(
                 payment,
-                pgRes.getPaymentKey(),
-                pgRes.getPgResponseCode(),
-                pgRes.getPgResponseMessage()
+                paymentKey,
+                pgResponseCode,
+                pgResponseMessage
         );
     }
 }
-
