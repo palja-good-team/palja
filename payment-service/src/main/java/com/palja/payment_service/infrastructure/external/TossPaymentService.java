@@ -24,14 +24,12 @@ public class TossPaymentService implements PGPaymentService {
 
     @Override
     public PGPaymentRes requestPayment(Payment payment) {
-        TossPaymentConfirmReq req = TossPaymentConfirmReq.builder()
-                .paymentKey(payment.getPaymentKey())
-                .orderId(payment.getOrderId().toString())
-                .amount(payment.getAmount())
-                .build();
+        String paymentKey = payment.getPaymentKey();
+        log.info("Toss getPayment request. paymentKey={}, orderId={}, amount={}",
+                paymentKey, payment.getOrderId(), payment.getAmount());
 
         try {
-            TossPaymentRes res = tossPaymentClient.confirm(req);
+            TossPaymentRes res = tossPaymentClient.getPayment(paymentKey);
 
             BigDecimal approvedAmount =
                     res.getTotalAmount() != null
@@ -51,8 +49,11 @@ public class TossPaymentService implements PGPaymentService {
                 message = "토스 승인 금액과 요청 금액이 다릅니다. approved="
                         + approvedAmount + ", requested=" + payment.getAmount();
             } else {
-                message = "토스 결제 승인 성공";
+                message = "토스 결제 조회 성공";
             }
+
+            log.info("Toss getPayment response. paymentKey={}, status={}, totalAmount={}",
+                    res.getPaymentKey(), res.getStatus(), res.getTotalAmount());
 
             return PGPaymentRes.builder()
                     .paymentKey(res.getPaymentKey())
@@ -63,7 +64,7 @@ public class TossPaymentService implements PGPaymentService {
                     .build();
 
         } catch (FeignException e) {
-            log.error("토스 결제 승인 API 실패. status={} body={}",
+            log.error("토스 결제 조회 API 실패. status={} body={}",
                     e.status(), e.contentUTF8(), e);
 
             String code = null;
@@ -81,9 +82,9 @@ public class TossPaymentService implements PGPaymentService {
             }
 
             return PGPaymentRes.builder()
-                    .paymentKey(payment.getPaymentKey())
+                    .paymentKey(paymentKey)
                     .pgResponseCode(code != null ? code : String.valueOf(e.status()))
-                    .pgResponseMessage(message != null ? message : "토스 결제 승인 실패")
+                    .pgResponseMessage(message != null ? message : "토스 결제 조회 실패")
                     .success(false)
                     .approvedAmount(null)
                     .build();
