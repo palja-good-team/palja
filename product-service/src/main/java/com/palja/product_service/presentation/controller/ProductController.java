@@ -14,14 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
 public class ProductController {
 
-    private ProductService service;
+    private final ProductService service;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductDetailRes>> createProduct(@RequestBody @Valid CreateProductReq createReq) {
