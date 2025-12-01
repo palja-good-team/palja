@@ -5,6 +5,7 @@ import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.presentation.dto.req.CreateProductReq;
 import com.palja.product_service.presentation.dto.res.ProductDetailRes;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class ProductController {
     private ProductService service;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductDetailRes>> createProduct(@RequestBody CreateProductReq createReq) {
+    public ResponseEntity<ApiResponse<ProductDetailRes>> createProduct(@RequestBody @Valid CreateProductReq createReq) {
 
         CreateProductCommand createCommand = createReq.toCommand(createReq);
         ProductDetailRes productDetail = service.createProduct(createCommand);
