@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.palja.user_service.domain.entity.Customer;
 
 public interface JpaCustomerRepository extends JpaRepository<Customer, UUID> {
+
+	boolean existsByEmailAndDeletedAtIsNull(String email);
+
 }

@@ -26,6 +26,7 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "user_id")
 	private Long id;
 
 	@Column(name = "login_id", length = 10, nullable = false, unique = true)
@@ -56,6 +57,24 @@ public class User {
 		this.password = password;
 		this.role = role;
 		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
+	}
+
+	public void updateStatus(String status) {
+		UserStatus newStatus = validateAndGetStatus(status);
+		if (!this.status.canTransitionTo(newStatus)) {
+			throw new IllegalArgumentException(("%s 상태에서 %s 상태로 변경할 수 없습니다.")
+				.formatted(this.status.getDescription(), newStatus.getDescription()));
+		}
+
+		this.status = newStatus;
+	}
+
+	private UserStatus validateAndGetStatus(String status) {
+		try {
+			return UserStatus.valueOf(status.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("유효하지 않은 상태 값 입니다.");
+		}
 	}
 
 }
