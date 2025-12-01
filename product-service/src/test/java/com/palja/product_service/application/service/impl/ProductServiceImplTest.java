@@ -1,9 +1,9 @@
 package com.palja.product_service.application.service.impl;
 
 import com.palja.product_service.application.command.CreateProductCommand;
+import com.palja.product_service.application.dto.CreateProductRes;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
-import com.palja.product_service.presentation.dto.res.ProductDetailRes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +46,7 @@ class ProductServiceImplTest {
         given(productRepository.save(any(Product.class))).willReturn(product);
 
         //when
-        ProductDetailRes result = productService.createProduct(command);
+        CreateProductRes result = productService.createProduct(command);
 
         //then
         assertThat(result.getName()).isEqualTo(product.getName());

@@ -3,10 +3,10 @@ package com.palja.product_service.application.service.impl;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
+import com.palja.product_service.application.dto.CreateProductRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
-import com.palja.product_service.presentation.dto.res.ProductDetailRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
 
     @Override
-    public ProductDetailRes createProduct(CreateProductCommand createCommand) {
+    public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
         /*
           헤더로 로그인 아이디가 넘어와서, 해당 유저의 아이디를 조회해 가져와야함.
@@ -45,6 +45,6 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = repository.save(product);
 
-        return ProductDetailRes.fromEntity(savedProduct);
+        return new CreateProductRes(savedProduct);
     }
 }
