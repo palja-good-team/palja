@@ -37,6 +37,12 @@ public class ProductServiceImpl implements ProductService {
                 createCommand.companyName(),
                 createCommand.stock());
 
+        /*
+            유니크 제약조건 검사 - 회사는 같은 카테고리에 같은 이름의 상품을 등록할 수 없다.
+        */
+        if(repository.isNotUnique(product))
+            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+
         Product savedProduct = repository.save(product);
 
         return ProductDetailRes.fromEntity(savedProduct);

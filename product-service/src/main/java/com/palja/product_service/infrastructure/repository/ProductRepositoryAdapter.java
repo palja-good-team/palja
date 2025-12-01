@@ -15,4 +15,9 @@ public class ProductRepositoryAdapter implements ProductRepository {
     public Product save(Product product) {
         return jpaProductRepository.save(product);
     }
+
+    @Override
+    public Boolean isNotUnique(Product product) {
+        return jpaProductRepository.existsByCompanyNameAndCategoryAndName(product.getCompanyName(), product.getCategory(), product.getName());
+    }
 }

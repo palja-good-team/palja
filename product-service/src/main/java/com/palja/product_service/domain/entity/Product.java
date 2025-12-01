@@ -9,7 +9,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "p_product")
+@Table(name = "p_product",
+        uniqueConstraints = @UniqueConstraint(name = "companyCategoryName",
+                columnNames = {"companyName", "category", "name"}))
 @Getter
 public class Product {
 
