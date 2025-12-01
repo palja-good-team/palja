@@ -4,3 +4,7 @@ server:
 spring:
   application:
     name: gateway-service
+
+  profiles:
+    include:
+      - eureka
