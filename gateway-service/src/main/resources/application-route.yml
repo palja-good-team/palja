@@ -1,0 +1,43 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/v1/payments/**
+
+            - id: review-service
+              uri: lb://review-service
+              predicates:
+                - Path=/api/v1/reviews/**
+
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/managers/**, /api/v1/customers/**, /api/v1/company-users/**, /api/v1/auth/**
+
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/api/v1/products/**
+
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/orders/**
+
+            - id: coupon-service
+              uri: lb://coupon-service
+              predicates:
+                - Path=/api/v1/coupons/**
+
+            - id: timedeal-serivce
+              uri: lb://timedeal-service
+              predicates:
+                - Path=/api/v1/time-deals/**
