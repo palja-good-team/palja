@@ -3,7 +3,7 @@ name: "✨ [Feature] "
 about: Feature 작업 이슈를 생성해주세요!
 title: "✨ [Feature] "
 labels: FEAT
-assignees: bitamin707
+assignees: ''
 
 ---
 

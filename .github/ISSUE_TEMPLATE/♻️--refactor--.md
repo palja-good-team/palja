@@ -1,9 +1,9 @@
 ---
 name: "♻️ [Refactor] "
-about: Describe this issue template's purpose heRefactor 작업 이슈를 생성해주세요!re.
+about: Refactor 작업 이슈를 생성해주세요!
 title: "♻️ [Refactor] "
 labels: REFACTOR
-assignees: bitamin707
+assignees: ''
 
 ---
 
