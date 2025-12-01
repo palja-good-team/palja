@@ -11,7 +11,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
-import com.palja.payment_service.domain.service.PaymentDomainService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentLogRepository paymentLogRepository;
     private final PGPaymentService pgPaymentService;
-    private final PaymentDomainService paymentDomainService;
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
@@ -43,28 +42,28 @@ public class PaymentServiceImpl implements PaymentService {
                 Kafka에 order-service가 주문 상태를 그래도 CREATED로 유지, coupon-service 도 미사용으로 유지
      */
     public PaymentDetailRes createPayment(CreatePaymentCommand command) {
-
-        Payment payment = command.toEntity();
+        Payment payment = Payment.create(command.orderId(), command.userId(), command.amount(), command.currency(), command.paymentMethod(), command.paymentKey());
         paymentRepository.save(payment);
 
-        PaymentLog requestLog = paymentDomainService.createRequestLog(payment);
+        PaymentLog requestLog = createRequestLog(payment);
         paymentLogRepository.save(requestLog);
 
-        PGPaymentRes pgRes = pgPaymentService.requestPayment(payment);
+        PGPaymentRes pgRes;
+        try {
+            pgRes = pgPaymentService.requestPayment(payment);
+        } catch (FeignException e) {
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+        }
 
         if (pgRes.isSuccess()) {
-            paymentDomainService.approvePayment(payment, pgRes.getPaymentKey());
+            approvePayment(payment, pgRes.getPaymentKey());
         } else {
-            paymentDomainService.failPayment(payment, pgRes.getPgResponseMessage());
+            failPayment(payment, pgRes.getPgResponseMessage());
         }
+
         paymentRepository.save(payment);
 
-        PaymentLog resultLog = paymentDomainService.createResultLog(
-                payment,
-                pgRes.getPaymentKey(),
-                pgRes.getPgResponseCode(),
-                pgRes.getPgResponseMessage()
-        );
+        PaymentLog resultLog = createResultLog(payment, pgRes);
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {
@@ -72,5 +71,26 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return PaymentDetailRes.from(payment);
+    }
+
+    private void approvePayment(Payment payment, String paymentKey) {
+        payment.approve(paymentKey);
+    }
+
+    private void failPayment(Payment payment, String reason) {
+        payment.fail(reason);
+    }
+
+    private PaymentLog createRequestLog(Payment payment) {
+        return PaymentLog.createRequestLog(payment);
+    }
+
+    private PaymentLog createResultLog(Payment payment, PGPaymentRes pgRes) {
+        return PaymentLog.createResultLog(
+                payment,
+                pgRes.getPaymentKey(),
+                pgRes.getPgResponseCode(),
+                pgRes.getPgResponseMessage()
+        );
     }
 }

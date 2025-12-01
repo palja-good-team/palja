@@ -56,8 +56,7 @@ public class Payment extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Builder
-    public Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
+    private Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
         this.orderId = orderId;
         this.userId = userId;
         this.amount = amount;
@@ -66,6 +65,10 @@ public class Payment extends BaseEntity {
         this.paymentKey = paymentKey;
         this.status = PaymentStatus.PENDING;
         this.requestedAt = LocalDateTime.now();
+    }
+
+    public static Payment create(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
+        return new Payment(orderId, userId, amount, currency, paymentMethod, paymentKey);
     }
 
     public void approve(String paymentKey) {
