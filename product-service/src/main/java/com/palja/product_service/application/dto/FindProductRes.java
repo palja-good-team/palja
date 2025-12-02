@@ -2,16 +2,13 @@ package com.palja.product_service.application.dto;
 
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Money;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
-@NoArgsConstructor
-public class CreateProductRes {
+public class FindProductRes {
 
     private UUID productId;
     private String name;
@@ -19,11 +16,9 @@ public class CreateProductRes {
     private Money price;
     private String category;
     private BigDecimal avgRating;
-    private String companyName;
-    private Integer stock;
 
-    public static CreateProductRes fromEntity(Product product) {
-        CreateProductRes result = new CreateProductRes();
+    public static FindProductRes fromEntity(Product product) {
+        FindProductRes result = new FindProductRes();
 
         result.productId = product.getId();
         result.name = product.getName();
@@ -31,8 +26,6 @@ public class CreateProductRes {
         result.price = product.getPrice();
         result.category = product.getCategory().name();
         result.avgRating = product.getAvgRating();
-        result.companyName = product.getCompanyName();
-        result.stock = product.getProductStock().getQuantity();
 
         return result;
     }

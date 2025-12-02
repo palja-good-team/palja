@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.dto.CreateProductRes;
+import com.palja.product_service.application.dto.FindProductRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
@@ -45,6 +46,14 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = repository.save(product);
 
-        return new CreateProductRes(savedProduct);
+        return CreateProductRes.fromEntity(savedProduct);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FindProductRes getProduct(UUID productId) {
+
+        Product product = repository.getProduct(productId);
+        return FindProductRes.fromEntity(product);
     }
 }
