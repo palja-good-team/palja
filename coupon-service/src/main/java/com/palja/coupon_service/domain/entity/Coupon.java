@@ -1,12 +1,11 @@
 package com.palja.coupon_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
-import com.palja.coupon_service.domain.vo.CouponStatus;
-import com.palja.coupon_service.domain.vo.DiscountType;
+import com.palja.coupon_service.domain.vo.*;
+import com.palja.coupon_service.exception.CouponErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -23,38 +22,63 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DiscountType discountType; // 할인 타입
+    @Embedded
+    private DiscountPolicy discountPolicy; // 할인율(%) 또는 할인금액
 
-    @Column(nullable = false)
-    private Integer discountValue; // 할인율(%) 또는 할인금액
-
-    @Column(nullable = false)
+    @Column
     private Integer totalQuantity; // 총 발급 가능 수량
 
-    @Column(nullable = false)
+    @Builder.Default
     private Integer issuedQuantity = 0; // 현재 발급된 수량
 
-    @Column
-    private Integer maxDiscountAmount; // 최대 할인 금액
+    @Embedded
+    private AmountPolicy amountPolicy;
 
-    @Column
-    private Integer minOrderAmount; // 최소 주문 금액
-
-    @Column(nullable = false)
-    private LocalDateTime issueStartAt; // 발급 시작일
-
-    @Column(nullable = false)
-    private LocalDateTime issueEndAt; // 발급 종료일
-
-    @Column(nullable = false)
-    private Integer validityDays; // 유효 기간
+    @Embedded
+    private IssuePeriod issuePeriod; // 발급 시작일, 종료일
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponStatus status;
+
+    public static Coupon create(
+            String name,
+            String description,
+            DiscountPolicy discountPolicy,
+            Integer totalQuantity,
+            AmountPolicy amountPolicy,
+            IssuePeriod issuePeriod
+    ) {
+        validateRequiredFields(name);
+        validateQuantity(totalQuantity);
+
+        return Coupon.builder()
+                .name(name)
+                .description(description)
+                .discountPolicy(discountPolicy)
+                .totalQuantity(totalQuantity)
+                .amountPolicy(amountPolicy)
+                .issuePeriod(issuePeriod)
+                .status(CouponStatus.ACTIVE)
+                .build();
+    }
+
+    // 필수 필드 검증
+    private static void validateRequiredFields(String name) {
+        // TODO. BusinessException 적용 필요
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException(CouponErrorCode.INVALID_COUPON_NAME.getMessage());
+    }
+
+    // 수량 정책 검증
+    private static void validateQuantity(Integer totalQuantity) {
+        if (totalQuantity == null)
+            // 무제한 발급
+            return;
+
+        if (totalQuantity < 1)
+            throw new IllegalArgumentException(CouponErrorCode.INVALID_QUANTITY.getMessage());
+    }
 }
