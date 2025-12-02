@@ -4,10 +4,11 @@ import java.util.UUID;
 
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 
 public interface CompanyUserService {
 
-	void createCompanyUser(CreateCompanyUserCommand command);
+	CreateUserRes createCompanyUser(CreateCompanyUserCommand command);
 
 	void updateCompanyUserStatus(UUID companyUserId, UpdateCompanyUserStatusCommand command);
 

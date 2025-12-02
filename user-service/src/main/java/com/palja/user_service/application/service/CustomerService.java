@@ -1,9 +1,10 @@
 package com.palja.user_service.application.service;
 
 import com.palja.user_service.application.command.CreateCustomerCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 
 public interface CustomerService {
 
-	void createCustomer(CreateCustomerCommand command);
+	CreateUserRes createCustomer(CreateCustomerCommand command);
 
 }

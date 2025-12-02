@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.user_service.application.command.CreateManagerCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.presentation.dto.request.CreateManagerReq;
 
@@ -23,11 +24,11 @@ public class ManagerController {
 	private final ManagerService managerService;
 
 	@PostMapping
-	public ResponseEntity<ApiResponse<Void>> create(@Valid @RequestBody CreateManagerReq requestDto) {
+	public ResponseEntity<ApiResponse<CreateUserRes>> create(@Valid @RequestBody CreateManagerReq requestDto) {
 		CreateManagerCommand command = CreateManagerReq.of(requestDto);
-		managerService.createManager(command);
+		CreateUserRes responseDto = managerService.createManager(command);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("관리자가 생성되었습니다."));
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto, "관리자가 생성되었습니다."));
 	}
 
 }

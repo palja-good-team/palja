@@ -10,6 +10,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
@@ -29,7 +30,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	@Override
 	@Transactional
-	public void createCompanyUser(CreateCompanyUserCommand command) {
+	public CreateUserRes createCompanyUser(CreateCompanyUserCommand command) {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
@@ -50,6 +51,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 			.build();
 
 		companyUserRepository.save(companyUser);
+
+		return CreateUserRes.from(user);
 	}
 
 	@Override

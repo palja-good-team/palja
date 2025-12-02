@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.user_service.application.command.CreateManagerCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.domain.entity.Manager;
 import com.palja.user_service.domain.entity.User;
@@ -26,7 +27,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public void createManager(CreateManagerCommand command) {
+	public CreateUserRes createManager(CreateManagerCommand command) {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
@@ -45,6 +46,8 @@ public class ManagerServiceImpl implements ManagerService {
 			.build();
 
 		managerRepository.save(manager);
+
+		return CreateUserRes.from(user);
 	}
 
 	// TODO: 예외코드 생성
