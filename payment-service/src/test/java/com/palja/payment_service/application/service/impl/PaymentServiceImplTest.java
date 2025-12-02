@@ -1,6 +1,7 @@
 package com.palja.payment_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
@@ -23,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,7 +121,7 @@ class PaymentServiceImplTest {
         
         assertThatThrownBy(() -> paymentService.createPayment(command))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_FAILED); // 수정
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_FAILED);
 
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         then(paymentRepository).should(times(2)).save(paymentCaptor.capture());
@@ -141,4 +143,109 @@ class PaymentServiceImplTest {
     /*
     TODO:  orderService에서 주문 시 주문금액과 결제 금액이 다를 때 결제 실패 Test Code(orderService Mock 설정 필요)
      */
+
+    @Test
+    @DisplayName("결제 상태가 APPROVED인 결제건 전체 금액 취소 성공")
+    void cancelPayment_success() {
+        Payment payment = Payment.create(
+                UUID.randomUUID(),
+                1L,
+                new BigDecimal("10000"),
+                "KRW",
+                PaymentMethod.CARD,
+                "paymentKey123"
+        );
+        payment.approve("paymentKey123");
+
+        given(paymentRepository.findById(payment.getId()))
+                .willReturn(Optional.of(payment));
+
+        PGPaymentRes pgRes = PGPaymentRes.builder()
+                .paymentKey("paymentKey123")
+                .pgResponseCode("SUCCESS")
+                .pgResponseMessage("취소 성공")
+                .success(true)
+                .approvedAmount(new BigDecimal("10000"))
+                .build();
+
+        given(pgPaymentService.cancelPayment(payment, new BigDecimal("10000"), "전체 환불"))
+                .willReturn(pgRes);
+
+        PaymentDetailRes result = paymentService.cancelPayment(
+                CancelPaymentCommand.builder()
+                        .paymentId(payment.getId())
+                        .userId(1L)
+                        .cancelAmount(new BigDecimal("10000"))
+                        .cancelReason("전체 환불")
+                        .build()
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(PaymentStatus.CANCELED.name());
+
+        then(pgPaymentService).should()
+                .cancelPayment(payment, new BigDecimal("10000"), "전체 환불");
+    }
+
+    @Test
+    @DisplayName("부분 환불 시 결제 취소 실패")
+    void cancelPayment_partialRefundNotAllowed() {
+        Payment payment = Payment.create(
+                UUID.randomUUID(),
+                1L,
+                new BigDecimal("10000"),
+                "KRW",
+                PaymentMethod.CARD,
+                "paymentKey123"
+        );
+        payment.approve("paymentKey123");
+
+        given(paymentRepository.findById(payment.getId()))
+                .willReturn(Optional.of(payment));
+
+        given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
+                .willThrow(new BusinessException(PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND));
+
+        assertThatThrownBy(() -> paymentService.cancelPayment(
+                CancelPaymentCommand.builder()
+                        .paymentId(payment.getId())
+                        .userId(1L)
+                        .cancelAmount(new BigDecimal("2000"))
+                        .cancelReason("부분 환불 요청")
+                        .build()
+        ))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND);
+    }
+
+    @Test
+    @DisplayName("취소 금액이 결제 금액을 초과하면 결제 취소 실패")
+    void cancelPayment_exceedAmount() {
+        Payment payment = Payment.create(
+                UUID.randomUUID(),
+                1L,
+                new BigDecimal("10000"),
+                "KRW",
+                PaymentMethod.CARD,
+                "paymentKey123"
+        );
+        payment.approve("paymentKey123");
+
+        given(paymentRepository.findById(payment.getId()))
+                .willReturn(Optional.of(payment));
+
+        given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
+                .willThrow(new BusinessException(PaymentErrorCode.PAYMENT_EXCEED_AMOUNT));
+
+        assertThatThrownBy(() -> paymentService.cancelPayment(
+                CancelPaymentCommand.builder()
+                        .paymentId(payment.getId())
+                        .userId(1L)
+                        .cancelAmount(new BigDecimal("12000"))
+                        .cancelReason("환불 요청")
+                        .build()
+        ))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
+    }
 }
