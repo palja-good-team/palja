@@ -31,7 +31,10 @@ public class AuthorizationFilter implements GlobalFilter {
 
 	private final Map<String, List<String>> permitAllPaths = Map.of(
 		"/api/v1/auth/login", List.of("POST"),
-		"/api/v1/auth/refresh", List.of("POST")
+		"/api/v1/auth/refresh", List.of("POST"),
+		"/api/v1/managers", List.of("POST"),
+		"/api/v1/customers", List.of("POST"),
+		"/api/v1/company-users", List.of("POST")
 	);
 
 	@Override
