@@ -32,8 +32,6 @@ public class IssuePeriod {
     }
 
     private void validate(LocalDateTime issueStartAt, LocalDateTime issueEndAt) {
-        if (issueStartAt == null && issueEndAt == null) return;
-
         if (issueStartAt == null || issueEndAt == null) return;
 
         if (issueStartAt.isAfter(issueEndAt)) {
