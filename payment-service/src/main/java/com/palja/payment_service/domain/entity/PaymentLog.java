@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -62,5 +63,34 @@ public class PaymentLog extends BaseEntity {
         this.pgResponseCode = pgResponseCode;
         this.pgResponseMessage = pgResponseMessage;
         this.processedAt = processedAt;
+    }
+
+    public static PaymentLog createRequestLog(Payment payment) {
+        return PaymentLog.builder()
+                .payment(payment)
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .status(payment.getStatus())
+                .paymentKey(Objects.toString(payment.getPaymentKey(), ""))
+                .pgResponseCode(null)
+                .pgResponseMessage(null)
+                .processedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static PaymentLog createResultLog(Payment payment,
+                                             String paymentKey,
+                                             String pgResponseCode,
+                                             String pgResponseMessage) {
+        return PaymentLog.builder()
+                .payment(payment)
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .status(payment.getStatus())
+                .paymentKey(paymentKey != null ? paymentKey : "")
+                .pgResponseCode(pgResponseCode)
+                .pgResponseMessage(pgResponseMessage)
+                .processedAt(LocalDateTime.now())
+                .build();
     }
 }
