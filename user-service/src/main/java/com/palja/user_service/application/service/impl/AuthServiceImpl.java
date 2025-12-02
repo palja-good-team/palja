@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.application.util.JwtUtil;
-import com.palja.user_service.domain.external.redis.RedisRepository;
+import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,26 +19,26 @@ import lombok.RequiredArgsConstructor;
 public class AuthServiceImpl implements AuthService {
 
 	private final UserRepository userRepository;
-	private final RedisRepository redisRepository;
+	private final TokenRepository tokenRepository;
 
 	private final JwtUtil jwtUtil;
 
 	@Override
-	public String refreshAccessToken(Long userId, String userRole, String accessToken, String refreshToken) {
+	public String refreshAccessToken(String loginId, String userRole, String accessToken, String refreshToken) {
 		String substringRefreshToken = jwtUtil.substringToken(URLDecoder.decode(refreshToken, StandardCharsets.UTF_8));
 		validateRefreshToken(substringRefreshToken);
 
 		if (accessToken != null) {
-			addAccessTokenToBlackList(userId, accessToken);
+			addAccessTokenToBlackList(loginId, accessToken);
 		}
 
-		return jwtUtil.generateAccessToken(userId, userRole);
+		return jwtUtil.generateAccessToken(loginId, userRole);
 	}
 
 	@Override
-	public void logout(Long userId, String accessToken) {
-		addAccessTokenToBlackList(userId, accessToken);
-		redisRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + userId);
+	public void logout(String loginId, String accessToken) {
+		addAccessTokenToBlackList(loginId, accessToken);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
 	}
 
 	private void validateRefreshToken(String refreshToken) {
@@ -47,12 +47,12 @@ public class AuthServiceImpl implements AuthService {
 		}
 	}
 
-	private void addAccessTokenToBlackList(Long userId, String accessToken) {
+	private void addAccessTokenToBlackList(String loginId, String accessToken) {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
-		redisRepository.save(
-			ACCESS_TOKEN_BLACKLIST_PREFIX + userId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		tokenRepository.save(
+			ACCESS_TOKEN_BLACKLIST_PREFIX + loginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 	}
 

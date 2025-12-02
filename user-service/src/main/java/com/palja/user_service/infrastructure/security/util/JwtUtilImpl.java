@@ -47,13 +47,32 @@ public class JwtUtilImpl implements JwtUtil {
 	}
 
 	@Override
-	public String generateAccessToken(Long userId, String role) {
-		return generateToken(userId, role, accessKey, accessKeyExpirationTime);
+	public String generateAccessToken(String loginId, String role) {
+		Date now = new Date();
+
+		return BEARER_PREFIX +
+			Jwts.builder()
+				.setSubject(loginId)
+				.claim("role", role)
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime() + accessKeyExpirationTime))
+				.signWith(accessKey, SignatureAlgorithm.HS256)
+				.compact()
+			;
 	}
 
 	@Override
-	public String generateRefreshToken(Long userId, String role) {
-		return generateToken(userId, role, refreshKey, refreshKeyExpirationTime);
+	public String generateRefreshToken(String loginId) {
+		Date now = new Date();
+
+		return BEARER_PREFIX +
+			Jwts.builder()
+				.setSubject(loginId)
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime() + refreshKeyExpirationTime))
+				.signWith(refreshKey, SignatureAlgorithm.HS256)
+				.compact()
+			;
 	}
 
 	@Override

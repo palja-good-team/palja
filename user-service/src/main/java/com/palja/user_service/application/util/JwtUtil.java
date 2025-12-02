@@ -8,9 +8,9 @@ public interface JwtUtil {
 
 	long getRefreshKeyExpirationTime();
 
-	String generateAccessToken(Long userId, String role);
+	String generateAccessToken(String loginId, String role);
 
-	String generateRefreshToken(Long userId, String role);
+	String generateRefreshToken(String loginId);
 
 	boolean validateAccessToken(String accessToken);
 
