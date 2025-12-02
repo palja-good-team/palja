@@ -37,7 +37,7 @@ spring:
               predicates:
                 - Path=/api/v1/coupons/**
 
-            - id: timedeal-serivce
+            - id: timedeal-service
               uri: lb://timedeal-service
               predicates:
                 - Path=/api/v1/time-deals/**
