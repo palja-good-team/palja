@@ -9,3 +9,4 @@ spring:
     include:
       - eureka
       - route
+      - security

@@ -1,24 +1,17 @@
-package com.palja.user_service.infrastructure.security.util;
+package com.palja.gateway_service.util;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import com.palja.user_service.application.util.JwtUtil;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -27,110 +20,33 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class JwtUtilImpl implements JwtUtil {
+public class JwtUtil {
 
 	private final Key accessKey;
 	@Getter private final long accessKeyExpirationTime;
-	private final Key refreshKey;
-	@Getter private final long refreshKeyExpirationTime;
 
-	private final String BEARER_PREFIX = "Bearer ";
+	@Getter private final String BEARER_PREFIX = "Bearer ";
 
-	public JwtUtilImpl(
-		@Value("${jwt.access.secret}") String accessSecret, @Value("${jwt.access.expiration}") Duration accessExpiration,
-		@Value("${jwt.refresh.secret}") String refreshSecret, @Value("${jwt.refresh.expiration}") Duration refreshExpiration
+	public JwtUtil(
+		@Value("${jwt.access.secret}") String accessSecret, @Value("${jwt.access.expiration}") Duration accessExpiration
 	) {
 		this.accessKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(accessSecret));
 		this.accessKeyExpirationTime = accessExpiration.toMillis();
-		this.refreshKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(refreshSecret));
-		this.refreshKeyExpirationTime = refreshExpiration.toMillis();
 	}
 
-	@Override
-	public String generateAccessToken(String loginId, String role) {
-		Date now = new Date();
-
-		return BEARER_PREFIX +
-			Jwts.builder()
-				.setSubject(loginId)
-				.claim("role", role)
-				.setIssuedAt(now)
-				.setExpiration(new Date(now.getTime() + accessKeyExpirationTime))
-				.signWith(accessKey, SignatureAlgorithm.HS256)
-				.compact()
-			;
-	}
-
-	@Override
-	public String generateRefreshToken(String loginId) {
-		Date now = new Date();
-
-		return BEARER_PREFIX +
-			Jwts.builder()
-				.setSubject(loginId)
-				.setIssuedAt(now)
-				.setExpiration(new Date(now.getTime() + refreshKeyExpirationTime))
-				.signWith(refreshKey, SignatureAlgorithm.HS256)
-				.compact()
-			;
-	}
-
-	@Override
 	public boolean validateAccessToken(String accessToken) {
 		return validateToken(accessToken, accessKey);
 	}
 
-	@Override
-	public boolean validateRefreshToken(String refreshToken) {
-		return validateToken(refreshToken, refreshKey);
-	}
-
-	@Override
 	public String substringToken(String token) {
 		if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
 			return token.substring(BEARER_PREFIX.length());
-		} else {
-			throw new NullPointerException("토큰을 찾을 수 없습니다.");
 		}
+		return null;
 	}
 
-	@Override
 	public Claims parseAccessToken(String accessToken) {
 		return parseToken(accessToken, accessKey);
-	}
-
-	@Override
-	public Claims parseRefreshToken(String refreshToken) {
-		return parseToken(refreshToken, refreshKey);
-	}
-
-	@Override
-	public String hashingTokenToSHA256(String token) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			md.update(token.getBytes(StandardCharsets.UTF_8));
-			StringBuilder sb = new StringBuilder();
-			for (byte b : md.digest()) {
-				sb.append(String.format("%02x", b));
-			}
-			return sb.toString();
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.");
-		}
-	}
-
-	private String generateToken(Long userId, String role, Key key, long expirationTime) {
-		Date now = new Date();
-
-		return BEARER_PREFIX +
-			Jwts.builder()
-				.setSubject(String.valueOf(userId))
-				.claim("role", role)
-				.setIssuedAt(now)
-				.setExpiration(new Date(now.getTime() + expirationTime))
-				.signWith(key, SignatureAlgorithm.HS256)
-				.compact()
-			;
 	}
 
 	private boolean validateToken(String token, Key key) {
