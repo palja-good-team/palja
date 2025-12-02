@@ -11,6 +11,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
+import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,7 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {
-            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+            throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
 
         return PaymentDetailRes.from(payment);

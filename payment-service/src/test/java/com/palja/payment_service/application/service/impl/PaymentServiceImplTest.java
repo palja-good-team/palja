@@ -1,7 +1,6 @@
 package com.palja.payment_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
@@ -12,6 +11,7 @@ import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
 import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
+import com.palja.payment_service.exception.PaymentErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -116,10 +116,10 @@ class PaymentServiceImplTest {
 
         given(pgPaymentService.requestPayment(any(Payment.class)))
                 .willReturn(pgRes);
-
+        
         assertThatThrownBy(() -> paymentService.createPayment(command))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", CommonErrorCode.FEIGN_ERROR);
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_FAILED); // 수정
 
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         then(paymentRepository).should(times(2)).save(paymentCaptor.capture());
