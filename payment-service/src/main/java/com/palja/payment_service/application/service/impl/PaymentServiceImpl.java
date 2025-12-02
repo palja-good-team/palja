@@ -2,6 +2,7 @@ package com.palja.payment_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
@@ -11,6 +12,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
+import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,49 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (!pgRes.isSuccess()) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
+        }
+
+        return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(noRollbackFor = BusinessException.class)
+    public PaymentDetailRes cancelPayment(CancelPaymentCommand command) {
+
+        Payment payment = paymentRepository.findById(command.paymentId())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
+
+        if (payment.getStatus() != PaymentStatus.APPROVED) {
+            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+        }
+
+        PaymentLog requestLog = createRequestLog(payment);
+        paymentLogRepository.save(requestLog);
+
+        PGPaymentRes pgRes;
+        try {
+            pgRes = pgPaymentService.cancelPayment(
+                    payment,
+                    command.cancelAmount(),
+                    command.cancelReason()
+            );
+        } catch (Exception e) {
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+        }
+
+        if (pgRes.isSuccess()) {
+            payment.cancel(command.cancelReason());
+        } else {
+            payment.fail(pgRes.getPgResponseMessage());
+        }
+
+        paymentRepository.save(payment);
+
+        PaymentLog resultLog = createResultLog(payment, pgRes);
+        paymentLogRepository.save(resultLog);
+
+        if (!pgRes.isSuccess()) {
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
 
         return PaymentDetailRes.from(payment);

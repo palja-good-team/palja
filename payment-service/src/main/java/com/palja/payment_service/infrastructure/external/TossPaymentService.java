@@ -1,8 +1,11 @@
 package com.palja.payment_service.infrastructure.external;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.service.PGPaymentService;
 import com.palja.payment_service.domain.entity.Payment;
+import com.palja.payment_service.exception.PaymentErrorCode;
+import com.palja.payment_service.infrastructure.dto.request.TossPaymentCancelReq;
 import com.palja.payment_service.infrastructure.dto.response.TossPaymentRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +69,62 @@ public class TossPaymentService implements PGPaymentService {
             return PGPaymentRes.builder()
                     .paymentKey(paymentKey)
                     .pgResponseCode(String.valueOf(e.getStatusCode()))
+                    .pgResponseMessage(e.getResponseBodyAsString())
+                    .success(false)
+                    .approvedAmount(null)
+                    .build();
+        }
+    }
+
+    @Override
+    public PGPaymentRes cancelPayment(Payment payment, BigDecimal cancelAmount, String cancelReason) {
+        String paymentKey = payment.getPaymentKey();
+        log.info("Toss cancel request. paymentKey={}, orderId={}, cancelAmount={}, reason={}",
+                paymentKey, payment.getOrderId(), cancelAmount, cancelReason);
+
+        if (cancelAmount.compareTo(payment.getAmount()) > 0) {
+            log.error("취소 금액이 결제 금액을 초과합니다. cancelAmount={}, paymentAmount={}", cancelAmount, payment.getAmount());
+            throw new BusinessException(PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
+        }
+
+        if (cancelAmount.compareTo(payment.getAmount()) < 0) {
+            log.error("부분 환불은 지원되지 않습니다. cancelAmount={}, paymentAmount={}", cancelAmount, payment.getAmount());
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND);
+        }
+
+        try {
+            TossPaymentCancelReq req = TossPaymentCancelReq.builder()
+                    .cancelAmount(cancelAmount)
+                    .cancelReason(cancelReason)
+                    .build();
+
+            TossPaymentRes res = tossWebClient.post()
+                    .uri("/v1/payments/{paymentKey}/cancel", paymentKey)
+                    .bodyValue(req)
+                    .retrieve()
+                    .bodyToMono(TossPaymentRes.class)
+                    .block();
+
+            boolean success = "CANCELED".equalsIgnoreCase(res.getStatus());
+            String message = success
+                    ? "토스 결제 취소 성공"
+                    : "토스 결제 취소 실패. status=" + res.getStatus();
+
+            return PGPaymentRes.builder()
+                    .paymentKey(res.getPaymentKey())
+                    .pgResponseCode(success ? "SUCCESS" : res.getStatus())
+                    .pgResponseMessage(message)
+                    .success(success)
+                    .approvedAmount(null)
+                    .build();
+
+        } catch (WebClientResponseException e) {
+            log.error("토스 결제 취소 API 실패. 상태 코드: {} 응답: {}",
+                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+
+            return PGPaymentRes.builder()
+                    .paymentKey(paymentKey)
+                    .pgResponseCode(String.valueOf(e.getStatusCode().value()))
                     .pgResponseMessage(e.getResponseBodyAsString())
                     .success(false)
                     .approvedAmount(null)

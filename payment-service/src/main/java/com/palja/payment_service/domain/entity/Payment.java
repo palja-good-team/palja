@@ -1,8 +1,10 @@
 package com.palja.payment_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
+import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
+import com.palja.payment_service.exception.PaymentErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -79,5 +81,15 @@ public class Payment extends BaseEntity {
     public void fail(String pgMessage) {
         this.status = PaymentStatus.FAILED;
         this.cancelReason = pgMessage;
+    }
+
+    public void cancel(String reason) {
+        if (this.status != PaymentStatus.APPROVED) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVED);
+        }
+
+        this.status = PaymentStatus.CANCELED;
+        this.cancelReason = reason;
+        this.completedAt = LocalDateTime.now();
     }
 }

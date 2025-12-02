@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
 
+    PAYMENT_EXCEED_AMOUNT(HttpStatus.BAD_REQUEST, "취소 금액이 결제 금액을 초과할 수 없습니다."),
+    PAYMENT_NOT_PARTIAL_REFUND(HttpStatus.BAD_REQUEST, "부분 환불이 불가합니다,"),
+    PAYMENT_NOT_APPROVED(HttpStatus.BAD_REQUEST,"승인된 결제만 취소할 수 있습니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
     INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 방법입니다."),
     INSUFFICIENT_FUNDS(HttpStatus.BAD_REQUEST, "결제에 필요한 금액이 부족합니다."),
