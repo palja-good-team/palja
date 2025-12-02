@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.response.ApiResponse;
 import com.palja.user_service.application.service.AuthService;
 
@@ -25,12 +26,11 @@ public class AuthController {
 
 	@PostMapping("/refresh")
 	public ResponseEntity<ApiResponse<Void>> refresh(
-		@RequestHeader("X-USER-LOGIN-ID") String loginId, @RequestHeader("X-USER-ROLE") String userRole,
 		@RequestHeader(value = "Authorization", required = false) String accessToken,
 		@CookieValue(value = "refresh_token", required = false) String refreshToken,
 		HttpServletResponse response
 	) {
-		String newAccessToken = authService.refreshAccessToken(loginId, userRole, accessToken, refreshToken);
+		String newAccessToken = authService.refreshAccessToken(accessToken, refreshToken);
 		addAccessTokenToHeader(response, newAccessToken);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("토큰이 재발급 되었습니다."));
@@ -38,9 +38,10 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("X-USER-LOGIN-ID") String loginId,
 		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
 	) {
+		String loginId = AuditorContext.get().getLoginId();
+
 		authService.logout(loginId, accessToken);
 		expireRefreshTokenToCookie(response);
 

@@ -119,20 +119,6 @@ public class JwtUtilImpl implements JwtUtil {
 		}
 	}
 
-	private String generateToken(Long userId, String role, Key key, long expirationTime) {
-		Date now = new Date();
-
-		return BEARER_PREFIX +
-			Jwts.builder()
-				.setSubject(String.valueOf(userId))
-				.claim("role", role)
-				.setIssuedAt(now)
-				.setExpiration(new Date(now.getTime() + expirationTime))
-				.signWith(key, SignatureAlgorithm.HS256)
-				.compact()
-			;
-	}
-
 	private boolean validateToken(String token, Key key) {
 		try {
 			Jwts.parserBuilder()
