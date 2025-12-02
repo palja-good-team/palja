@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.vo.UserRole;
-import com.palja.user_service.infrastructure.security.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
 
@@ -88,6 +88,15 @@ public class JwtUtilTest {
 			assertThat(claims.get("role", String.class)).isEqualTo(manager.getRole().name());
 		}
 
+		@Test
+		@DisplayName("해싱")
+		@Order(5)
+		void hashing() {
+			String hash1 = jwtUtil.hashingTokenToSHA256(accessToken);
+			String hash2 = jwtUtil.hashingTokenToSHA256(accessToken);
+			assertThat(hash1).isEqualTo(hash2);
+		}
+
 	}
 
 	@Nested
@@ -130,6 +139,15 @@ public class JwtUtilTest {
 			Claims claims = jwtUtil.parseRefreshToken(refreshToken);
 			assertThat(claims.getSubject()).isEqualTo(manager.getId().toString());
 			assertThat(claims.get("role", String.class)).isEqualTo(manager.getRole().name());
+		}
+
+		@Test
+		@DisplayName("해싱")
+		@Order(5)
+		void hashing() {
+			String hash1 = jwtUtil.hashingTokenToSHA256(refreshToken);
+			String hash2 = jwtUtil.hashingTokenToSHA256(refreshToken);
+			assertThat(hash1).isEqualTo(hash2);
 		}
 
 	}
