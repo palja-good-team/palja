@@ -79,16 +79,18 @@ public class TossPaymentService implements PGPaymentService {
     @Override
     public PGPaymentRes cancelPayment(Payment payment, BigDecimal cancelAmount, String cancelReason) {
         String paymentKey = payment.getPaymentKey();
-        log.info("Toss cancel request. paymentKey={}, orderId={}, cancelAmount={}, reason={}",
-                paymentKey, payment.getOrderId(), cancelAmount, cancelReason);
+        log.info("Toss cancel request. paymentKey={}, orderId={}, cancelAmount={}, paymentAmount={}, reason={}",
+                paymentKey, payment.getOrderId(), cancelAmount, payment.getAmount(), cancelReason);
 
-        if (cancelAmount.compareTo(payment.getAmount()) > 0) {
-            log.error("취소 금액이 결제 금액을 초과합니다. cancelAmount={}, paymentAmount={}", cancelAmount, payment.getAmount());
+        BigDecimal paymentAmount = payment.getAmount();
+
+        if (cancelAmount.compareTo(paymentAmount) > 0) {
+            log.error("취소 금액이 결제 금액을 초과합니다. cancelAmount={}, paymentAmount={}", cancelAmount, paymentAmount);
             throw new BusinessException(PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
         }
 
-        if (cancelAmount.compareTo(payment.getAmount()) < 0) {
-            log.error("부분 환불은 지원되지 않습니다. cancelAmount={}, paymentAmount={}", cancelAmount, payment.getAmount());
+        if (cancelAmount.compareTo(paymentAmount) < 0) {
+            log.error("부분 환불은 지원되지 않습니다. cancelAmount={}, paymentAmount={}", cancelAmount, paymentAmount);
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND);
         }
 

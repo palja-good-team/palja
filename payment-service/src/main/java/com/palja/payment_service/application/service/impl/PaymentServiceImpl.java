@@ -29,21 +29,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
-    /*TODO: order-service에서 orderId로 주문을 조회하고
-            주문금액과 결제 금액이 동일한지, userId, status(CREATED) 검증하기
-            만약, 다르다면 PG 호출하지 말고 Payment 상태값을 FAILED로 저장하고 로그 남기기
-
-      TODO: PaymentLog에 retryCount, success 추가하고
-            5~10분 이내 같은 orderId와 userId로 결제 5번 이상 실패하면
-            더 이상 PG 호출이 안되도록 막기, order-service에 이벤트 전달 (상태 CREATED->CANCLED)
-
-      TODO: 결제 성공 & 실패 이벤트 발생
-            1. PaymentApprovedEvent(orderId, paymentId, userId, amount, paymentKey 등)
-             Kafka에 order-service, coupon-service 등이 이 이벤트를 구독해서
-             주문 상태 변경, 쿠폰 사용 처리 등을 비동기로 처리
-            2. PaymentFailedEvent(orderId, paymentId, userId, 사유, 에러코드 등)
-                Kafka에 order-service가 주문 상태를 그래도 CREATED로 유지, coupon-service 도 미사용으로 유지
-     */
     public PaymentDetailRes createPayment(CreatePaymentCommand command) {
         Payment payment = Payment.create(command.orderId(), command.userId(), command.amount(), command.currency(), command.paymentMethod(), command.paymentKey());
         paymentRepository.save(payment);
@@ -81,10 +66,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentDetailRes cancelPayment(CancelPaymentCommand command) {
 
         Payment payment = paymentRepository.findById(command.paymentId())
-                .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getStatus() != PaymentStatus.APPROVED) {
-            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVED);
         }
 
         PaymentLog requestLog = createRequestLog(payment);
@@ -97,6 +82,8 @@ public class PaymentServiceImpl implements PaymentService {
                     command.cancelAmount(),
                     command.cancelReason()
             );
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
@@ -113,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {
-            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+            throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
 
         return PaymentDetailRes.from(payment);
