@@ -1,17 +1,14 @@
-package com.palja.product_service.application.dto;
+package com.palja.product_service.application.dto.res;
 
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Money;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
-@NoArgsConstructor
-public class CreateProductRes {
+public class FindProductListByConditionRes {
 
     private UUID productId;
     private String name;
@@ -19,20 +16,17 @@ public class CreateProductRes {
     private Money price;
     private String category;
     private BigDecimal avgRating;
-    private String companyName;
-    private Integer stock;
 
-    public static CreateProductRes fromEntity(Product product) {
-        CreateProductRes result = new CreateProductRes();
+    public static FindProductListByConditionRes fromEntity(Product product) {
+        FindProductListByConditionRes result = new FindProductListByConditionRes();
 
         result.productId = product.getId();
         result.name = product.getName();
-        result.description = product.getDescription();
+        result.description = product.getDescription().length() > 50 ?
+                product.getDescription().substring(0, 50)+ "..." : product.getDescription();
         result.price = product.getPrice();
         result.category = product.getCategory().name();
         result.avgRating = product.getAvgRating();
-        result.companyName = product.getCompanyName();
-        result.stock = product.getProductStock().getQuantity();
 
         return result;
     }

@@ -2,9 +2,9 @@ package com.palja.product_service.application.service.impl;
 
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.dto.CreateProductRes;
-import com.palja.product_service.application.dto.FindProductRes;
-import com.palja.product_service.application.dto.ProductListByConditionRes;
+import com.palja.product_service.application.dto.res.CreateProductRes;
+import com.palja.product_service.application.dto.res.FindProductRes;
+import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
@@ -112,7 +112,7 @@ class ProductServiceImplTest {
                 .willReturn(List.of(product,product));
 
         //when
-        Page<ProductListByConditionRes> products = productService.findProducts(command, pageRequest);
+        Page<FindProductListByConditionRes> products = productService.findProducts(command, pageRequest);
 
         //then
         assertThat(products.getTotalElements()).isEqualTo(2);

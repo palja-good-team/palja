@@ -1,4 +1,4 @@
-package com.palja.product_service.application.dto;
+package com.palja.product_service.application.dto.res;
 
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Money;

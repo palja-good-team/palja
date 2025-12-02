@@ -4,9 +4,9 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.dto.CreateProductRes;
-import com.palja.product_service.application.dto.FindProductRes;
-import com.palja.product_service.application.dto.ProductListByConditionRes;
+import com.palja.product_service.application.dto.res.CreateProductRes;
+import com.palja.product_service.application.dto.res.FindProductRes;
+import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
@@ -69,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
+    public Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
 
         Category category = Category.fromString(command.getCategory());
         FindListByConditionReq condition = command.toDomainCondition(category);
@@ -77,8 +77,8 @@ public class ProductServiceImpl implements ProductService {
         List<Product> productList = repository.findProductsToCondition(condition, pageable);
         Long pageCount = dslProductRepository.getPageCount(condition);
 
-        List<ProductListByConditionRes> content =
-                productList.stream().map(ProductListByConditionRes::fromEntity).toList();
+        List<FindProductListByConditionRes> content =
+                productList.stream().map(FindProductListByConditionRes::fromEntity).toList();
 
         return new PageImpl<>(content,pageable,pageCount);
     }
