@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.palja.user_service.domain.entity.Manager;
 
 public interface JpaManagerRepository extends JpaRepository<Manager, UUID> {
+
+	boolean existsByEmailAndDeletedAtIsNull(String email);
+
 }

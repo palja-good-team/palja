@@ -5,7 +5,6 @@ import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -56,14 +55,29 @@ public class Payment extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Builder
-    public Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod) {
+    private Payment(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
         this.orderId = orderId;
         this.userId = userId;
         this.amount = amount;
         this.currency = currency;
         this.paymentMethod = paymentMethod;
+        this.paymentKey = paymentKey;
         this.status = PaymentStatus.PENDING;
         this.requestedAt = LocalDateTime.now();
+    }
+
+    public static Payment create(UUID orderId, Long userId, BigDecimal amount, String currency, PaymentMethod paymentMethod, String paymentKey) {
+        return new Payment(orderId, userId, amount, currency, paymentMethod, paymentKey);
+    }
+
+    public void approve(String paymentKey) {
+        this.status = PaymentStatus.APPROVED;
+        this.paymentKey = paymentKey;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void fail(String pgMessage) {
+        this.status = PaymentStatus.FAILED;
+        this.cancelReason = pgMessage;
     }
 }

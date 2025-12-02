@@ -1,0 +1,7 @@
+jwt:
+  access:
+    secret: ${ACCESS_SECRET_KEY}
+    expiration: 1h
+  refresh:
+    secret: ${REFRESH_SECRET_KEY}
+    expiration: 7d
