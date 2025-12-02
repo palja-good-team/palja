@@ -40,6 +40,12 @@ public class Manager extends BaseEntity {
 	@Column(name = "email", nullable = false, unique = true)
 	private String email;
 
+	@Override
+	public void softDelete() {
+		super.softDelete();
+		user.softDelete();
+	}
+
 	@Builder
 	private Manager(User user, String name, String email) {
 		this.user = user;

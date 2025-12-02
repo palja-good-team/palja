@@ -2,6 +2,7 @@ package com.palja.user_service.domain.entity;
 
 import java.time.Instant;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.user_service.domain.vo.UserRole;
 import com.palja.user_service.domain.vo.UserStatus;
 
@@ -51,8 +52,13 @@ public class User {
 	@Column(name = "deletedAt")
 	private Instant deletedAt;
 
-	@Column(name = "deletedBy")
-	private Long deletedBy;
+	@Column(name = "deletedBy", length = 10)
+	private String deletedBy;
+
+	public void softDelete() {
+		this.deletedAt = Instant.now();
+		this.deletedBy = AuditorContext.get().getLoginId();
+	}
 
 	@Builder
 	private User(String loginId, String password, String name, UserRole role) {
