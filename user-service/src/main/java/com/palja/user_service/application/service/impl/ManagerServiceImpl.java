@@ -34,6 +34,7 @@ public class ManagerServiceImpl implements ManagerService {
 		User user = User.builder()
 			.loginId(command.loginId())
 			.password(passwordEncoder.encode(command.password()))
+			.name(command.name())
 			.role(UserRole.MANAGER)
 			.build();
 

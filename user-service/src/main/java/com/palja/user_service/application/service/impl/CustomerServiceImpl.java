@@ -34,6 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
 		User user = User.builder()
 			.loginId(command.loginId())
 			.password(passwordEncoder.encode(command.password()))
+			.name(command.name())
 			.role(UserRole.CUSTOMER)
 			.build();
 

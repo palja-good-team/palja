@@ -35,6 +35,9 @@ public class User {
 	@Column(name = "password", nullable = false)
 	private String password;
 
+	@Column(name = "name", length = 10, nullable = false, unique = true)
+	private String name;
+
 	@Column(name = "role", nullable = false)
 	@Enumerated(EnumType.STRING)
 	// @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -52,9 +55,10 @@ public class User {
 	private Long deletedBy;
 
 	@Builder
-	private User(String loginId, String password, UserRole role) {
+	private User(String loginId, String password, String name, UserRole role) {
 		this.loginId = loginId;
 		this.password = password;
+		this.name = name;
 		this.role = role;
 		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
 	}
