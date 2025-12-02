@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 public class AuthorizationFilter implements GlobalFilter {
 
 	private final JwtUtil jwtUtil;
+	private final ObjectMapper objectMapper;
 
 	private final Map<String, List<String>> permitAllPaths = Map.of(
 		"/api/v1/auth/login", List.of("POST"),
@@ -73,7 +74,7 @@ public class AuthorizationFilter implements GlobalFilter {
 
 	private Mono<DataBuffer> getBuffer(ServerWebExchange exchange) {
 		try {
-			byte[] bytes = new ObjectMapper().writeValueAsBytes(getBody());
+			byte[] bytes = objectMapper.writeValueAsBytes(getBody());
 			DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
 			return Mono.just(buffer);
 		} catch (JsonProcessingException e) {
