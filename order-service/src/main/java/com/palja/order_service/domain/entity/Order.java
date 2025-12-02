@@ -67,4 +67,17 @@ public class Order extends BaseEntity {
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
+
+    // 연관관계 (도메인상 Order → 자식 사용, JPA owner는 자식)
+    @OneToOne(mappedBy = "order",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private OrderItem orderItem;
+
+    @OneToOne(mappedBy = "order",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private OrderDelivery delivery;
 }

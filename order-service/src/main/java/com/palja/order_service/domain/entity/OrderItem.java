@@ -22,9 +22,14 @@ public class OrderItem extends BaseEntity {
     @Column(name = "order_item_id", nullable = false, updatable = false)
     private UUID orderItemId;
 
+    // FK owner (JPA 연관관계 주인)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
+
+    // 조회용으로만 쓰는 read-only FK
+    @Column(name = "order_id", nullable = false, insertable = false, updatable = false)
+    private UUID orderId;
 
     @Column(name = "product_id", nullable = false)
     private UUID productId;

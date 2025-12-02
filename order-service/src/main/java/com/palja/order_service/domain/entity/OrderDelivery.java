@@ -11,28 +11,23 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "p_order_item_delivery")
+@Table(name = "p_order_delivery")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class OrderItemDelivery {
+public class OrderDelivery {
 
-    // PK = FK to p_order_item
-    // @MapsId를 사용하여 OrderItem의 PK를 공유하는 식별 관계 매핑
+    // PK = FK to p_order.order_id
     @Id
-    @Column(name = "order_item_id", nullable = false, updatable = false)
-    private UUID orderItemId;
+    @Column(name = "order_id", nullable = false, updatable = false)
+    private UUID orderId;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_item_id")
-    private OrderItem orderItem;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")
     private Order order;
 
-    @Column(name = "delivery_message")
+    @Column(name = "delivery_message", length = 255)
     private String deliveryMessage;
 
     @Enumerated(EnumType.STRING)
