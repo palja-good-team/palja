@@ -8,6 +8,8 @@ public interface UserRepository {
 
 	boolean existsByLoginIdAndDeletedAtIsNull(String loginId);
 
+	boolean existsByNameAndDeletedAtIsNull(String name);
+
 	Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
 
 }

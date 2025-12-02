@@ -54,8 +54,10 @@ public class ManagerServiceImpl implements ManagerService {
 		}
 	}
 
-	// TODO: 중복 검사 전략 결정 후 작성
 	private void validateDuplicateName(String name) {
+		if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
+			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
+		}
 	}
 
 	private void validateDuplicateEmail(String email) {
