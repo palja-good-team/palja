@@ -37,27 +37,23 @@ public class AuthServiceImpl implements AuthService {
 		String password = command.password();
 
 		User user = getUserByLoginId(loginId);
-		if (passwordEncoder.matches(password, user.getPassword())) {
-			if (user.getStatus().equals(UserStatus.PENDING)) {
-				throw new IllegalArgumentException("가입 승인 대기 상태인 계정입니다.");
-			}
-			String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
-			String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
+		validateUserPassword(password, user.getPassword());
+		validateUserStatus(user);
 
-			tokenRepository.save(
-				REFRESH_TOKEN_WHITELIST_PREFIX + loginId,
-				jwtUtil.substringToken(refreshToken),
-				jwtUtil.getRefreshKeyExpirationTime()
-			);
+		String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
+		String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
 
-			return TokenRes.builder()
-				.accessToken(accessToken)
-				.refreshToken(refreshToken)
-				.refreshKeyExpirationTime(jwtUtil.getRefreshKeyExpirationTime())
-				.build();
-		} else {
-			throw new IllegalArgumentException("로그인 정보가 잘못되었습니다.");
-		}
+		tokenRepository.save(
+			REFRESH_TOKEN_WHITELIST_PREFIX + loginId,
+			jwtUtil.substringToken(refreshToken),
+			jwtUtil.getRefreshKeyExpirationTime()
+		);
+
+		return TokenRes.builder()
+			.accessToken(accessToken)
+			.refreshToken(refreshToken)
+			.refreshKeyExpirationTime(jwtUtil.getRefreshKeyExpirationTime())
+			.build();
 	}
 
 	@Override
@@ -88,6 +84,18 @@ public class AuthServiceImpl implements AuthService {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(CommonErrorCode.NOT_FOUND)
 		);
+	}
+
+	private void validateUserPassword(String password, String userPassword) {
+		if (!passwordEncoder.matches(password, userPassword)) {
+			throw new IllegalArgumentException("로그인 정보가 잘못되었습니다.");
+		}
+	}
+
+	private void validateUserStatus(User user) {
+		if (user.getStatus().equals(UserStatus.PENDING)) {
+			throw new IllegalArgumentException("가입 승인 대기 상태인 계정입니다.");
+		}
 	}
 
 	private void validateRefreshToken(String refreshToken) {
