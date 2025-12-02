@@ -5,6 +5,7 @@ import com.palja.order_service.domain.vo.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -35,19 +36,19 @@ public class Order extends BaseEntity {
     private OrderStatus status;
 
     @Column(name = "product_total_amount", nullable = false)
-    private Long productTotalAmount;
+    private BigDecimal productTotalAmount;
 
     @Column(name = "item_discount_amount", nullable = false)
-    private Long itemDiscountAmount;
+    private BigDecimal itemDiscountAmount;
 
     @Column(name = "coupon_discount_amount")
-    private Long couponDiscountAmount;
+    private BigDecimal couponDiscountAmount;
 
     @Column(name = "delivery_fee", nullable = false)
-    private Long deliveryFee;
+    private BigDecimal deliveryFee;
 
     @Column(name = "final_amount", nullable = false)
-    private Long finalAmount;
+    private BigDecimal finalAmount;
 
     @Column(name = "coupon_name", length = 100)
     private String couponName;

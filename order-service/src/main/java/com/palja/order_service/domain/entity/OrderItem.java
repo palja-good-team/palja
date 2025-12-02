@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -35,17 +36,17 @@ public class OrderItem extends BaseEntity {
     private String productName;
 
     @Column(name = "unit_price", nullable = false)
-    private Long unitPrice;
+    private BigDecimal unitPrice;
 
     @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    private int quantity;
 
     @Column(name = "line_total_amount", nullable = false)
-    private Long lineTotalAmount;
+    private BigDecimal lineTotalAmount;
 
     @Column(name = "time_deal_price")
-    private Long timeDealPrice;
+    private BigDecimal timeDealPrice;
 
     @Column(name = "time_deal_discount_amount")
-    private Long timeDealDiscountAmount;
+    private BigDecimal timeDealDiscountAmount;
 }
