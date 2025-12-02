@@ -98,4 +98,23 @@ class ProductServiceImplTest {
         assertThat(result.getCategory()).isEqualTo(expected.getCategory());
         assertThat(result.getAvgRating()).isEqualTo(expected.getAvgRating());
     }
+    @Test
+    @DisplayName("조건에 따른 상품목록 조회에 성공한다")
+    void findProducts() {
+        //given
+        FindProductListByConditionCommand command = new FindProductListByConditionCommand(
+                createProductCommand.name(),
+                100L, 10000L, "food", BigDecimal.ZERO, BigDecimal.valueOf(5.0)
+        );
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        given(productRepository.findProductsToCondition(any(FindListByConditionReq.class), any(Pageable.class)))
+                .willReturn(List.of(product,product));
+
+        //when
+        Page<ProductListByConditionRes> products = productService.findProducts(command, pageRequest);
+
+        //then
+        assertThat(products.getTotalElements()).isEqualTo(2);
+    }
 }

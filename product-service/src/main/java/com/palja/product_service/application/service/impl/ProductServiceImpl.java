@@ -3,15 +3,24 @@ package com.palja.product_service.application.service.impl;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
+import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.dto.CreateProductRes;
 import com.palja.product_service.application.dto.FindProductRes;
+import com.palja.product_service.application.dto.ProductListByConditionRes;
 import com.palja.product_service.application.service.ProductService;
+import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,6 +29,7 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
+    private final DslProductRepository dslProductRepository;
 
     @Override
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
@@ -51,9 +61,25 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public FindProductRes getProduct(UUID productId) {
+    public FindProductRes findProduct(UUID productId) {
 
-        Product product = repository.getProduct(productId);
+        Product product = repository.findProduct(productId);
         return FindProductRes.fromEntity(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
+
+        Category category = Category.fromString(command.getCategory());
+        FindListByConditionReq condition = command.toDomainCondition(category);
+
+        List<Product> productList = repository.findProductsToCondition(condition, pageable);
+        Long pageCount = dslProductRepository.getPageCount(condition);
+
+        List<ProductListByConditionRes> content =
+                productList.stream().map(ProductListByConditionRes::fromEntity).toList();
+
+        return new PageImpl<>(content,pageable,pageCount);
     }
 }
