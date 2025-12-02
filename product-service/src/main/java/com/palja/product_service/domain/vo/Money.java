@@ -14,7 +14,7 @@ public class Money {
 
     private BigDecimal amount;
 
-    public static Money of(Double amount) {
+    public static Money of(Long amount) {
         if(amount == null || amount < 0)
             throw new IllegalArgumentException();
 
@@ -41,8 +41,8 @@ public class Money {
         return new Money(result);
     }
 
-    public Money multiply(Money other) {
-        return new Money(amount.multiply(other.amount).setScale(2, RoundingMode.HALF_UP));
+    public Money multiply(BigDecimal other) {
+        return new Money(amount.multiply(other).setScale(2, RoundingMode.HALF_UP));
     }
 
     public Money divide(Money other) {
