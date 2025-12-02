@@ -6,6 +6,8 @@ import com.palja.user_service.domain.entity.User;
 
 public interface UserRepository {
 
+	User save(User user);
+
 	boolean existsByLoginIdAndDeletedAtIsNull(String loginId);
 
 	boolean existsByNameAndDeletedAtIsNull(String name);
