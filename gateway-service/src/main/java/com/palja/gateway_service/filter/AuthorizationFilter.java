@@ -48,12 +48,7 @@ public class AuthorizationFilter implements GlobalFilter {
 
 		log.info("[%s] %s".formatted(method, request.getURI()));
 
-		if (permitAllPaths.containsKey(path) && permitAllPaths.get(path).contains(method)) {
-			return chain.filter(exchange);
-		}
-
 		List<String> authorizationHeaders = request.getHeaders().get("Authorization");
-
 		if (authorizationHeaders != null && !authorizationHeaders.isEmpty()) {
 			String accessToken = authorizationHeaders.get(0);
 			String substringAccessToken = jwtUtil.substringToken(accessToken);
@@ -71,6 +66,10 @@ public class AuthorizationFilter implements GlobalFilter {
 						.build();
 					return chain.filter(exchange.mutate().request(mutatedRequest).build());
 				}
+			}
+		} else {
+			if (permitAllPaths.containsKey(path) && permitAllPaths.get(path).contains(method)) {
+				return chain.filter(exchange);
 			}
 		}
 
