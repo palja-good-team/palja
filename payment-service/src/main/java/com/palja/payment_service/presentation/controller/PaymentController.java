@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -52,5 +54,20 @@ public class PaymentController {
 
         return ResponseEntity
                 .ok(ApiResponse.success(res, "결제 단건 조회에 성공했습니다."));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PaymentRes>>> getPayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<PaymentDetailRes> detail = paymentService.getPayments(page,size);
+
+        List<PaymentRes> res = detail.stream()
+                .map(PaymentRes::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity
+                .ok(ApiResponse.success(res, "결제 목록 조회에 성공했습니다."));
     }
 }

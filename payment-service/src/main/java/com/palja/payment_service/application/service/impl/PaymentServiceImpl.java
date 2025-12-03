@@ -19,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -128,6 +130,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaymentDetailRes> getPayments(int page, int size) {
+        return paymentRepository.findAll(page, size).stream()
+                .map(PaymentDetailRes::from)
+                .collect(Collectors.toList());
     }
 
     private void approvePayment(Payment payment, String paymentKey) {
