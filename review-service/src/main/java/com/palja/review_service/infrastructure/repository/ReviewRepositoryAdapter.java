@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ReviewRepositoryAdaptor implements ReviewRepository {
+public class ReviewRepositoryAdapter implements ReviewRepository {
 
     private final JpaReviewRepository jpaReviewRepository;
 
