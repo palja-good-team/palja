@@ -1,5 +1,6 @@
 package com.palja.review_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -9,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_review")
 @Getter
-public class Review {
+public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

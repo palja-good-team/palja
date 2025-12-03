@@ -2,6 +2,7 @@ package com.palja.review_service.application.service.impl;
 
 import com.palja.review_service.application.command.CreateReviewCommand;
 import com.palja.review_service.application.dto.res.CreateReviewRes;
+import com.palja.review_service.application.dto.res.FindProductReviewsRes;
 import com.palja.review_service.application.dto.res.FindReviewRes;
 import com.palja.review_service.domain.entity.Review;
 import com.palja.review_service.domain.repository.ReviewRepository;
@@ -12,8 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,5 +98,22 @@ class ReviewServiceImplTest {
         assertThat(result.getLike()).isEqualTo(expected.getLike());
         assertThat(result.getDisLike()).isEqualTo(expected.getDisLike());
         assertThat(result.getUserName()).isEqualTo(expected.getUserName());
+    }
+
+    @Test
+    @DisplayName("상품의 리뷰 목록 조회에 성공한다")
+    void findProductReviews() {
+        //given
+        UUID productId = review.getProductId();
+        List<Review> list = List.of(review, review);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        given(reviewRepository.findProductReviews(productId, pageRequest)).willReturn(list);
+
+        //when
+        Page<FindProductReviewsRes> result = reviewService.findProductReviews(productId, pageRequest);
+
+        //then
+        assertThat(result.getTotalElements()).isEqualTo(list.size());
     }
 }
