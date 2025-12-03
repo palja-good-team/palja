@@ -71,11 +71,17 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
 
-        Category category = Category.fromString(command.getCategory());
-        FindListByConditionReq condition = command.toDomainCondition(category);
+        FindListByConditionReq req = new FindListByConditionReq(
+                command.getName(),
+                command.getMinPrice(),
+                command.getMaxPrice(),
+                Category.fromString(command.getCategory()),
+                command.getMinRating(),
+                command.getMaxRating()
+        );
 
-        List<Product> productList = repository.findProductsToCondition(condition, pageable);
-        Long pageCount = dslProductRepository.getPageCount(condition);
+        List<Product> productList = repository.findProductsToCondition(req, pageable);
+        Long pageCount = dslProductRepository.getPageCount(req);
 
         List<FindProductListByConditionRes> content =
                 productList.stream().map(FindProductListByConditionRes::fromEntity).toList();
