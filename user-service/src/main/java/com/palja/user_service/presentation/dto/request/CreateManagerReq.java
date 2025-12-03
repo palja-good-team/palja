@@ -6,6 +6,7 @@ import com.palja.user_service.presentation.dto.validation.annotation.ValidLoginI
 import com.palja.user_service.presentation.dto.validation.annotation.ValidName;
 import com.palja.user_service.presentation.dto.validation.annotation.ValidPassword;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,12 +27,16 @@ public class CreateManagerReq {
 	@ValidEmail
 	private String email;
 
+	@NotBlank(message = "주소를 입력해주세요.")
+	private String address;
+
 	public static CreateManagerCommand of(CreateManagerReq requestDto) {
 		return CreateManagerCommand.builder()
 			.loginId(requestDto.getLoginId())
 			.password(requestDto.getPassword())
 			.name(requestDto.getName())
 			.email(requestDto.getEmail())
+			.address(requestDto.getAddress())
 			.build();
 	}
 

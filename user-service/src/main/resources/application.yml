@@ -11,3 +11,4 @@ spring:
       - zipkin
       - security
       - redis
+      - eureka

@@ -11,8 +11,6 @@ import com.palja.user_service.domain.entity.CompanyUser;
 
 public interface JpaCompanyUserRepository extends JpaRepository<CompanyUser, UUID> {
 
-	boolean existsByEmailAndDeletedAtIsNull(String email);
-
 	@Query("""
 		SELECT cu
 		FROM CompanyUser cu
