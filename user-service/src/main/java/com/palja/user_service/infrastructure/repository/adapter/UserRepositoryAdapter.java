@@ -26,11 +26,6 @@ public class UserRepositoryAdapter implements UserRepository {
 		return jpaUserRepository.existsByLoginIdAndDeletedAtIsNull(loginId);
 	}
 
-	// @Override
-	// public boolean existsByNameAndDeletedAtIsNull(String name) {
-	// 	return jpaUserRepository.existsByNameAndDeletedAtIsNull(name);
-	// }
-
 	@Override
 	public boolean existsByEmailAndDeletedAtIsNull(String email) {
 		return jpaUserRepository.existsByEmailAndDeletedAtIsNull(email);

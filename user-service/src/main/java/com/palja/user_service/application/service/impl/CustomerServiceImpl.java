@@ -26,7 +26,6 @@ public class CustomerServiceImpl implements CustomerService {
 	@Transactional
 	public CreateUserRes createCustomer(CreateCustomerCommand command) {
 		validateDuplicateLoginId(command.loginId());
-		// validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
 
 		User user = User.builder()
@@ -49,12 +48,6 @@ public class CustomerServiceImpl implements CustomerService {
 			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
 		}
 	}
-
-	// private void validateDuplicateName(String name) {
-	// 	if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
-	// 		throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
-	// 	}
-	// }
 
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
