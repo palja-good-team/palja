@@ -25,6 +25,7 @@ public class CreateCompanyUserReq {
 	@ValidName
 	private String name;
 
+	@NotBlank(message = "업체 이름을 입력해주세요.")
 	private String companyName;
 
 	@ValidCompanyNumber
