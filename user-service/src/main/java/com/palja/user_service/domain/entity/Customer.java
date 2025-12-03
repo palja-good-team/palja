@@ -43,6 +43,12 @@ public class Customer extends BaseEntity {
 	@Column(name = "address", nullable = false)
 	private String address;
 
+	@Override
+	public void softDelete() {
+		super.softDelete();
+		user.softDelete();
+	}
+
 	@Builder
 	private Customer(User user, String name, String email, String address) {
 		this.user = user;

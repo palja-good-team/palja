@@ -46,6 +46,12 @@ public class CompanyUser extends BaseEntity {
 	@Column(name = "address", nullable = false)
 	private String address;
 
+	@Override
+	public void softDelete() {
+		super.softDelete();
+		user.softDelete();
+	}
+
 	@Builder
 	private CompanyUser(User user, String name, String companyNumber, String email, String address) {
 		this.user = user;

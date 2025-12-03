@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.user_service.application.command.CreateCustomerCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
 
@@ -23,11 +24,11 @@ public class CustomerController {
 	private final CustomerService customerService;
 
 	@PostMapping
-	public ResponseEntity<ApiResponse<Void>> create(@Valid @RequestBody CreateCustomerReq requestDto) {
+	public ResponseEntity<ApiResponse<CreateUserRes>> create(@Valid @RequestBody CreateCustomerReq requestDto) {
 		CreateCustomerCommand command = CreateCustomerReq.of(requestDto);
-		customerService.createCustomer(command);
+		CreateUserRes responseDto = customerService.createCustomer(command);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("일반 사용자가 생성되었습니다."));
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto, "일반 사용자가 생성되었습니다."));
 	}
 
 }

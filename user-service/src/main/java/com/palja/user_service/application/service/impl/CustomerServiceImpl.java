@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.user_service.application.command.CreateCustomerCommand;
+import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.domain.entity.Customer;
 import com.palja.user_service.domain.entity.User;
@@ -26,7 +27,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Override
 	@Transactional
-	public void createCustomer(CreateCustomerCommand command) {
+	public CreateUserRes createCustomer(CreateCustomerCommand command) {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
@@ -34,6 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
 		User user = User.builder()
 			.loginId(command.loginId())
 			.password(passwordEncoder.encode(command.password()))
+			.name(command.name())
 			.role(UserRole.CUSTOMER)
 			.build();
 
@@ -45,6 +47,8 @@ public class CustomerServiceImpl implements CustomerService {
 			.build();
 
 		customerRepository.save(customer);
+
+		return CreateUserRes.from(user);
 	}
 
 	// TODO: 예외코드 생성
@@ -54,8 +58,10 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 	}
 
-	// TODO: 중복 검사 전략 결정 후 작성
 	private void validateDuplicateName(String name) {
+		if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
+			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
+		}
 	}
 
 	private void validateDuplicateEmail(String email) {
