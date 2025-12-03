@@ -42,14 +42,14 @@ public class Review {
 
     protected Review() {}
 
-    public static Review create(String title, String content, Long userId, UUID orderId, UUID productId) {
+    public static Review create(String title, String content, BigDecimal rating, Boolean isLike, Boolean dislike, Long userId, UUID orderId, UUID productId) {
         Review review = new Review();
 
         review.title = title;
         review.content = content;
-        review.rating = BigDecimal.ZERO;
-        review.like = false;
-        review.dislike = false;
+        review.rating = rating;
+        review.like = isLike;
+        review.dislike = dislike;
         review.userId = userId;
         review.orderId = orderId;
         review.productId = productId;
