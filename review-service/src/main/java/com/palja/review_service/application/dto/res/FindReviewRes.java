@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
-public class CreateReviewRes {
+public class FindReviewRes {
 
     private UUID reviewId;
     private String title;
@@ -17,8 +17,8 @@ public class CreateReviewRes {
     private Boolean disLike;
     private String userName;
 
-    public static CreateReviewRes fromEntity(Review review) {
-        CreateReviewRes res = new CreateReviewRes();
+    public static FindReviewRes fromEntity(Review review) {
+        FindReviewRes res = new FindReviewRes();
 
         res.reviewId = review.getId();
         res.title = review.getTitle();
