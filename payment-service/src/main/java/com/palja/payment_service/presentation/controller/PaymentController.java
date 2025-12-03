@@ -37,11 +37,20 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentRes>> cancelPayment(
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
-    ){
-        PaymentDetailRes result = paymentService.cancelPayment(req.toCommand(paymentId));
-        PaymentRes res = PaymentRes.from(result);
+    ) {
+        PaymentDetailRes detail = paymentService.cancelPayment(req.toCommand(paymentId));
+        PaymentRes res = PaymentRes.from(detail);
 
         return ResponseEntity
-                .ok(ApiResponse.success(res,"결제가 취소되었습니다."));
+                .ok(ApiResponse.success(res, "결제가 취소되었습니다."));
+    }
+
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentRes>> getPayment(@PathVariable UUID paymentId) {
+        PaymentDetailRes detail = paymentService.getPayment(paymentId);
+        PaymentRes res = PaymentRes.from(detail);
+
+        return ResponseEntity
+                .ok(ApiResponse.success(res, "결제 단건 조회에 성공했습니다."));
     }
 }

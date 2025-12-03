@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
@@ -115,6 +117,15 @@ public class PaymentServiceImpl implements PaymentService {
         if (!pgRes.isSuccess()) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
+
+        return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentDetailRes getPayment(UUID paymentId){
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return PaymentDetailRes.from(payment);
     }
