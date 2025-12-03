@@ -2,14 +2,19 @@ package com.palja.review_service.application.service.impl;
 
 import com.palja.review_service.application.command.CreateReviewCommand;
 import com.palja.review_service.application.dto.res.CreateReviewRes;
+import com.palja.review_service.application.dto.res.FindProductReviewsRes;
 import com.palja.review_service.application.dto.res.FindReviewRes;
 import com.palja.review_service.application.service.ReviewService;
 import com.palja.review_service.domain.entity.Review;
 import com.palja.review_service.domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,7 +34,7 @@ public class ReviewServiceImpl implements ReviewService {
         //UserDto userDto = UserClient.getDto(createCommand.loginId());
         //UUID orderProductId = OrderClient.getProductId(createCommand.orderId());
         Long userId = 1L;
-        UUID orderProductId = UUID.randomUUID();
+        UUID orderProductId = UUID.fromString("703d287b-f39f-4587-8fcb-465bcd61c1fc");
         String userName = "홍*동";
         Review review = Review.create(createCommand.title(),
                 createCommand.content(),
@@ -52,5 +57,15 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = repository.findReview(reviewId);
 
         return FindReviewRes.fromEntity(review);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FindProductReviewsRes> findProductReviews(UUID productId, Pageable pageable) {
+
+        List<Review> productReviews = repository.findProductReviews(productId, pageable);
+        List<FindProductReviewsRes> content = productReviews.stream().map(FindProductReviewsRes::fromEntity).toList();
+
+        return new PageImpl<>(content, pageable, productReviews.size());
     }
 }
