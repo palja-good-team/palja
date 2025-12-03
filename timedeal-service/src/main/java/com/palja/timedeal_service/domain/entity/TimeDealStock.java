@@ -25,4 +25,14 @@ public class TimeDealStock {
     @MapsId
     @JoinColumn(name = "time_deal_id")
     private TimeDeal timeDeal;
+
+    public static TimeDealStock create(TimeDeal timeDeal, Quantity quantity) {
+        TimeDealStock timeDealStock = TimeDealStock.builder()
+                .timeDeal(timeDeal)
+                .quantity(quantity)
+                .build();
+
+        return timeDealStock;
+
+    }
 }

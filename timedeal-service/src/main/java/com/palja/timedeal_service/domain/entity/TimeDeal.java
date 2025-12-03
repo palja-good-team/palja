@@ -1,11 +1,15 @@
 package com.palja.timedeal_service.domain.entity;
 
+import com.palja.common.exception.BusinessException;
+import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
+import com.palja.timedeal_service.domain.vo.Quantity;
 import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -41,12 +45,69 @@ public class TimeDeal {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "time_deal_status", nullable = false)
+    @Builder.Default
     private TimeDealStatus timeDealStatus = TimeDealStatus.PENDING;
 
-    @OneToOne(mappedBy = "timeDeal",
+    @OneToOne(
+            mappedBy = "timeDeal",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
     private TimeDealStock timeDealStock;
+
+    public static TimeDeal create(
+            UUID productId,
+            UUID companyUserId,
+            String title,
+            String description,
+            LocalDateTime startAt,
+            LocalDateTime endAt,
+            long originalPrice,
+            long timeDealPrice,
+            long totalQuantity
+    ) {
+        validate(productId, companyUserId, title, description);
+
+        Period period = Period.of(startAt, endAt);
+        Amount amount = Amount.of(originalPrice, timeDealPrice);
+        Quantity quantity = Quantity.of(totalQuantity);
+
+        TimeDeal timeDeal = TimeDeal.builder()
+                .productId(productId)
+                .companyUserId(companyUserId)
+                .title(title)
+                .description(description)
+                .period(period)
+                .amount(amount)
+                .build();
+
+        TimeDealStock timeDealStock = TimeDealStock.create(timeDeal, quantity);
+        timeDeal.timeDealStock = timeDealStock;
+
+        return timeDeal;
+    }
+
+    private static void validate(
+            UUID productId,
+            UUID companyUserId,
+            String title,
+            String description
+    ) {
+        if (productId == null) {
+            throw new BusinessException(TimeDealErrorCode.PRODUCT_ID_REQUIRED);
+        }
+
+        if (companyUserId == null) {
+            throw new BusinessException(TimeDealErrorCode.COMPANY_USER_ID_REQUIRED);
+        }
+
+        if (title == null || title.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.TITLE_REQUIRED);
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
+        }
+    }
 }
