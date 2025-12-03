@@ -10,3 +10,4 @@ spring:
       - eureka
       - route
       - security
+      - redis
