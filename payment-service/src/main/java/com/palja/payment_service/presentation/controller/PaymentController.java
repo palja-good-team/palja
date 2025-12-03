@@ -1,6 +1,7 @@
 package com.palja.payment_service.presentation.controller;
 
 import com.palja.common.response.ApiResponse;
+import com.palja.common.response.PageResponse;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
 import com.palja.payment_service.application.service.PaymentService;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
@@ -8,13 +9,13 @@ import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
 import com.palja.payment_service.presentation.dto.response.PaymentRes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -57,15 +58,13 @@ public class PaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PaymentRes>>> getPayments(
+    public ResponseEntity<ApiResponse<PageResponse<PaymentRes>>> getPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        List<PaymentDetailRes> detail = paymentService.getPayments(page,size);
-
-        List<PaymentRes> res = detail.stream()
-                .map(PaymentRes::from)
-                .collect(Collectors.toList());
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<PaymentDetailRes> pageResult = paymentService.getPayments(pageRequest);
+        PageResponse<PaymentRes> res = PageResponse.from(pageResult.map(PaymentRes::from));
 
         return ResponseEntity
                 .ok(ApiResponse.success(res, "결제 목록 조회에 성공했습니다."));

@@ -16,12 +16,12 @@ import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -134,10 +134,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentDetailRes> getPayments(int page, int size) {
-        return paymentRepository.findAll(page, size).stream()
-                .map(PaymentDetailRes::from)
-                .collect(Collectors.toList());
+    public Page<PaymentDetailRes> getPayments(PageRequest pageRequest) {
+        Page<Payment> payments = paymentRepository.findAll(pageRequest);
+        return payments.map(PaymentDetailRes::from);
     }
 
     private void approvePayment(Payment payment, String paymentKey) {
