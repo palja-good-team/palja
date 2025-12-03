@@ -2,6 +2,7 @@ package com.palja.payment_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
@@ -11,6 +12,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
+import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +32,9 @@ public class PaymentServiceImpl implements PaymentService {
     /*TODO: order-service에서 orderId로 주문을 조회하고
             주문금액과 결제 금액이 동일한지, userId, status(CREATED) 검증하기
             만약, 다르다면 PG 호출하지 말고 Payment 상태값을 FAILED로 저장하고 로그 남기기
-
       TODO: PaymentLog에 retryCount, success 추가하고
             5~10분 이내 같은 orderId와 userId로 결제 5번 이상 실패하면
             더 이상 PG 호출이 안되도록 막기, order-service에 이벤트 전달 (상태 CREATED->CANCLED)
-
       TODO: 결제 성공 & 실패 이벤트 발생
             1. PaymentApprovedEvent(orderId, paymentId, userId, amount, paymentKey 등)
              Kafka에 order-service, coupon-service 등이 이 이벤트를 구독해서
@@ -60,6 +60,51 @@ public class PaymentServiceImpl implements PaymentService {
             approvePayment(payment, pgRes.getPaymentKey());
         } else {
             failPayment(payment, pgRes.getPgResponseMessage());
+        }
+
+        paymentRepository.save(payment);
+
+        PaymentLog resultLog = createResultLog(payment, pgRes);
+        paymentLogRepository.save(resultLog);
+
+        if (!pgRes.isSuccess()) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
+        }
+
+        return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(noRollbackFor = BusinessException.class)
+    public PaymentDetailRes cancelPayment(CancelPaymentCommand command) {
+
+        Payment payment = paymentRepository.findById(command.paymentId())
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getStatus() != PaymentStatus.APPROVED) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVED);
+        }
+
+        PaymentLog requestLog = createRequestLog(payment);
+        paymentLogRepository.save(requestLog);
+
+        PGPaymentRes pgRes;
+        try {
+            pgRes = pgPaymentService.cancelPayment(
+                    payment,
+                    command.cancelAmount(),
+                    command.cancelReason()
+            );
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+        }
+
+        if (pgRes.isSuccess()) {
+            payment.cancel(command.cancelReason());
+        } else {
+            payment.fail(pgRes.getPgResponseMessage());
         }
 
         paymentRepository.save(payment);
