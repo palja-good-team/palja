@@ -5,15 +5,19 @@ import static com.palja.user_service.application.util.RedisKeyConstants.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.user_service.application.command.LoginUserCommand;
+import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
+import com.palja.user_service.domain.vo.UserStatus;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +28,33 @@ public class AuthServiceImpl implements AuthService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
 
+	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+
+	@Override
+	public TokenRes login(LoginUserCommand command) {
+		String loginId = command.loginId();
+		String password = command.password();
+
+		User user = getUserByLoginId(loginId);
+		validateUserPassword(password, user.getPassword());
+		validateUserStatus(user);
+
+		String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
+		String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
+
+		tokenRepository.save(
+			REFRESH_TOKEN_WHITELIST_PREFIX + loginId,
+			jwtUtil.substringToken(refreshToken),
+			jwtUtil.getRefreshKeyExpirationTime()
+		);
+
+		return TokenRes.builder()
+			.accessToken(accessToken)
+			.refreshToken(refreshToken)
+			.refreshKeyExpirationTime(jwtUtil.getRefreshKeyExpirationTime())
+			.build();
+	}
 
 	@Override
 	public String refreshAccessToken(String accessToken, String refreshToken) {
@@ -54,6 +84,18 @@ public class AuthServiceImpl implements AuthService {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(CommonErrorCode.NOT_FOUND)
 		);
+	}
+
+	private void validateUserPassword(String password, String userPassword) {
+		if (!passwordEncoder.matches(password, userPassword)) {
+			throw new IllegalArgumentException("로그인 정보가 잘못되었습니다.");
+		}
+	}
+
+	private void validateUserStatus(User user) {
+		if (user.getStatus().equals(UserStatus.PENDING)) {
+			throw new IllegalArgumentException("가입 승인 대기 상태인 계정입니다.");
+		}
 	}
 
 	private void validateRefreshToken(String refreshToken) {
