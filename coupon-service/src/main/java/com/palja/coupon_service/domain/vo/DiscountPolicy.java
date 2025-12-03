@@ -1,5 +1,6 @@
 package com.palja.coupon_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -33,16 +34,15 @@ public class DiscountPolicy {
     }
 
     private void validate(DiscountType discountType, int discountValue) {
-        // TODO. BusinessException 적용 필요
         if (discountType == null)
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_DISCOUNT_TYPE.getMessage());
+            throw new BusinessException(CouponErrorCode.INVALID_DISCOUNT_TYPE);
 
         if (discountValue < 1)
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_DISCOUNT_VALUE.getMessage());
+            throw new BusinessException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
 
         if (discountType.equals(DiscountType.PERCENTAGE)) {
             if (discountValue > 100) {
-                throw new IllegalArgumentException(CouponErrorCode.INVALID_DISCOUNT_VALUE.getMessage());
+                throw new BusinessException(CouponErrorCode.INVALID_DISCOUNT_VALUE);
             }
         }
     }
