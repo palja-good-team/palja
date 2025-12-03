@@ -41,4 +41,12 @@ public class PaymentController {
         return ResponseEntity
                 .ok(ApiResponse.success(detail,"결제가 취소되었습니다."));
     }
+
+    @DeleteMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<String>> deletePayment(
+            @PathVariable UUID paymentId
+    ){
+        paymentService.deletePayment(paymentId);
+        return new ResponseEntity<>(ApiResponse.success("결제가 삭제되었습니다."),HttpStatus.OK);
+    }
 }

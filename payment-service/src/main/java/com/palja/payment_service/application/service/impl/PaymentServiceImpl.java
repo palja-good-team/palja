@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
@@ -133,6 +135,20 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional
+    public void deletePayment(UUID paymentId){
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        if(payment.getStatus() == PaymentStatus.PENDING) {
+            payment.softDelete();
+            paymentRepository.save(payment);
+        }else {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_BE_DELETED);
+        }
     }
 
     private void approvePayment(Payment payment, String paymentKey) {

@@ -23,4 +23,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public Optional<Payment> findById(UUID id){
         return paymentJpaRepository.findById(id);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        paymentJpaRepository.deleteById(id);
+    }
 }
