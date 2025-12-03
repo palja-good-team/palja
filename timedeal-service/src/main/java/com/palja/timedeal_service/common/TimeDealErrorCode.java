@@ -29,8 +29,9 @@ public enum TimeDealErrorCode implements ErrorCode {
     INVALID_TOTAL_QUANTITY(HttpStatus.BAD_REQUEST, "타임딜 재고는 0보다 커야 합니다."),
     INVALID_STOCK_QUANTITY(HttpStatus.BAD_REQUEST, "타임딜 재고는 상품의 실제 재고를 초과할 수 없습니다."),
 
-    // 상품 관련
-    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다.");
+    // 외부 관련
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
+    COMPANY_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "업체 판매자를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

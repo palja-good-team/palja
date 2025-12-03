@@ -47,7 +47,7 @@ public class ProductClientImpl implements ProductClient {
 
         return new ProductDTO(
                 productId,
-                UUID.fromString("9c2b1f77-8d4a-4c1e-b3f5-abcdef123456"),
+                UUID.fromString("93cdf98a-60a4-4677-9474-4a3e7ecec284"),
                 10000L,
                 500L
         );

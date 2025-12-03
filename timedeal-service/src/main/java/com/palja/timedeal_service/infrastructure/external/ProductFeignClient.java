@@ -1,6 +1,6 @@
 package com.palja.timedeal_service.infrastructure.external;
 
-import com.palja.timedeal_service.application.dto.external.ProductInfo;
+import com.palja.timedeal_service.infrastructure.dto.ProductDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface ProductFeignClient {
 
     @GetMapping("{productId}")
-    ProductInfo getProduct(@PathVariable UUID productId);
+    ProductDTO getProduct(@PathVariable UUID productId);
 }

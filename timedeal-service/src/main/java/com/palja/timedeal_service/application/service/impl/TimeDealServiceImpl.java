@@ -1,12 +1,12 @@
 package com.palja.timedeal_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
+import com.palja.timedeal_service.application.validator.AuthorityValidator;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -23,6 +25,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     private final TimeDealRepository timeDealRepository;
     private final ProductClient productClient;
+    private final AuthorityValidator authorityValidator;
 
     @Override
     @Transactional
@@ -31,12 +34,17 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        validateAuthority(command, product);
+        UUID companyUserId = authorityValidator.verifyCompanyUserId(
+                command.loginId(),
+                command.role(),
+                product.companyUserId()
+        );
+
         validateStock(command, product);
 
         TimeDeal timeDeal = TimeDeal.create(
                 command.productId(),
-                command.companyUserId(),
+                companyUserId,
                 command.title(),
                 command.description(),
                 command.startAt(),
@@ -50,18 +58,6 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
         return TimeDealDetailRes.from(savedTimeDeal);
-    }
-
-    private void validateAuthority(CreateTimeDealCommand command, ProductInfo product) {
-        if (command.role().equals("CUSTOMER")) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
-
-        if (command.role().equals("COMPANY_USER")) {
-            if (!product.companyUserId().equals(command.companyUserId())) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
-            }
-        }
     }
 
     private void validateStock(CreateTimeDealCommand command, ProductInfo product) {

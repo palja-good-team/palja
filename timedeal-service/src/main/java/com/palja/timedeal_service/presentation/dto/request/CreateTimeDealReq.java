@@ -18,9 +18,6 @@ public class CreateTimeDealReq {
     @NotNull(message = "상품 ID는 필수입니다.")
     UUID productId;
 
-    @NotNull(message = "업체 ID는 필수입니다.")
-    UUID companyUserId;
-
     @NotBlank(message = "타임딜 제목은 필수입니다.")
     @Size(max = 100, message = "타임딜 제목은 최대 100자까지 입력 가능합니다.")
     String title;
@@ -46,7 +43,6 @@ public class CreateTimeDealReq {
     public CreateTimeDealCommand toCommand(String loginId, UserRole role) {
         return CreateTimeDealCommand.builder()
                 .productId(productId)
-                .companyUserId(companyUserId)
                 .title(title)
                 .description(description)
                 .startAt(startAt)

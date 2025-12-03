@@ -9,7 +9,6 @@ import java.util.UUID;
 @Builder
 public record CreateTimeDealCommand (
         UUID productId,
-        UUID companyUserId,
         String title,
         String description,
         LocalDateTime startAt,
