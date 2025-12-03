@@ -23,11 +23,6 @@ public class CompanyUserRepositoryAdapter implements CompanyUserRepository {
 	}
 
 	@Override
-	public boolean existsByEmailAndDeletedAtIsNull(String email) {
-		return jpaCompanyUserRepository.existsByEmailAndDeletedAtIsNull(email);
-	}
-
-	@Override
 	public Optional<CompanyUser> findByIdAndDeletedAtIsNull(UUID companyUserId) {
 		return jpaCompanyUserRepository.findByIdAndDeletedAtIsNull(companyUserId);
 	}

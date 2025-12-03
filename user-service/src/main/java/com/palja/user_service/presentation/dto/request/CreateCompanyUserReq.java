@@ -25,6 +25,8 @@ public class CreateCompanyUserReq {
 	@ValidName
 	private String name;
 
+	private String companyName;
+
 	@ValidCompanyNumber
 	private String companyNumber;
 
@@ -39,6 +41,7 @@ public class CreateCompanyUserReq {
 			.loginId(requestDto.getLoginId())
 			.password(requestDto.getPassword())
 			.name(requestDto.getName())
+			.companyName(requestDto.getCompanyName())
 			.companyNumber(requestDto.getCompanyNumber())
 			.email(requestDto.getEmail())
 			.address(requestDto.getAddress())

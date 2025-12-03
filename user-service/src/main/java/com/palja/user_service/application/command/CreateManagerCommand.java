@@ -8,7 +8,8 @@ public record CreateManagerCommand(
 	String loginId,
 	String password,
 	String name,
-	String email
+	String email,
+	String address
 
 ) {
 }

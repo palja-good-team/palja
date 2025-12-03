@@ -10,7 +10,9 @@ public interface JpaUserRepository extends JpaRepository<User, Long> {
 
 	boolean existsByLoginIdAndDeletedAtIsNull(String loginId);
 
-	boolean existsByNameAndDeletedAtIsNull(String name);
+	// boolean existsByNameAndDeletedAtIsNull(String name);
+
+	boolean existsByEmailAndDeletedAtIsNull(String email);
 
 	Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
 

@@ -32,22 +32,22 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	@Transactional
 	public CreateUserRes createCompanyUser(CreateCompanyUserCommand command) {
 		validateDuplicateLoginId(command.loginId());
-		validateDuplicateName(command.name());
+		// validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
 
 		User user = User.builder()
 			.loginId(command.loginId())
 			.password(passwordEncoder.encode(command.password()))
 			.name(command.name())
+			.email(command.email())
+			.address(command.address())
 			.role(UserRole.COMPANY_USER)
 			.build();
 
 		CompanyUser companyUser = CompanyUser.builder()
 			.user(user)
-			.name(command.name())
+			.companyName(command.companyName())
 			.companyNumber(command.companyNumber())
-			.email(command.email())
-			.address(command.address())
 			.build();
 
 		companyUserRepository.save(companyUser);
@@ -62,6 +62,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		companyUser.updateStatus(command.status());
 	}
 
+	private CompanyUser getCompanyUserById(UUID companyUserId) {
+		return companyUserRepository.findByIdAndDeletedAtIsNull(companyUserId).orElseThrow(
+			() -> new BusinessException(CommonErrorCode.DOMAIN_ERROR)
+		);
+	}
+
 	// TODO: 예외코드 생성
 	private void validateDuplicateLoginId(String loginId) {
 		if (userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
@@ -69,22 +75,16 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		}
 	}
 
-	private void validateDuplicateName(String name) {
-		if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
-			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
-		}
-	}
+	// private void validateDuplicateName(String name) {
+	// 	if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
+	// 		throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
+	// 	}
+	// }
 
 	private void validateDuplicateEmail(String email) {
-		if (companyUserRepository.existsByEmailAndDeletedAtIsNull(email)) {
+		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
 		}
-	}
-
-	private CompanyUser getCompanyUserById(UUID companyUserId) {
-		return companyUserRepository.findByIdAndDeletedAtIsNull(companyUserId).orElseThrow(
-			() -> new BusinessException(CommonErrorCode.DOMAIN_ERROR)
-		);
 	}
 
 }

@@ -9,8 +9,6 @@ public interface CompanyUserRepository {
 
 	CompanyUser save(CompanyUser companyUser);
 
-	boolean existsByEmailAndDeletedAtIsNull(String email);
-
 	Optional<CompanyUser> findByIdAndDeletedAtIsNull(UUID companyUserId);
 
 }
