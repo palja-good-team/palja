@@ -26,7 +26,7 @@ public class CreateCouponReq {
     private String description;
 
     @NotNull(message = "쿠폰 타입은 필수입니다.")
-    private DiscountType discountType;
+    private String discountType;
 
     @NotNull(message = "할인율은 필수입니다.")
     @Min(value = 1)
@@ -43,11 +43,11 @@ public class CreateCouponReq {
     @Future(message = "발급 종료일은 현재 시간 이후여야 합니다")
     private LocalDateTime issueEndAt;
 
-    public static CreateCouponCommand of (CreateCouponReq request) {
+    public static CreateCouponCommand of(CreateCouponReq request) {
         return CreateCouponCommand.builder()
                 .couponName(request.getCouponName())
                 .description(request.getDescription())
-                .discountType(request.getDiscountType())
+                .discountType(DiscountType.valueOf(request.getDiscountType().toUpperCase()))
                 .discountValue(request.getDiscountValue())
                 .totalQuantity(request.getTotalQuantity())
                 .maxDiscountAmount(request.getMaxDiscountAmount())
