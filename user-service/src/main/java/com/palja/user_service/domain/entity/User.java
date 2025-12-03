@@ -1,7 +1,7 @@
 package com.palja.user_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
-import com.palja.user_service.domain.vo.UserRole;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.vo.UserStatus;
 
 import jakarta.persistence.Column;

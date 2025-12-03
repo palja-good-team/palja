@@ -5,9 +5,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.palja.common.auditor.AuditorContext;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.UserRepository;
-import com.palja.user_service.domain.vo.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ public class MasterInitializer implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		AuditorContext.set("master", null);
+		AuditorContext.set("master", UserRole.MASTER);
 
 		if (!userRepository.existsByLoginIdAndDeletedAtIsNull("master")) {
 			User master = User.builder()

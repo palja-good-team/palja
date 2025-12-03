@@ -6,8 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
@@ -16,7 +18,6 @@ import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.CompanyUserRepository;
 import com.palja.user_service.domain.repository.UserRepository;
-import com.palja.user_service.domain.vo.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +50,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 			.companyNumber(command.companyNumber())
 			.build();
 
+		AuditorContext.set(user.getLoginId(), user.getRole());
 		companyUserRepository.save(companyUser);
 
 		return CreateUserRes.from(user);
