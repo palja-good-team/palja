@@ -2,19 +2,22 @@ package com.palja.payment_service.presentation.controller;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
+import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
 import com.palja.payment_service.application.service.PaymentService;
+import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
 import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
 import com.palja.payment_service.presentation.dto.response.PaymentRes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -59,14 +62,23 @@ public class PaymentController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<PaymentRes>>> getPayments(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) UUID orderId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        FindPaymentListByConditionCommand command = new FindPaymentListByConditionCommand(
+                PaymentStatus.valueOf(status), userId, orderId, startDate, endDate
+        );
+
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<PaymentDetailRes> pageResult = paymentService.getPayments(pageRequest);
-        PageResponse<PaymentRes> res = PageResponse.from(pageResult.map(PaymentRes::from));
+        var pageResult = paymentService.searchPayments(command, pageRequest);
+        PageResponse<PaymentRes> response = PageResponse.from(pageResult.map(PaymentRes::from));
 
         return ResponseEntity
-                .ok(ApiResponse.success(res, "결제 목록 조회에 성공했습니다."));
+                .ok(ApiResponse.success(response, "결제 목록 조회에 성공했습니다."));
     }
 }

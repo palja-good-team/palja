@@ -4,6 +4,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,4 +14,6 @@ public interface PaymentRepository {
     Optional<Payment> findById(UUID id);
 
     Page<Payment> findAll(PageRequest pageRequest);
+
+    Page<Payment> findPayments(String status, Long userId, UUID orderId, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest);
 }

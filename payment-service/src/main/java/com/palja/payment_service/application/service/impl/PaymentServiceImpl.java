@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
+import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
 import com.palja.payment_service.application.service.PGPaymentService;
@@ -136,6 +137,20 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public Page<PaymentDetailRes> getPayments(PageRequest pageRequest) {
         Page<Payment> payments = paymentRepository.findAll(pageRequest);
+        return payments.map(PaymentDetailRes::from);
+    }
+
+    @Override
+    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest) {
+        Page<Payment> payments = paymentRepository.findPayments(
+                command.status() != null ? command.status().name() : null,
+                command.userId(),
+                command.orderId(),
+                command.startDate(),
+                command.endDate(),
+                pageRequest
+        );
+
         return payments.map(PaymentDetailRes::from);
     }
 
