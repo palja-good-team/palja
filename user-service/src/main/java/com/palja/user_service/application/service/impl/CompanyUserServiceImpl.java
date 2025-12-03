@@ -8,11 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
@@ -65,20 +65,19 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	private CompanyUser getCompanyUserById(UUID companyUserId) {
 		return companyUserRepository.findByIdAndDeletedAtIsNull(companyUserId).orElseThrow(
-			() -> new BusinessException(CommonErrorCode.DOMAIN_ERROR)
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}
 
-	// TODO: 예외코드 생성
 	private void validateDuplicateLoginId(String loginId) {
 		if (userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
-			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
+			throw new BusinessException(UserErrorCode.DUPLICATED_LOGIN_ID);
 		}
 	}
 
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
-			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
+			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
 		}
 	}
 
