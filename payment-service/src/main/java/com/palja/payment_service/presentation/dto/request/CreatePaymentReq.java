@@ -1,7 +1,6 @@
 package com.palja.payment_service.presentation.dto.request;
 
 import com.palja.payment_service.application.command.CreatePaymentCommand;
-import com.palja.payment_service.domain.vo.PaymentMethod;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,13 +19,13 @@ public class CreatePaymentReq {
     private String paymentKey;
 
     public CreatePaymentCommand toCommand() {
-        return new CreatePaymentCommand(
-                orderId,
-                userId,
-                amount,
-                currency,
-                PaymentMethod.valueOf(paymentMethod),
-                paymentKey
-        );
+        return CreatePaymentCommand.builder()
+                .orderId(orderId)
+                .userId(userId)
+                .amount(amount)
+                .currency(currency)
+                .paymentMethod(paymentMethod)
+                .paymentKey(paymentKey)
+                .build();
     }
 }
