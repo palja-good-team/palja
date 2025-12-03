@@ -12,6 +12,7 @@ import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
+import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
@@ -43,7 +44,22 @@ public class PaymentServiceImpl implements PaymentService {
                 Kafka에 order-service가 주문 상태를 그래도 CREATED로 유지, coupon-service 도 미사용으로 유지
      */
     public PaymentDetailRes createPayment(CreatePaymentCommand command) {
-        Payment payment = Payment.create(command.orderId(), command.userId(), command.amount(), command.currency(), command.paymentMethod(), command.paymentKey());
+        PaymentMethod method;
+        try{
+            method = PaymentMethod.valueOf(command.paymentMethod());
+        }catch (IllegalArgumentException | NullPointerException e){
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_METHOD);
+        }
+
+        Payment payment = Payment.create(
+                command.orderId(),
+                command.userId(),
+                command.amount(),
+                command.currency(),
+                method,
+                command.paymentKey()
+        );
+
         paymentRepository.save(payment);
 
         PaymentLog requestLog = createRequestLog(payment);

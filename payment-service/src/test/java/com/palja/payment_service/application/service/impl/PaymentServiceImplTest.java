@@ -58,7 +58,7 @@ class PaymentServiceImplTest {
                 .userId(1L)
                 .amount(new BigDecimal("10000"))
                 .currency("KRW")
-                .paymentMethod(PaymentMethod.CARD)
+                .paymentMethod("CARD")
                 .paymentKey("tviva20251202001935xysU8")
                 .build();
     }
