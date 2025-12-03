@@ -10,7 +10,7 @@ public interface UserRepository {
 
 	boolean existsByLoginIdAndDeletedAtIsNull(String loginId);
 
-	boolean existsByNameAndDeletedAtIsNull(String name);
+	boolean existsByEmailAndDeletedAtIsNull(String email);
 
 	Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
 

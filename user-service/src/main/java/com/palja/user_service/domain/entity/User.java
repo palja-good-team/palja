@@ -1,9 +1,7 @@
 package com.palja.user_service.domain.entity;
 
-import java.time.Instant;
-
-import com.palja.common.auditor.AuditorContext;
-import com.palja.user_service.domain.vo.UserRole;
+import com.palja.common.entity.BaseEntity;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.vo.UserStatus;
 
 import jakarta.persistence.Column;
@@ -23,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "p_user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,8 +34,14 @@ public class User {
 	@Column(name = "password", nullable = false)
 	private String password;
 
-	@Column(name = "name", length = 10, nullable = false, unique = true)
+	@Column(name = "name", length = 10, nullable = false)
 	private String name;
+
+	@Column(name = "email", nullable = false, unique = true)
+	private String email;
+
+	@Column(name = "address", nullable = false)
+	private String address;
 
 	@Column(name = "role", nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -49,22 +53,13 @@ public class User {
 	// @JdbcTypeCode(SqlTypes.NAMED_ENUM)
 	private UserStatus status;
 
-	@Column(name = "deletedAt")
-	private Instant deletedAt;
-
-	@Column(name = "deletedBy", length = 10)
-	private String deletedBy;
-
-	public void softDelete() {
-		this.deletedAt = Instant.now();
-		this.deletedBy = AuditorContext.get().getLoginId();
-	}
-
 	@Builder
-	private User(String loginId, String password, String name, UserRole role) {
+	private User(String loginId, String password, String name, String email, String address, UserRole role) {
 		this.loginId = loginId;
 		this.password = password;
 		this.name = name;
+		this.email = email;
+		this.address = address;
 		this.role = role;
 		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
 	}

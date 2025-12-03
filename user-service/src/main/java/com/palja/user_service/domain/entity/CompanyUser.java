@@ -1,10 +1,11 @@
 package com.palja.user_service.domain.entity;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
-import com.palja.common.entity.BaseEntity;
+import com.palja.common.auditor.AuditorContext;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "p_company_user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CompanyUser extends BaseEntity {
+public class CompanyUser {
 
 	@Id
 	@UuidGenerator
@@ -34,31 +35,29 @@ public class CompanyUser extends BaseEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(name = "name", length = 10, nullable = false, unique = true)
-	private String name;
+	@Column(name = "company_name", length = 50, nullable = false)
+	private String companyName;
 
 	@Column(name = "company_number", length = 12, nullable = false)
 	private String companyNumber;
 
-	@Column(name = "email", nullable = false, unique = true)
-	private String email;
+	@Column(name = "deletedAt")
+	private Instant deletedAt;
 
-	@Column(name = "address", nullable = false)
-	private String address;
+	@Column(name = "deletedBy", length = 10)
+	private String deletedBy;
 
-	@Override
 	public void softDelete() {
-		super.softDelete();
+		this.deletedAt = Instant.now();
+		this.deletedBy = AuditorContext.get().getLoginId();
 		user.softDelete();
 	}
 
 	@Builder
-	private CompanyUser(User user, String name, String companyNumber, String email, String address) {
+	private CompanyUser(User user, String companyName, String companyNumber) {
 		this.user = user;
-		this.name = name;
+		this.companyName = companyName;
 		this.companyNumber = companyNumber;
-		this.email = email;
-		this.address = address;
 	}
 
 	public void updateStatus(String status) {

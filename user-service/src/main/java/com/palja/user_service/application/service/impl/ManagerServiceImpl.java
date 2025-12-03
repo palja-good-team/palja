@@ -4,16 +4,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.service.ManagerService;
-import com.palja.user_service.domain.entity.Manager;
 import com.palja.user_service.domain.entity.User;
-import com.palja.user_service.domain.repository.ManagerRepository;
 import com.palja.user_service.domain.repository.UserRepository;
-import com.palja.user_service.domain.vo.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ManagerServiceImpl implements ManagerService {
 
-	private final ManagerRepository managerRepository;
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
@@ -29,23 +27,19 @@ public class ManagerServiceImpl implements ManagerService {
 	@Transactional
 	public CreateUserRes createManager(CreateManagerCommand command) {
 		validateDuplicateLoginId(command.loginId());
-		validateDuplicateName(command.name());
 		validateDuplicateEmail(command.email());
 
 		User user = User.builder()
 			.loginId(command.loginId())
 			.password(passwordEncoder.encode(command.password()))
 			.name(command.name())
+			.email(command.email())
+			.address(command.address())
 			.role(UserRole.MANAGER)
 			.build();
 
-		Manager manager = Manager.builder()
-			.user(user)
-			.name(command.name())
-			.email(command.email())
-			.build();
-
-		managerRepository.save(manager);
+		AuditorContext.set(user.getLoginId(), user.getRole());
+		userRepository.save(user);
 
 		return CreateUserRes.from(user);
 	}
@@ -57,14 +51,8 @@ public class ManagerServiceImpl implements ManagerService {
 		}
 	}
 
-	private void validateDuplicateName(String name) {
-		if (userRepository.existsByNameAndDeletedAtIsNull(name)) {
-			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
-		}
-	}
-
 	private void validateDuplicateEmail(String email) {
-		if (managerRepository.existsByEmailAndDeletedAtIsNull(email)) {
+		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(CommonErrorCode.DOMAIN_ERROR);
 		}
 	}
