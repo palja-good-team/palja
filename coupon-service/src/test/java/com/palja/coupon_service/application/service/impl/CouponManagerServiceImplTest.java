@@ -1,7 +1,7 @@
 package com.palja.coupon_service.application.service.impl;
 
 import com.palja.coupon_service.application.command.CreateCouponCommand;
-import com.palja.coupon_service.application.dto.CouponDTO;
+import com.palja.coupon_service.application.dto.CouponRes;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
 import com.palja.coupon_service.domain.vo.*;
@@ -58,7 +58,7 @@ class CouponManagerServiceImplTest {
         given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
 
         // when
-        CouponDTO result = couponManagerService.createCoupon(command);
+        CouponRes result = couponManagerService.createCoupon(command);
 
         // then
         assertThat(result).isNotNull();
