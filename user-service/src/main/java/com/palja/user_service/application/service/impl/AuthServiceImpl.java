@@ -73,11 +73,11 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public void logout(String loginId, String accessToken) {
-		getUserByLoginId(loginId);
+	public void logout(String currentUserLoginId, String accessToken) {
+		getUserByLoginId(currentUserLoginId);
 
-		addAccessTokenToBlackList(loginId, accessToken);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
+		addAccessTokenToBlackList(currentUserLoginId, accessToken);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
 	private User getUserByLoginId(String loginId) {

@@ -58,9 +58,17 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	@Override
 	@Transactional
-	public void updateCompanyUserStatus(UUID companyUserId, UpdateCompanyUserStatusCommand command) {
-		CompanyUser companyUser = getCompanyUserById(companyUserId);
+	public void updateCompanyUserStatus(String currentUserLoginId, String loginId, UpdateCompanyUserStatusCommand command) {
+		getUserByLoginId(currentUserLoginId);
+
+		User companyUser = getUserByLoginId(loginId);
 		companyUser.updateStatus(command.status());
+	}
+
+	private User getUserByLoginId(String loginId) {
+		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
 	}
 
 	private CompanyUser getCompanyUserById(UUID companyUserId) {

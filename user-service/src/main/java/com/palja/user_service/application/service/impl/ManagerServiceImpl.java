@@ -25,7 +25,8 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public CreateUserRes createManager(CreateManagerCommand command) {
+	public CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command) {
+		getUserByLoginId(currentUserLoginId);
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
@@ -42,6 +43,12 @@ public class ManagerServiceImpl implements ManagerService {
 		userRepository.save(user);
 
 		return CreateUserRes.from(user);
+	}
+
+	private User getUserByLoginId(String loginId) {
+		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
 	}
 
 	private void validateDuplicateLoginId(String loginId) {

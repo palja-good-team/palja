@@ -1,7 +1,5 @@
 package com.palja.user_service.presentation.controller.impl;
 
-import java.util.UUID;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.palja.common.annotation.RequiredAnonymous;
+import com.palja.common.annotation.RequiredRole;
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
@@ -31,6 +33,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	private final CompanyUserService companyUserService;
 
 	@Override
+	@RequiredAnonymous
 	@PostMapping
 	public ResponseEntity<ApiResponse<CreateUserRes>> create(@Valid @RequestBody CreateCompanyUserReq requestDto) {
 		CreateCompanyUserCommand command = CreateCompanyUserReq.of(requestDto);
@@ -40,12 +43,15 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	}
 
 	@Override
-	@PutMapping("/{companyUserId}/status")
+	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	@PutMapping("/{loginId}/status")
 	public ResponseEntity<ApiResponse<Void>> updateStatus(
-		@PathVariable("companyUserId") UUID companyUserId, @Valid @RequestBody UpdateCompanyUserStatusReq requestDto
+		@PathVariable("loginId") String loginId, @Valid @RequestBody UpdateCompanyUserStatusReq requestDto
 	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
 		UpdateCompanyUserStatusCommand command = UpdateCompanyUserStatusReq.of(requestDto);
-		companyUserService.updateCompanyUserStatus(companyUserId, command);
+		companyUserService.updateCompanyUserStatus(currentUserLoginId, loginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자의 상태가 수정되었습니다."));
 	}
