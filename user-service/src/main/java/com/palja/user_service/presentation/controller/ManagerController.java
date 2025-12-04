@@ -28,4 +28,7 @@ public interface ManagerController {
 
 	ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateByLoginId(String loginId, UpdateManagerReq requestDto);
 
+	ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateMe(UpdateManagerReq requestDto);
+
+
 }

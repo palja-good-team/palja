@@ -94,6 +94,15 @@ public class ManagerServiceImpl implements ManagerService {
 		return UpdateManagerDetailRes.from(user);
 	}
 
+	@Override
+	@Transactional
+	public UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command) {
+		User user = getUserByLoginId(currentUserLoginId);
+		user.update(command.address());
+
+		return UpdateManagerDetailRes.from(user);
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)

@@ -26,4 +26,6 @@ public interface ManagerService {
 
 	UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command);
 
+	UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command);
+
 }

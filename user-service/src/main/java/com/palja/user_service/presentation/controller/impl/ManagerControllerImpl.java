@@ -115,4 +115,16 @@ public class ManagerControllerImpl implements ManagerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	@PutMapping("/me")
+	public ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateMe(@Valid @RequestBody UpdateManagerReq requestDto) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateManagerCommand command = UpdateManagerReq.of(requestDto);
+		UpdateManagerDetailRes responseDto = managerService.updateMe(currentUserLoginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
+	}
+
 }
