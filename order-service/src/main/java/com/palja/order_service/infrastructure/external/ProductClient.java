@@ -11,6 +11,6 @@ import java.util.UUID;
 @FeignClient(name = "product-service", path = "/api/v1/products")
 public interface ProductClient {
 
-    @GetMapping("{productId}")
+    @GetMapping("/{productId}")
     ApiResponse<ProductDTO> getProduct(@PathVariable("productId") UUID productId);
 }

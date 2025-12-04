@@ -15,6 +15,6 @@ public interface UserClient {
     ApiResponse<CustomerUserDTO> getCustomerUserByLoginId(@PathVariable("loginId") String loginId);
 
     // manager 사용자 정보 조회
-    @GetMapping("managers/{loginId}")
+    @GetMapping("/managers/{loginId}")
     ApiResponse<ManagerUserDTO> getManagerUserByLoginId(@PathVariable("loginId") String loginId);
 }
