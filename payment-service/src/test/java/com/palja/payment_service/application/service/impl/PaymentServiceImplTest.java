@@ -3,6 +3,7 @@ package com.palja.payment_service.application.service.impl;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
+import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
 import com.palja.payment_service.application.service.PGPaymentService;
@@ -21,8 +22,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +35,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
@@ -247,5 +253,106 @@ class PaymentServiceImplTest {
         ))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
+    }
+
+    @Test
+    @DisplayName("paymentId로 결제 단건 조회 성공")
+    void getPayment_success() {
+        Payment payment = Payment.create(
+                UUID.randomUUID(),
+                1L,
+                new BigDecimal("10000"),
+                "KRW",
+                PaymentMethod.CARD,
+                "paymentKey123"
+        );
+        payment.approve("paymentKey123");
+
+        UUID paymentId = payment.getId();
+
+        given(paymentRepository.findById(paymentId)).willReturn(Optional.of(payment));
+
+        PaymentDetailRes result = paymentService.getPayment(paymentId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getPaymentId()).isEqualTo(paymentId);
+        assertThat(result.getStatus()).isEqualTo(PaymentStatus.APPROVED.name());
+        assertThat(result.getAmount()).isEqualTo(new BigDecimal("10000"));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 paymentId로 인해 결제 단건 조회 실패")
+    void getPayment_failure_paymentIdNotFound() {
+        UUID paymentId = UUID.randomUUID();
+
+        given(paymentRepository.findById(paymentId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.getPayment(paymentId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("검색 조건에 따른 결제 목록 조회 성공")
+    void getPayments_success() {
+        String status = "APPROVED";
+        Long userId = 1L;
+        UUID orderId = UUID.randomUUID();
+        LocalDateTime startDate = LocalDateTime.now().minusDays(1);
+        LocalDateTime endDate = LocalDateTime.now();
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        Payment payment1 = Payment.create(orderId, userId, new BigDecimal("10000"), "KRW", PaymentMethod.CARD, "paymentKey123");
+        payment1.approve("paymentKey123");
+
+        Payment payment2 = Payment.create(orderId, userId, new BigDecimal("20000"), "KRW", PaymentMethod.CARD, "paymentKey456");
+        payment2.approve("paymentKey456");
+
+        Page<Payment> paymentPage = new PageImpl<>(List.of(payment1, payment2), pageRequest, 2);
+
+        given(paymentRepository.findPayments(
+                PaymentStatus.APPROVED,
+                userId,
+                orderId,
+                startDate,
+                endDate,
+                pageRequest
+        )).willReturn(paymentPage);
+
+        var result = paymentService.searchPayments(
+                new FindPaymentListByConditionCommand(PaymentStatus.APPROVED, userId, orderId, startDate, endDate),
+                pageRequest
+        );
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getPaymentId()).isEqualTo(payment1.getId());
+        assertThat(result.getContent().get(1).getPaymentId()).isEqualTo(payment2.getId());
+    }
+
+    @Test
+    @DisplayName("검색 조건에 따른 결제 목록 조회 - 결과 없어서 실패")
+    void getPayments_emptyResult() {
+        Long userId = 999L;
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        Page<Payment> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
+
+        given(paymentRepository.findPayments(
+                null,
+                userId,
+                null,
+                null,
+                null,
+                pageRequest
+        )).willReturn(emptyPage);
+
+        var result = paymentService.searchPayments(
+                new FindPaymentListByConditionCommand(null, userId, null, null, null),
+                pageRequest
+        );
+
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getContent()).isEmpty();
     }
 }
