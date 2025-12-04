@@ -31,7 +31,7 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	@Transactional
 	public CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command) {
-		getUserByLoginId(currentUserLoginId);
+		validateUserExistsByLoginId(currentUserLoginId);
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
@@ -54,7 +54,7 @@ public class ManagerServiceImpl implements ManagerService {
 	public PageResponse<ReadManagerSummaryRes> getAllManagers(
 		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
 	) {
-		getUserByLoginId(currentUserLoginId);
+		validateUserExistsByLoginId(currentUserLoginId);
 
 		return PageResponse.from(
 			userRepository.searchAllManagers(loginId, email, name, pageable)
@@ -64,14 +64,14 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	public ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId) {
-		getUserByLoginId(currentUserLoginId);
+		validateUserExistsByLoginId(currentUserLoginId);
 
 		return ReadManagerDetailRes.from(getManagerByLoginId(loginId));
 	}
 
 	@Override
 	public ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId) {
-		getUserByLoginId(currentUserLoginId);
+		validateUserExistsByLoginId(currentUserLoginId);
 
 		return ReadManagerDetailRes.from(getManagerByUserId(userId));
 	}
@@ -97,6 +97,12 @@ public class ManagerServiceImpl implements ManagerService {
 		return userRepository.findByIdAndRoleAndDeletedAtIsNull(userId, UserRole.MANAGER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
+	}
+
+	private void validateUserExistsByLoginId(String loginId) {
+		if (!userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
+			throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+		}
 	}
 
 	private void validateDuplicateLoginId(String loginId) {
