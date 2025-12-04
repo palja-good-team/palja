@@ -1,5 +1,7 @@
 package com.palja.product_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
+import com.palja.product_service.exception.ProductErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,7 +18,7 @@ public class Money {
 
     public static Money of(Long amount) {
         if(amount == null || amount < 0)
-            throw new IllegalArgumentException();
+            throw new BusinessException(ProductErrorCode.INVALID_PRICE);
 
         return new Money(BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP));
     }
@@ -35,7 +37,7 @@ public class Money {
     public Money minus(Money other) {
         BigDecimal result = amount.subtract(other.amount);
         if (result.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException();
+            throw new BusinessException(ProductErrorCode.INVALID_PRICE);
         }
 
         return new Money(result);

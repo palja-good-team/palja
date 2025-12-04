@@ -12,6 +12,7 @@ import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
             유니크 제약조건 검사 - 회사는 같은 카테고리에 같은 이름의 상품을 등록할 수 없다.
         */
         if(repository.isNotUnique(product))
-            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+            throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
         Product savedProduct = repository.save(product);
 
