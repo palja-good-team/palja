@@ -1,6 +1,9 @@
 package com.palja.gateway_service.util;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Base64;
 
@@ -47,6 +50,20 @@ public class JwtUtil {
 
 	public Claims parseAccessToken(String accessToken) {
 		return parseToken(accessToken, accessKey);
+	}
+
+	public String hashingTokenToSHA256(String token) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			md.update(token.getBytes(StandardCharsets.UTF_8));
+			StringBuilder sb = new StringBuilder();
+			for (byte b : md.digest()) {
+				sb.append(String.format("%02x", b));
+			}
+			return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.");
+		}
 	}
 
 	private boolean validateToken(String token, Key key) {

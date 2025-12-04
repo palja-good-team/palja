@@ -5,6 +5,6 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 
 public interface ManagerService {
 
-	CreateUserRes createManager(CreateManagerCommand command);
+	CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command);
 
 }

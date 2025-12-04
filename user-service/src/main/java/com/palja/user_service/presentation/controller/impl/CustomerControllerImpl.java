@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.palja.common.annotation.RequiredAnonymous;
 import com.palja.common.response.ApiResponse;
 import com.palja.user_service.application.command.CreateCustomerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
@@ -25,6 +26,7 @@ public class CustomerControllerImpl implements CustomerController {
 	private final CustomerService customerService;
 
 	@Override
+	@RequiredAnonymous
 	@PostMapping
 	public ResponseEntity<ApiResponse<CreateUserRes>> create(@Valid @RequestBody CreateCustomerReq requestDto) {
 		CreateCustomerCommand command = CreateCustomerReq.of(requestDto);

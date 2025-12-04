@@ -9,6 +9,6 @@ public interface AuthService {
 
 	String refreshAccessToken(String accessToken, String refreshToken);
 
-	void logout(String loginId, String accessToken);
+	void logout(String currentUserLoginId, String accessToken);
 
 }

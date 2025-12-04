@@ -8,6 +8,7 @@ import com.palja.product_service.application.dto.res.FindProductListByConditionR
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +67,7 @@ class ProductServiceImplTest {
         CreateProductCommand command = createProductCommand;
         Product expected = product;
 
-        given(productRepository.isNotUnique(any(Product.class))).willReturn(Boolean.FALSE);
+        given(productRepository.isNotUnique(anyString(), any(Category.class), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 
         //when

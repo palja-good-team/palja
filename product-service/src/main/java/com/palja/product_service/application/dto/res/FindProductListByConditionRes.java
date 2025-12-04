@@ -13,7 +13,7 @@ public class FindProductListByConditionRes {
     private UUID productId;
     private String name;
     private String description;
-    private Money price;
+    private String price;
     private String category;
     private BigDecimal avgRating;
 
@@ -24,7 +24,7 @@ public class FindProductListByConditionRes {
         result.name = product.getName();
         result.description = product.getDescription().length() > 50 ?
                 product.getDescription().substring(0, 50)+ "..." : product.getDescription();
-        result.price = product.getPrice();
+        result.price = product.getPrice().toString();
         result.category = product.getCategory().name();
         result.avgRating = product.getAvgRating();
 

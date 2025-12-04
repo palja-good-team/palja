@@ -1,5 +1,8 @@
 package com.palja.product_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
+import com.palja.common.exception.BusinessException;
+import com.palja.product_service.exception.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -8,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_product_stock")
 @Getter
-public class ProductStock {
+public class ProductStock extends BaseEntity {
 
     @Id
     @Column(name = "product_stock_id")
@@ -37,7 +40,7 @@ public class ProductStock {
     protected ProductStock decrease(Integer quantity) {
         this.quantity -= quantity;
         if(this.quantity < 0)
-            throw new IllegalArgumentException();
+            throw new BusinessException(ProductErrorCode.INVALID_PRODUCT_STOCK);
         return this;
     }
 }

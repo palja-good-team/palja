@@ -1,5 +1,7 @@
 package com.palja.gateway_service.filter;
 
+import static com.palja.gateway_service.util.RedisKeyConstants.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palja.gateway_service.redis.TokenRepository;
 import com.palja.gateway_service.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
@@ -28,11 +31,11 @@ public class AuthorizationFilter implements GlobalFilter {
 
 	private final JwtUtil jwtUtil;
 	private final ObjectMapper objectMapper;
+	private final TokenRepository tokenRepository;
 
 	private final Map<String, List<String>> permitAllPaths = Map.of(
 		"/api/v1/auth/login", List.of("POST"),
 		"/api/v1/auth/refresh", List.of("POST"),
-		"/api/v1/managers", List.of("POST"),
 		"/api/v1/customers", List.of("POST"),
 		"/api/v1/company-users", List.of("POST")
 	);
@@ -45,12 +48,7 @@ public class AuthorizationFilter implements GlobalFilter {
 
 		log.info("[%s] %s".formatted(method, request.getURI()));
 
-		if (permitAllPaths.containsKey(path) && permitAllPaths.get(path).contains(method)) {
-			return chain.filter(exchange);
-		}
-
 		List<String> authorizationHeaders = request.getHeaders().get("Authorization");
-
 		if (authorizationHeaders != null && !authorizationHeaders.isEmpty()) {
 			String accessToken = authorizationHeaders.get(0);
 			String substringAccessToken = jwtUtil.substringToken(accessToken);
@@ -60,12 +58,18 @@ public class AuthorizationFilter implements GlobalFilter {
 				String loginId = claims.getSubject();
 				String userRole = claims.get("role").toString();
 
-				ServerHttpRequest mutatedRequest = request.mutate()
-					.header("X-USER-LOGIN-ID", loginId)
-					.header("X-USER-ROLE", userRole)
-					.build();
-
-				return chain.filter(exchange.mutate().request(mutatedRequest).build());
+				String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
+				if (tokenRepository.get(ACCESS_TOKEN_BLACKLIST_PREFIX + loginId + ":" + hashKey) == null) {
+					ServerHttpRequest mutatedRequest = request.mutate()
+						.header("X-USER-LOGIN-ID", loginId)
+						.header("X-USER-ROLE", userRole)
+						.build();
+					return chain.filter(exchange.mutate().request(mutatedRequest).build());
+				}
+			}
+		} else {
+			if (permitAllPaths.containsKey(path) && permitAllPaths.get(path).contains(method)) {
+				return chain.filter(exchange);
 			}
 		}
 
