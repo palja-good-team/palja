@@ -14,5 +14,5 @@ public interface JpaProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")
     Optional<Product> findByIdFetchStock(@Param("productId") UUID productId);
 
-    Boolean existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNotNull(String companyName, Category category, String name);
+    Boolean existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(String companyName, Category category, String name);
 }

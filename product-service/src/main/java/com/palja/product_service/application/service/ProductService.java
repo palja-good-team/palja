@@ -2,10 +2,8 @@ package com.palja.product_service.application.service;
 
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.dto.res.CreateProductRes;
-import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
-import com.palja.product_service.application.dto.res.FindProductRes;
-import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
+import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.dto.res.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,4 +18,6 @@ public interface ProductService {
     Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable);
 
     ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId);
+
+    UpdateProductRes updateProduct(UUID productId, UpdateProductCommand updateCommand);
 }

@@ -1,12 +1,15 @@
 package com.palja.product_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
+import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.domain.vo.Money;
+import com.palja.product_service.exception.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -24,7 +27,7 @@ public class Product extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String name;
 
-    @Column(length = 255, nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Embedded
@@ -59,6 +62,22 @@ public class Product extends BaseEntity {
         product.productStock = new ProductStock(product, stock);
 
         return product;
+    }
+
+    public Product updateProduct(String name, String description, Long price, String category) {
+
+        if (Objects.nonNull(name)) {
+            if(name.length() <= 30) this.name = name;
+            else throw new BusinessException(ProductErrorCode.NAME_TOO_LONG);
+        }
+
+        if(Objects.nonNull(description))
+            this.description = description;
+
+        this.price = Objects.nonNull(price) ? Money.of(price) : this.price;
+        this.category = Objects.nonNull(category) ? Category.fromString(category) : this.category;
+
+        return this;
     }
 
     public ProductStock increaseStock(Integer quantity) {
