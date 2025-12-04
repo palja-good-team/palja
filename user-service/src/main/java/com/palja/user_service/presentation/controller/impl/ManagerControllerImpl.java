@@ -86,4 +86,14 @@ public class ManagerControllerImpl implements ManagerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
 
+	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	@GetMapping("/me")
+	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getMe() {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadManagerDetailRes responseDto = managerService.getMe(currentUserLoginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
+	}
+
 }

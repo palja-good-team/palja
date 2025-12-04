@@ -22,4 +22,6 @@ public interface ManagerController {
 
 	ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByUserId(Long userId);
 
+	ResponseEntity<ApiResponse<ReadManagerDetailRes>> getMe();
+
 }

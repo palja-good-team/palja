@@ -1,7 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import java.util.Optional;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -76,6 +74,11 @@ public class ManagerServiceImpl implements ManagerService {
 		getUserByLoginId(currentUserLoginId);
 
 		return ReadManagerDetailRes.from(getManagerByUserId(userId));
+	}
+
+	@Override
+	public ReadManagerDetailRes getMe(String currentUserLoginId) {
+		return ReadManagerDetailRes.from(getUserByLoginId(currentUserLoginId));
 	}
 
 	private User getUserByLoginId(String loginId) {
