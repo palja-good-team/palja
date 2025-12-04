@@ -1,4 +1,4 @@
-package com.palja.product_service.infrastructure.repository;
+package com.palja.product_service.infrastructure.repository.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -6,6 +6,8 @@ import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
+import com.palja.product_service.infrastructure.repository.DslProductRepository;
+import com.palja.product_service.infrastructure.repository.JpaProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -15,7 +17,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class ProductRepositoryAdapter implements ProductRepository {
+public class ProductRepositoryImpl implements ProductRepository {
 
     private final JpaProductRepository jpaProductRepository;
     private final DslProductRepository dslProductRepository;
