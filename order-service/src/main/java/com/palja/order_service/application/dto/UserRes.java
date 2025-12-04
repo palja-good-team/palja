@@ -1,7 +1,7 @@
 package com.palja.order_service.application.dto;
 
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.infrastructure.external.dto.response.UserDTO;
+import com.palja.order_service.infrastructure.external.dto.response.CustomerUserDTO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,16 +24,16 @@ public class UserRes {
     private final LocalDateTime createdAt;
 
     // Infrastructure DTO → Application DTO 변환
-    public static UserRes from(UserDTO userDTO) {
+    public static UserRes from(CustomerUserDTO customerUserDTO) {
         return UserRes.builder()
-                .userId(userDTO.getUserId())
-                .loginId(userDTO.getLoginId())
-                .name(userDTO.getName())
-                .email(userDTO.getEmail())
-                .address(userDTO.getAddress())
-                .role(userDTO.getRole()) // null 허용
-                .status(userDTO.getStatus())
-                .createdAt(userDTO.getCreatedAt())
+                .userId(customerUserDTO.getUserId())
+                .loginId(customerUserDTO.getLoginId())
+                .name(customerUserDTO.getName())
+                .email(customerUserDTO.getEmail())
+                .address(customerUserDTO.getAddress())
+                .role(customerUserDTO.getRole()) // null 허용
+                .status(customerUserDTO.getStatus())
+                .createdAt(customerUserDTO.getCreatedAt())
                 .build();
     }
 }

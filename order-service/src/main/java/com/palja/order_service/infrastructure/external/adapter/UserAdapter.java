@@ -2,7 +2,7 @@ package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.order_service.application.dto.UserRes;
 import com.palja.order_service.application.service.UserService;
-import com.palja.order_service.infrastructure.external.dto.response.UserDTO;
+import com.palja.order_service.infrastructure.external.dto.response.CustomerUserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,10 +20,11 @@ public class UserAdapter implements UserService {
         log.debug("사용자 조회 요청: loginId={}", loginId);
         // TODO: 권한에 따라 다른 엔드포인트 연결하기 (MANAGER, CUSTOMER, COMPANY_USER)
         // TODO: user-service 연동 시 FeignClient 호출 사용
-        // UserDTO response = userClient.getUserByLoginId(loginId).data();
+        // CustomerUserDTO response = userClient.getCustomerUserByLoginId(loginId).data();
+        // ManagerUserDTO response = userClient.getManagerUserByLoginId(loginId).data();
         // TODO: 실제 유저 서비스 연동 시 위의 코드로 교체
         // 임시 더미 데이터
-        UserDTO response = UserDTO.dummy(loginId);
+        CustomerUserDTO response = CustomerUserDTO.dummy(loginId);
 
         return UserRes.from(response);
     }
