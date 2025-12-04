@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PaymentAdapter implements PaymentService {
 
     // TODO: 결제 서비스 연동 시 PaymentClient 주입 및 구현 추가
-     private final PaymentClient paymentClient;
+    //private final PaymentClient paymentClient;
 
     @Override
     public PaymentRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentMethod) {
