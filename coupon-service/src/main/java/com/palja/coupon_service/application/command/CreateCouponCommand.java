@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record CreateCouponCommand(
         String couponName,
         String description,
-        DiscountType discountType,
+        String discountType,
         Integer discountValue,
         Integer totalQuantity,
         Integer maxDiscountAmount,

@@ -1,7 +1,6 @@
 package com.palja.coupon_service.presentation.dto.request;
 
 import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
-import com.palja.coupon_service.domain.vo.CouponStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
@@ -15,7 +14,7 @@ public class ChangeCouponStatusReq {
     public static ChangeCouponStatusCommand of(UUID couponId, ChangeCouponStatusReq request) {
         return ChangeCouponStatusCommand.builder()
                 .couponId(couponId)
-                .status(CouponStatus.valueOf(request.getStatus().toUpperCase()))
+                .status(request.getStatus())
                 .build();
     }
 }

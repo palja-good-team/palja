@@ -55,7 +55,7 @@ class CouponManagerServiceImplTest {
             CreateCouponCommand command = CreateCouponCommand.builder()
                     .couponName("테스트 쿠폰")
                     .description("테스트 쿠폰 설명")
-                    .discountType(DiscountType.PERCENTAGE)
+                    .discountType(DiscountType.PERCENTAGE.toString())
                     .discountValue(10)
                     .totalQuantity(1000)
                     .maxDiscountAmount(5000)
@@ -67,7 +67,7 @@ class CouponManagerServiceImplTest {
             Coupon savedCoupon = Coupon.create(
                     command.couponName(),
                     command.description(),
-                    DiscountPolicy.of(command.discountType(), command.discountValue()),
+                    DiscountPolicy.of(DiscountType.valueOf(command.discountType()), command.discountValue()),
                     command.totalQuantity(),
                     AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
                     IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
@@ -101,7 +101,7 @@ class CouponManagerServiceImplTest {
             CreateCouponCommand command = CreateCouponCommand.builder()
                     .couponName("테스트 쿠폰")
                     .description("테스트 쿠폰 설명")
-                    .discountType(DiscountType.PERCENTAGE)
+                    .discountType(DiscountType.PERCENTAGE.toString())
                     .discountValue(0)
                     .totalQuantity(1000)
                     .maxDiscountAmount(5000)
@@ -122,7 +122,7 @@ class CouponManagerServiceImplTest {
             CreateCouponCommand command = CreateCouponCommand.builder()
                     .couponName("테스트 쿠폰")
                     .description("테스트 쿠폰 설명")
-                    .discountType(DiscountType.PERCENTAGE)
+                    .discountType(DiscountType.PERCENTAGE.toString())
                     .discountValue(105)
                     .totalQuantity(1000)
                     .maxDiscountAmount(5000)
@@ -143,7 +143,7 @@ class CouponManagerServiceImplTest {
             CreateCouponCommand command = CreateCouponCommand.builder()
                     .couponName("테스트 쿠폰")
                     .description("테스트 쿠폰 설명")
-                    .discountType(DiscountType.PERCENTAGE)
+                    .discountType(DiscountType.PERCENTAGE.toString())
                     .discountValue(10)
                     .totalQuantity(1000)
                     .maxDiscountAmount(5000)
@@ -164,7 +164,7 @@ class CouponManagerServiceImplTest {
             CreateCouponCommand command = CreateCouponCommand.builder()
                     .couponName("테스트 쿠폰")
                     .description("테스트 쿠폰 설명")
-                    .discountType(DiscountType.PERCENTAGE)
+                    .discountType(DiscountType.PERCENTAGE.toString())
                     .discountValue(10)
                     .totalQuantity(1000)
                     .maxDiscountAmount(5000)
@@ -255,7 +255,7 @@ class CouponManagerServiceImplTest {
             UUID couponId = UUID.randomUUID();
             ChangeCouponStatusCommand command = ChangeCouponStatusCommand.builder()
                     .couponId(couponId)
-                    .status(CouponStatus.EXPIRED)
+                    .status(CouponStatus.EXPIRED.toString())
                     .build();
 
             Coupon existingCoupon = mock(Coupon.class);
@@ -281,7 +281,7 @@ class CouponManagerServiceImplTest {
             UUID couponId = UUID.randomUUID();
             ChangeCouponStatusCommand command = ChangeCouponStatusCommand.builder()
                     .couponId(couponId)
-                    .status(CouponStatus.ACTIVE)
+                    .status(CouponStatus.ACTIVE.toString())
                     .build();
 
             Coupon existingCoupon = mock(Coupon.class);
