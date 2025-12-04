@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -25,9 +26,9 @@ public class ProductRepositoryAdapter implements ProductRepository {
     }
 
     @Override
-    public Boolean isNotUnique(Product product) {
-        return jpaProductRepository.existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNotNull(
-                product.getCompanyName(), product.getCategory(), product.getName());
+    public Boolean isNotUnique(String companyName, Category category, String name) {
+        return jpaProductRepository.existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(
+                companyName, category, name);
     }
 
     @Override

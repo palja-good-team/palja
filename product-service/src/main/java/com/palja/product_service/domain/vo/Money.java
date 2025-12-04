@@ -2,6 +2,7 @@ package com.palja.product_service.domain.vo;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.exception.ProductErrorCode;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.math.RoundingMode;
 @EqualsAndHashCode
 public class Money {
 
+    @Column(name = "price")
     private BigDecimal amount;
 
     public static Money of(Long amount) {

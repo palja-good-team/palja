@@ -1,12 +1,11 @@
 package com.palja.product_service.application.service.impl;
 
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.dto.res.CreateProductRes;
-import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
-import com.palja.product_service.application.dto.res.FindProductRes;
-import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
+import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
@@ -54,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
         /*
             유니크 제약조건 검사 - 회사는 같은 카테고리에 같은 이름의 상품을 등록할 수 없다.
         */
-        if(repository.isNotUnique(product))
+        if(repository.isNotUnique(product.getCompanyName(), product.getCategory(), product.getName()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
         Product savedProduct = repository.save(product);
@@ -97,5 +96,31 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(
                         () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
                 );
+    }
+
+    @Override
+    @Transactional
+    public UpdateProductRes updateProduct(UUID productId, UpdateProductCommand updateCommand) {
+
+        Product product = repository.findProduct(productId);
+
+        /*
+            String loginId = CurrentUser.getLoginId();
+            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
+            UUID companyUserId = userClient.요청(loginId);
+            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
+         */
+        if(repository.isNotUnique(
+                product.getCompanyName(),
+                Category.fromString(updateCommand.category()),
+                updateCommand.name()))
+            throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
+
+        Product updateProduct = product.updateProduct(updateCommand.name(),
+                updateCommand.description(),
+                updateCommand.price(),
+                updateCommand.category());
+
+        return UpdateProductRes.fromEntity(updateProduct);
     }
 }
