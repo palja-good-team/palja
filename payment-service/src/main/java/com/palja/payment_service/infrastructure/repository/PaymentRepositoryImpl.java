@@ -40,13 +40,13 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Page<Payment> findPayments(String status, Long userId, UUID orderId, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest) {
+    public Page<Payment> findPayments(PaymentStatus status, Long userId, UUID orderId, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest) {
         QPayment payment = QPayment.payment;
 
         BooleanBuilder builder = new BooleanBuilder();
 
         if (status != null) {
-            builder.and(payment.status.eq(PaymentStatus.valueOf(status)));
+            builder.and(payment.status.eq(status));
         }
         if (userId != null) {
             builder.and(payment.userId.eq(userId));

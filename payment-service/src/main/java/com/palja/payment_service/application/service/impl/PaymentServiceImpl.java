@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -159,7 +160,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest) {
         Page<Payment> payments = paymentRepository.findPayments(
-                command.status() != null ? command.status().name() : null,
+                command.status(),
                 command.userId(),
                 command.orderId(),
                 command.startDate(),

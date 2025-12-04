@@ -49,16 +49,15 @@ public class PaymentController {
     }
 
     @GetMapping("/{paymentId}")
-    public ResponseEntity<ApiResponse<PaymentRes>> getPayment(@PathVariable UUID paymentId) {
+    public ResponseEntity<ApiResponse<PaymentDetailRes>> getPayment(@PathVariable UUID paymentId) {
         PaymentDetailRes detail = paymentService.getPayment(paymentId);
-        PaymentRes res = PaymentRes.from(detail);
 
         return ResponseEntity
-                .ok(ApiResponse.success(res, "결제 단건 조회에 성공했습니다."));
+                .ok(ApiResponse.success(detail, "결제 단건 조회에 성공했습니다."));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<PaymentRes>>> getPayments(
+    public ResponseEntity<ApiResponse<PageResponse<PaymentDetailRes>>> getPayments(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) UUID orderId,
@@ -67,15 +66,22 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        PaymentStatus paymentStatus = (status != null) ? PaymentStatus.valueOf(status) : null;
+
         FindPaymentListByConditionCommand command = new FindPaymentListByConditionCommand(
-                PaymentStatus.valueOf(status), userId, orderId, startDate, endDate
+                paymentStatus,
+                userId,
+                orderId,
+                startDate,
+                endDate
         );
 
         PageRequest pageRequest = PageRequest.of(page, size);
         var pageResult = paymentService.searchPayments(command, pageRequest);
-        PageResponse<PaymentRes> response = PageResponse.from(pageResult.map(PaymentRes::from));
+
+        PageResponse<PaymentDetailRes> detail = PageResponse.from(pageResult);
 
         return ResponseEntity
-                .ok(ApiResponse.success(response, "결제 목록 조회에 성공했습니다."));
+                .ok(ApiResponse.success(detail, "결제 목록 조회에 성공했습니다."));
     }
 }
