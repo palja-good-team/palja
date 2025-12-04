@@ -1,4 +1,4 @@
-package com.palja.user_service.infrastructure.repository.adapter;
+package com.palja.user_service.infrastructure.repository.impl;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class CompanyUserRepositoryAdapter implements CompanyUserRepository {
+public class CompanyUserRepositoryImpl implements CompanyUserRepository {
 
 	private final JpaCompanyUserRepository jpaCompanyUserRepository;
 
