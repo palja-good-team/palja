@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,12 +18,15 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
+import com.palja.user_service.application.command.UpdateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateManagerDetailRes;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.presentation.controller.ManagerController;
 import com.palja.user_service.presentation.dto.request.CreateManagerReq;
+import com.palja.user_service.presentation.dto.request.UpdateManagerReq;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +90,7 @@ public class ManagerControllerImpl implements ManagerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
 
+	@Override
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getMe() {
@@ -94,6 +99,20 @@ public class ManagerControllerImpl implements ManagerController {
 		ReadManagerDetailRes responseDto = managerService.getMe(currentUserLoginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MASTER})
+	@PutMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateByLoginId(
+		@PathVariable String loginId, @Valid @RequestBody UpdateManagerReq requestDto
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateManagerCommand command = UpdateManagerReq.of(requestDto);
+		UpdateManagerDetailRes responseDto = managerService.updateManagerByLoginId(currentUserLoginId, loginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
 	}
 
 }

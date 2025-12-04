@@ -10,9 +10,11 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
+import com.palja.user_service.application.command.UpdateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateManagerDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.domain.entity.User;
@@ -79,6 +81,17 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	public ReadManagerDetailRes getMe(String currentUserLoginId) {
 		return ReadManagerDetailRes.from(getUserByLoginId(currentUserLoginId));
+	}
+
+	@Override
+	@Transactional
+	public UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		User user = getUserByLoginId(loginId);
+		user.update(command.address());
+
+		return UpdateManagerDetailRes.from(user);
 	}
 
 	private User getUserByLoginId(String loginId) {

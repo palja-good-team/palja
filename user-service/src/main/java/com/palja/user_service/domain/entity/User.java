@@ -64,6 +64,10 @@ public class User extends BaseEntity {
 		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
 	}
 
+	public void update(String address) {
+		this.address = address;
+	}
+
 	public void updateStatus(String status) {
 		UserStatus newStatus = validateAndGetStatus(status);
 		if (!this.status.canTransitionTo(newStatus)) {
