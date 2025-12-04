@@ -29,9 +29,9 @@ public class ProductController {
     private final ProductService service;
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq createReq) {
+    public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq req) {
 
-        CreateProductCommand createCommand = createReq.toCommand(createReq);
+        CreateProductCommand createCommand = req.toCommand(req);
         CreateProductRes res = service.createProduct(createCommand);
 
         return new ResponseEntity<>(ApiResponse.success(res,"상품 등록 성공"), HttpStatus.CREATED);

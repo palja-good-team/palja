@@ -1,12 +1,11 @@
 package com.palja.product_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.dto.res.CreateProductRes;
-import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
+import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -74,12 +73,12 @@ public class ProductServiceImpl implements ProductService {
     public Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
 
         FindListByConditionReq req = new FindListByConditionReq(
-                command.getName(),
-                command.getMinPrice(),
-                command.getMaxPrice(),
-                Category.fromString(command.getCategory()),
-                command.getMinRating(),
-                command.getMaxRating()
+                command.name(),
+                command.minPrice(),
+                command.maxPrice(),
+                Category.fromString(command.category()),
+                command.minRating(),
+                command.maxRating()
         );
 
         List<Product> productList = repository.findProductsToCondition(req, pageable);
@@ -94,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId) {
         return Optional.ofNullable(
-                dslProductRepository.findProductForTimeDeal(productId))
+                        dslProductRepository.findProductForTimeDeal(productId))
                 .orElseThrow(
                         () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
                 );
