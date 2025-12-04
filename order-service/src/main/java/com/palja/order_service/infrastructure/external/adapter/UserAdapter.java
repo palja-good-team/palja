@@ -18,7 +18,7 @@ public class UserAdapter implements UserService {
     @Override
     public UserRes getUserByLoginId(String loginId) {
         log.debug("사용자 조회 요청: loginId={}", loginId);
-
+        // TODO: 권한에 따라 다른 엔드포인트 연결하기 (MANAGER, CUSTOMER, COMPANY_USER)
         // TODO: user-service 연동 시 FeignClient 호출 사용
         // UserDTO response = userClient.getUserByLoginId(loginId).data();
         // TODO: 실제 타임딜 서비스 연동 시 위의 코드로 교체
