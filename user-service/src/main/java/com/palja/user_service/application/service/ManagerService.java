@@ -12,7 +12,7 @@ import com.palja.user_service.application.dto.response.UpdateManagerDetailRes;
 
 public interface ManagerService {
 
-	CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command);
+	CreateUserRes createManager(CreateManagerCommand command);
 
 	PageResponse<ReadManagerSummaryRes> getAllManagers(
 		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
@@ -24,7 +24,7 @@ public interface ManagerService {
 
 	ReadManagerDetailRes getMe(String currentUserLoginId);
 
-	UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command);
+	UpdateManagerDetailRes updateManagerByLoginId(String loginId, UpdateManagerCommand command);
 
 	UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command);
 

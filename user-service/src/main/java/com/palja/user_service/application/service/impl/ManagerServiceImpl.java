@@ -32,8 +32,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command) {
-		validateUserExistsByLoginId(currentUserLoginId);
+	public CreateUserRes createManager(CreateManagerCommand command) {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
@@ -85,9 +84,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command) {
-		validateUserExistsByLoginId(currentUserLoginId);
-
+	public UpdateManagerDetailRes updateManagerByLoginId(String loginId, UpdateManagerCommand command) {
 		User user = getUserByLoginId(loginId);
 		user.update(command.address());
 
