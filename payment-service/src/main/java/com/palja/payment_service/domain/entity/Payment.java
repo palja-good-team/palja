@@ -92,8 +92,4 @@ public class Payment extends BaseEntity {
         this.cancelReason = reason;
         this.completedAt = LocalDateTime.now();
     }
-
-    public void softDelete(){
-        super.softDelete();
-    }
 }
