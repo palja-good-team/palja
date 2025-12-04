@@ -1,5 +1,6 @@
 package com.palja.review_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -9,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_review")
 @Getter
-public class Review {
+public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,6 +35,9 @@ public class Review {
     @Column(nullable = false, name = "user_id")
     private Long userId;
 
+    @Column(nullable = false, name = "user_name")
+    private String userName;
+
     @Column(nullable = false, name = "order_id")
     private UUID orderId;
 
@@ -42,7 +46,7 @@ public class Review {
 
     protected Review() {}
 
-    public static Review create(String title, String content, BigDecimal rating, Boolean isLike, Boolean dislike, Long userId, UUID orderId, UUID productId) {
+    public static Review create(String title, String content, BigDecimal rating, Boolean isLike, Boolean dislike, Long userId, String userName, UUID orderId, UUID productId) {
         Review review = new Review();
 
         review.title = title;
@@ -51,6 +55,7 @@ public class Review {
         review.like = isLike;
         review.dislike = dislike;
         review.userId = userId;
+        review.userName = userName;
         review.orderId = orderId;
         review.productId = productId;
 
