@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,13 +24,13 @@ public class PaymentLogController {
     private final PaymentLogService paymentLogService;
 
     @GetMapping("/payments/{paymentId}/logs")
-    public ResponseEntity<ApiResponse<PaymentLogDetailRes>> getPaymentLog(
+    public ResponseEntity<ApiResponse<List<PaymentLogDetailRes>>> getPaymentLogsByPaymentId(
             @PathVariable UUID paymentId
-    ){
-        PaymentLogDetailRes detail = paymentLogService.getLogByPaymentId(paymentId);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success(detail, "결제 로그 단건 조회에 성공했습니다."));
+    ) {
+        List<PaymentLogDetailRes> res = paymentLogService.getLogsByPaymentId(paymentId);
+        return ResponseEntity.ok(
+                ApiResponse.success(res, "결제 로그 단건 조회에 성공했습니다.")
+        );
     }
 
     @GetMapping("/payment-logs")

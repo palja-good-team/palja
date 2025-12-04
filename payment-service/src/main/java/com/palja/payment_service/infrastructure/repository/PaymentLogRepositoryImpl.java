@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,8 +26,8 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
     }
 
     @Override
-    public Optional<PaymentLog> findByPaymentId(UUID paymentId) {
-        return paymentLogJpaRepository.findByPayment_InOrderByProcessedAtDesc(paymentId);
+    public List<PaymentLog> findByPaymentId(UUID paymentId) {
+        return paymentLogJpaRepository.findAllByPayment_IdOrderByProcessedAtDesc(paymentId);
     }
 
     @Override

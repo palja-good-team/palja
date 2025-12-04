@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,10 +25,14 @@ public class PaymentLogServiceImpl implements PaymentLogService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaymentLogDetailRes getLogByPaymentId(UUID paymentId) {
-        PaymentLog log = paymentLogRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_LOG_NOT_FOUND));
-        return PaymentLogDetailRes.from(log);
+    public List<PaymentLogDetailRes> getLogsByPaymentId(UUID paymentId) {
+        List<PaymentLog> logs = paymentLogRepository.findByPaymentId(paymentId);
+        if (logs.isEmpty()) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_LOG_NOT_FOUND);
+        }
+        return logs.stream()
+                .map(PaymentLogDetailRes::from)
+                .toList();
     }
 
     @Override
