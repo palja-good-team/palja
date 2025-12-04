@@ -38,6 +38,7 @@ public class CouponAdapter implements CouponService {
         // TODO: 실제 쿠폰 서비스 API 호출 (Feign)
         // UseCouponDTO request = new UseCouponDTO(orderId);
         // CouponUseDTO response = couponClient.useCoupon(couponId, request).data();
+        // TODO: 실제 쿠폰 서비스 연동 시 위의 코드로 교체
         CouponUseDTO response = CouponUseDTO.dummy(couponId, orderId);
 
         log.info("쿠폰 사용 완료: couponId={}, orderId={}", couponId, orderId);

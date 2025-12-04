@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
-@FeignClient(name = "coupon", path = "/api/v1/coupons")
+@FeignClient(name = "coupon-service", path = "/api/v1/coupons")
 public interface CouponClient {
 
     // 쿠폰 단건 조회
