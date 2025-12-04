@@ -9,9 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.user_service.application.command.LoginUserCommand;
 import com.palja.user_service.application.dto.response.TokenRes;
+import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
@@ -73,34 +73,34 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public void logout(String loginId, String accessToken) {
-		getUserByLoginId(loginId);
+	public void logout(String currentUserLoginId, String accessToken) {
+		getUserByLoginId(currentUserLoginId);
 
-		addAccessTokenToBlackList(loginId, accessToken);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
+		addAccessTokenToBlackList(currentUserLoginId, accessToken);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
-			() -> new BusinessException(CommonErrorCode.NOT_FOUND)
+			() -> new BusinessException(AuthErrorCode.INVALID_USER_INFO)
 		);
 	}
 
 	private void validateUserPassword(String password, String userPassword) {
 		if (!passwordEncoder.matches(password, userPassword)) {
-			throw new IllegalArgumentException("로그인 정보가 잘못되었습니다.");
+			throw new BusinessException(AuthErrorCode.INVALID_USER_INFO);
 		}
 	}
 
 	private void validateUserStatus(User user) {
 		if (user.getStatus().equals(UserStatus.PENDING)) {
-			throw new IllegalArgumentException("가입 승인 대기 상태인 계정입니다.");
+			throw new BusinessException(AuthErrorCode.USER_STATUS_PENDING);
 		}
 	}
 
 	private void validateRefreshToken(String refreshToken) {
 		if (refreshToken == null || !jwtUtil.validateRefreshToken(refreshToken)) {
-			throw new IllegalArgumentException("다시 로그인 해주세요.");
+			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
 		}
 	}
 
@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
 		String redisRefreshToken = tokenRepository.get(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
 
 		if (!redisRefreshToken.equals(refreshToken)) {
-			throw new IllegalArgumentException("다시 로그인 해주세요.");
+			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
 		}
 	}
 

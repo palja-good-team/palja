@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.palja.common.auditor.AuditorContext;
+import com.palja.common.annotation.RequiredAnonymous;
+import com.palja.common.annotation.RequiredRole;
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.LoginUserCommand;
 import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.service.AuthService;
@@ -34,6 +37,7 @@ public class AuthControllerImpl implements AuthController {
 	private final AuthService authService;
 
 	@Override
+	@RequiredAnonymous
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<Void>> login(@Valid @RequestBody LoginUserReq requestDto, HttpServletResponse response) {
 		LoginUserCommand command = LoginUserReq.of(requestDto);
@@ -64,13 +68,14 @@ public class AuthControllerImpl implements AuthController {
 	}
 
 	@Override
+	@RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
 		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
 	) {
-		String loginId = AuditorContext.get().getLoginId();
+		String currentUserLoginId = CurrentUser.getLoginId();
 
-		authService.logout(loginId, accessToken);
+		authService.logout(currentUserLoginId, accessToken);
 		addRefreshTokenToCookie(response, "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));

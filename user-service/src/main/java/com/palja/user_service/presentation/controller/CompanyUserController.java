@@ -1,7 +1,5 @@
 package com.palja.user_service.presentation.controller;
 
-import java.util.UUID;
-
 import org.springframework.http.ResponseEntity;
 
 import com.palja.common.response.ApiResponse;
@@ -13,6 +11,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<CreateUserRes>> create(CreateCompanyUserReq requestDto);
 
-	ResponseEntity<ApiResponse<Void>> updateStatus(UUID companyUserId, UpdateCompanyUserStatusReq requestDto);
+	ResponseEntity<ApiResponse<Void>> updateStatus(String loginId, UpdateCompanyUserStatusReq requestDto);
 
 }
