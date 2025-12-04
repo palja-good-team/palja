@@ -35,4 +35,9 @@ public class CouponRepositoryAdaptor implements CouponRepository {
     public void delete(Coupon coupon) {
         jpaCouponRepository.delete(coupon);
     }
+
+    @Override
+    public boolean existsByNameAndDeletedAtIsNull(String couponName) {
+        return jpaCouponRepository.existsByNameAndDeletedAtIsNull(couponName);
+    }
 }

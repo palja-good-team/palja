@@ -1,6 +1,7 @@
 package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponRes;
@@ -8,9 +9,7 @@ import com.palja.coupon_service.application.dto.CouponDetailRes;
 import com.palja.coupon_service.application.service.CouponManagerService;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
-import com.palja.coupon_service.domain.vo.AmountPolicy;
-import com.palja.coupon_service.domain.vo.DiscountPolicy;
-import com.palja.coupon_service.domain.vo.IssuePeriod;
+import com.palja.coupon_service.domain.vo.*;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,10 +32,12 @@ public class CouponManagerServiceImpl implements CouponManagerService {
     public CouponRes createCoupon(CreateCouponCommand command) {
         log.info("쿠폰 생성 시작");
 
+        validateCouponNameDuplicate(command.couponName());
+
         Coupon coupon = Coupon.create(
                 command.couponName(),
                 command.description(),
-                DiscountPolicy.of(command.discountType(), command.discountValue()),
+                DiscountPolicy.of(DiscountType.valueOf(command.discountType().toUpperCase()), command.discountValue()),
                 command.totalQuantity(),
                 AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
                 IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
@@ -56,6 +57,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
 
+        validateCouponNameDuplicate(command.couponName());
+
         coupon.update(
                 command.couponName(),
                 command.description(),
@@ -67,6 +70,22 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         );
 
         log.info("쿠폰 수정 완료 - couponId={}", command.couponId());
+        return CouponRes.from(coupon);
+    }
+
+    @Override
+    @Transactional
+    public CouponRes changeCouponStatus(ChangeCouponStatusCommand command) {
+        log.info("쿠폰 상태 변경 시작 - couponId={} status={}", command.couponId(), command.status());
+
+        Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        CouponStatus oldStatus = coupon.getStatus();
+
+        coupon.changeStatus(CouponStatus.valueOf(command.status().toUpperCase()));
+
+        log.info("쿠폰 상태 변경 완료 - couponId={} status={} -> {}", command.couponId(), oldStatus, command.status());
         return CouponRes.from(coupon);
     }
 
@@ -85,5 +104,13 @@ public class CouponManagerServiceImpl implements CouponManagerService {
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
 
         return CouponDetailRes.from(coupon);
+    }
+
+    // 쿠폰명 중복 체크
+    private void validateCouponNameDuplicate(String couponName) {
+        if (couponRepository.existsByNameAndDeletedAtIsNull(couponName)) {
+            log.warn("쿠폰명 중복 - couponName: {}", couponName);
+            throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_NAME);
+        }
     }
 }

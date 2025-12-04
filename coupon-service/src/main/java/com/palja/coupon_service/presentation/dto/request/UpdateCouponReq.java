@@ -4,18 +4,12 @@ import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UpdateCouponReq {
 
     @Size(max = 50, message = "쿠폰명은 최대 50자까지 입력 가능합니다.")

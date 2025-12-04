@@ -39,6 +39,9 @@ public enum CouponErrorCode implements ErrorCode {
     CANNOT_MODIFY_DELETED_OR_EXPIRED_COUPON(HttpStatus.BAD_REQUEST, "삭제되거나 만료된 쿠폰은 수정할 수 없습니다."),
     CANNOT_MODIFY_ISSUED_COUPON(HttpStatus.BAD_REQUEST, "발급 중인 쿠폰은 수정할 수 없습니다."),
     CANNOT_DELETE_ISSUED_COUPON(HttpStatus.BAD_REQUEST, "이미 발급된 쿠폰은 삭제할 수 없습니다."),
+    INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 전환입니다."),
+    CANNOT_ACTIVATE_EXPIRED_COUPON(HttpStatus.BAD_REQUEST, "만료된 쿠폰은 활성화할 수 없습니다."),
+    CANNOT_PAUSE_DELETED_COUPON(HttpStatus.BAD_REQUEST, "삭제된 쿠폰은 일시정지할 수 없습니다."),
 
     // 권한 관련
     INSUFFICIENT_PERMISSION(HttpStatus.FORBIDDEN, "쿠폰 관리 권한이 없습니다.");;

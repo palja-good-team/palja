@@ -1,19 +1,12 @@
 package com.palja.coupon_service.presentation.dto.request;
 
 import com.palja.coupon_service.application.command.CreateCouponCommand;
-import com.palja.coupon_service.domain.vo.DiscountType;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class CreateCouponReq {
 
     @NotNull(message = "쿠폰명은 필수입니다.")
@@ -47,7 +40,7 @@ public class CreateCouponReq {
         return CreateCouponCommand.builder()
                 .couponName(request.getCouponName())
                 .description(request.getDescription())
-                .discountType(DiscountType.valueOf(request.getDiscountType().toUpperCase()))
+                .discountType(request.getDiscountType())
                 .discountValue(request.getDiscountValue())
                 .totalQuantity(request.getTotalQuantity())
                 .maxDiscountAmount(request.getMaxDiscountAmount())

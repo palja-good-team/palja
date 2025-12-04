@@ -14,4 +14,6 @@ public interface JpaCouponRepository extends JpaRepository<Coupon, UUID> {
     Page<Coupon> findAllByDeletedAtIsNull(Pageable pageable);
 
     Optional<Coupon> findByIdAndDeletedAtIsNull(UUID id);
+
+    boolean existsByNameAndDeletedAtIsNull(String couponName);
 }
