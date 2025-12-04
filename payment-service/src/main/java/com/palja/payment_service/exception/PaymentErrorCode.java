@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
 
+    PAYMENT_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 로그를 찾을 수 없습니다."),
     PAYMENT_EXCEED_AMOUNT(HttpStatus.BAD_REQUEST, "취소 금액이 결제 금액을 초과할 수 없습니다."),
     PAYMENT_NOT_PARTIAL_REFUND(HttpStatus.BAD_REQUEST, "부분 환불이 불가합니다,"),
     PAYMENT_NOT_APPROVED(HttpStatus.BAD_REQUEST,"승인된 결제만 취소할 수 있습니다."),
