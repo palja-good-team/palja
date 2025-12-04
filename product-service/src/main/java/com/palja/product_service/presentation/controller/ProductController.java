@@ -7,6 +7,7 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.dto.res.CreateProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.application.dto.res.FindProductRes;
+import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.presentation.dto.req.CreateProductReq;
 import com.palja.product_service.presentation.dto.req.FindProductListByConditionReq;
@@ -28,9 +29,9 @@ public class ProductController {
     private final ProductService service;
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq createReq) {
+    public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq req) {
 
-        CreateProductCommand createCommand = createReq.toCommand(createReq);
+        CreateProductCommand createCommand = req.toCommand(req);
         CreateProductRes res = service.createProduct(createCommand);
 
         return new ResponseEntity<>(ApiResponse.success(res,"상품 등록 성공"), HttpStatus.CREATED);
@@ -51,5 +52,13 @@ public class ProductController {
         Page<FindProductListByConditionRes> res = service.findProducts(command, pageable);
 
         return new ResponseEntity<>(PageResponse.from(res), HttpStatus.OK);
+    }
+
+    @GetMapping("/time-deal/{productId}")
+    public ResponseEntity<ApiResponse<ProductInfoForTimeDealRes>> provideProductInfoToTimeDeal(@PathVariable UUID productId) {
+
+        ProductInfoForTimeDealRes res = service.findProductForTimeDeal(productId);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 }

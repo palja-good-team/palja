@@ -1,17 +1,18 @@
 package com.palja.product_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.dto.res.CreateProductRes;
-import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
+import com.palja.product_service.application.dto.res.FindProductRes;
+import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,10 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
@@ -32,6 +34,7 @@ public class ProductServiceImpl implements ProductService {
     private final DslProductRepository dslProductRepository;
 
     @Override
+    @Transactional
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
         /*
@@ -52,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
             유니크 제약조건 검사 - 회사는 같은 카테고리에 같은 이름의 상품을 등록할 수 없다.
         */
         if(repository.isNotUnique(product))
-            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+            throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
         Product savedProduct = repository.save(product);
 
@@ -60,7 +63,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public FindProductRes findProduct(UUID productId) {
 
         Product product = repository.findProduct(productId);
@@ -68,16 +70,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
 
         FindListByConditionReq req = new FindListByConditionReq(
-                command.getName(),
-                command.getMinPrice(),
-                command.getMaxPrice(),
-                Category.fromString(command.getCategory()),
-                command.getMinRating(),
-                command.getMaxRating()
+                command.name(),
+                command.minPrice(),
+                command.maxPrice(),
+                Category.fromString(command.category()),
+                command.minRating(),
+                command.maxRating()
         );
 
         List<Product> productList = repository.findProductsToCondition(req, pageable);
@@ -87,5 +88,14 @@ public class ProductServiceImpl implements ProductService {
                 productList.stream().map(FindProductListByConditionRes::fromEntity).toList();
 
         return new PageImpl<>(content,pageable,pageCount);
+    }
+
+    @Override
+    public ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId) {
+        return Optional.ofNullable(
+                        dslProductRepository.findProductForTimeDeal(productId))
+                .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
+                );
     }
 }

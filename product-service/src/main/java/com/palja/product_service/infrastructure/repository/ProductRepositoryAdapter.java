@@ -1,8 +1,10 @@
 package com.palja.product_service.infrastructure.repository;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -24,12 +26,15 @@ public class ProductRepositoryAdapter implements ProductRepository {
 
     @Override
     public Boolean isNotUnique(Product product) {
-        return jpaProductRepository.existsByCompanyNameAndCategoryAndName(product.getCompanyName(), product.getCategory(), product.getName());
+        return jpaProductRepository.existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNotNull(
+                product.getCompanyName(), product.getCategory(), product.getName());
     }
 
     @Override
     public Product findProduct(UUID productId) {
-        return jpaProductRepository.findByIdFetchStock(productId).orElseThrow();
+        return jpaProductRepository
+                .findByIdFetchStock(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.palja.product_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.domain.vo.Money;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(name = "companyCategoryName",
                 columnNames = {"companyName", "category", "name"}))
 @Getter
-public class Product {
+public class Product extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
