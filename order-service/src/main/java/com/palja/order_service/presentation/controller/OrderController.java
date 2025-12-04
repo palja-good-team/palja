@@ -1,5 +1,6 @@
 package com.palja.order_service.presentation.controller;
 
+import com.palja.common.annotation.RequiredRole;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.dto.CreateOrderRes;
@@ -19,6 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     // 주문 생성
+    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
     @PostMapping
     public ResponseEntity<ApiResponse<CreateOrderRes>> createOrder(
             @Valid @RequestBody CreateOrderReq request,
