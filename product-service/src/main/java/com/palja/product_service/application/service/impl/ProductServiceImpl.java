@@ -7,6 +7,7 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.dto.res.CreateProductRes;
 import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
+import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -87,5 +89,14 @@ public class ProductServiceImpl implements ProductService {
                 productList.stream().map(FindProductListByConditionRes::fromEntity).toList();
 
         return new PageImpl<>(content,pageable,pageCount);
+    }
+
+    @Override
+    public ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId) {
+        return Optional.ofNullable(
+                dslProductRepository.findProductForTimeDeal(productId))
+                .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
+                );
     }
 }

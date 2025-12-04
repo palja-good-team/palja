@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface JpaProductRepository extends JpaRepository<Product, UUID> {
 
-    @Query(value = "SELECT p FROM Product p INNER JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS NOT null")
+    @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")
     Optional<Product> findByIdFetchStock(@Param("productId") UUID productId);
 
     Boolean existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNotNull(String companyName, Category category, String name);

@@ -1,8 +1,11 @@
 package com.palja.product_service.infrastructure.repository;
 
+import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Category;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static com.palja.product_service.domain.entity.QProduct.product;
 
@@ -19,6 +23,19 @@ import static com.palja.product_service.domain.entity.QProduct.product;
 public class DslProductRepository {
 
     private final JPAQueryFactory queryFactory;
+
+    public ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId) {
+
+        return queryFactory.select(Projections.constructor(
+                        ProductInfoForTimeDealRes.class,
+                        product.id,
+                        product.companyUserId,
+                        product.price.amount.longValue(),
+                        product.productStock.quantity.longValue()))
+                .from(product)
+                .where(product.id.eq(productId).and(product.deletedAt.isNull()))
+                .fetchOne();
+    }
 
     public List<Product> findProductByCondition(FindListByConditionReq condition, Pageable pageable) {
 
