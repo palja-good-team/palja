@@ -18,4 +18,6 @@ public interface ManagerService {
 
 	ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId);
 
+	ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId);
+
 }

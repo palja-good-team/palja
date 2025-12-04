@@ -71,6 +71,13 @@ public class ManagerServiceImpl implements ManagerService {
 		return ReadManagerDetailRes.from(getManagerByLoginId(loginId));
 	}
 
+	@Override
+	public ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId) {
+		getUserByLoginId(currentUserLoginId);
+
+		return ReadManagerDetailRes.from(getManagerByUserId(userId));
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
@@ -79,6 +86,12 @@ public class ManagerServiceImpl implements ManagerService {
 
 	private User getManagerByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.MANAGER).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private User getManagerByUserId(Long userId) {
+		return userRepository.findByIdAndRoleAndDeletedAtIsNull(userId, UserRole.MANAGER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}

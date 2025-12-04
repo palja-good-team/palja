@@ -51,4 +51,9 @@ public class UserRepositoryImpl implements UserRepository {
 		return jpaUserRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, role);
 	}
 
+	@Override
+	public Optional<User> findByIdAndRoleAndDeletedAtIsNull(Long userId, UserRole role) {
+		return jpaUserRepository.findByIdAndRoleAndDeletedAtIsNull(userId, role);
+	}
+
 }

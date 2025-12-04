@@ -22,4 +22,6 @@ public interface UserRepository {
 
 	Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role);
 
+	Optional<User> findByIdAndRoleAndDeletedAtIsNull(Long userId, UserRole role);
+
 }
