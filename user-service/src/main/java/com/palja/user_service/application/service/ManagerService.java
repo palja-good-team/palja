@@ -28,4 +28,6 @@ public interface ManagerService {
 
 	UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command);
 
+	void deleteManagerByLoginId(String loginId);
+
 }

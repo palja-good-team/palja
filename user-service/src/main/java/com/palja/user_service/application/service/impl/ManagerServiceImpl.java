@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
@@ -100,6 +101,14 @@ public class ManagerServiceImpl implements ManagerService {
 		return UpdateManagerDetailRes.from(user);
 	}
 
+	@Override
+	@Transactional
+	public void deleteManagerByLoginId(String loginId) {
+		User user = getUserByLoginId(loginId);
+		validateNotMaster(user);
+		user.softDelete();
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
@@ -133,6 +142,12 @@ public class ManagerServiceImpl implements ManagerService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
+		}
+	}
+
+	private void validateNotMaster(User user) {
+		if (user.getRole().equals(UserRole.MASTER)) {
+			throw new BusinessException(CommonErrorCode.FORBIDDEN);
 		}
 	}
 

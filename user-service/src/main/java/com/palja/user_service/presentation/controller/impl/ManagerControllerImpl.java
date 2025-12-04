@@ -124,4 +124,13 @@ public class ManagerControllerImpl implements ManagerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.MASTER})
+	@DeleteMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
+		managerService.deleteManagerByLoginId(loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("관리자가 삭제되었습니다."));
+	}
+
 }
