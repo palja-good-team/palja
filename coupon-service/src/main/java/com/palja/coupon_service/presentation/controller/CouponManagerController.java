@@ -3,18 +3,17 @@ package com.palja.coupon_service.presentation.controller;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
+import com.palja.coupon_service.application.command.UpdateCouponCommand;
+import com.palja.coupon_service.application.dto.CouponDetailRes;
 import com.palja.coupon_service.application.dto.CouponRes;
 import com.palja.coupon_service.application.service.CouponManagerService;
 import com.palja.coupon_service.presentation.dto.request.CreateCouponReq;
-import com.palja.coupon_service.presentation.dto.response.CreateCouponRes;
-import com.palja.coupon_service.presentation.dto.response.FindCouponDetailRes;
-import com.palja.coupon_service.presentation.dto.response.PagedCouponListRes;
+import com.palja.coupon_service.presentation.dto.request.UpdateCouponReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,40 +23,49 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/manager/coupons")
+@RequestMapping("/api/v1/coupons/manager")
 public class CouponManagerController {
 
     private final CouponManagerService couponManagerService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CreateCouponRes>> createCoupon(
-            @Valid @RequestBody CreateCouponReq request) {
-        log.info("POST /api/v1/manager/coupons - 쿠폰 생성 요청");
+    public ResponseEntity<ApiResponse<CouponRes>> createCoupon(@Valid @RequestBody CreateCouponReq request) {
+        log.info("POST /api/v1/coupons/manager - 쿠폰 생성 요청");
         CreateCouponCommand command = CreateCouponReq.of(request);
 
-        CouponRes couponDTO = couponManagerService.createCoupon(command);
-
-        CreateCouponRes couponRes = CreateCouponRes.from(couponDTO);
+        CouponRes couponRes = couponManagerService.createCoupon(command);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(couponRes, "쿠폰이 생성되었습니다."));
     }
 
+    @PutMapping("/{couponId}")
+    public ResponseEntity<ApiResponse<CouponRes>> updateCoupon(@PathVariable UUID couponId, @Valid @RequestBody UpdateCouponReq request) {
+        log.info("PUT /api/v1/coupons/manager/{} - 쿠폰 수정 요청", couponId);
+
+        UpdateCouponCommand command = UpdateCouponReq.of(couponId, request);
+
+        CouponRes couponRes = couponManagerService.updateCoupon(command);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(couponRes, "쿠폰이 수정되었습니다."));
+    }
+
+
     @GetMapping
-    public ResponseEntity<PageResponse<PagedCouponListRes>> getCouponList(Pageable pageable) {
-        log.info("GET /api/v1/manager/coupons - 쿠폰 목록 조회 요청");
+    public ResponseEntity<ApiResponse<PageResponse<CouponRes>>> getCouponList(Pageable pageable) {
+        log.info("GET /api/v1/coupons/manager - 쿠폰 목록 조회 요청");
 
         Page<CouponRes> couponResPage = couponManagerService.getCouponList(pageable);
 
-        PageResponse<PagedCouponListRes> response = PageResponse.from(couponResPage.map(PagedCouponListRes::from));
+        PageResponse<CouponRes> response = PageResponse.from(couponResPage);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "쿠폰 목록 조회"));
     }
 
     @GetMapping("/{couponId}")
-    public ResponseEntity<ApiResponse<FindCouponDetailRes>> getCouponDetail(@PathVariable UUID couponId) {
-        log.info("GET /api/v1/manager/coupons/{} - 쿠폰 상세 조회 요청", couponId);
+    public ResponseEntity<ApiResponse<CouponDetailRes>> getCouponDetail(@PathVariable UUID couponId) {
+        log.info("GET /api/v1/coupons/manager/{} - 쿠폰 상세 조회 요청", couponId);
 
-        FindCouponDetailRes response = FindCouponDetailRes.from(couponManagerService.getCouponDetail(couponId));
+        CouponDetailRes response = couponManagerService.getCouponDetail(couponId);
 
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰 상세 조회"));
     }

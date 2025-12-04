@@ -1,5 +1,6 @@
 package com.palja.coupon_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -31,11 +32,17 @@ public class IssuePeriod {
         return new IssuePeriod(issueStartAt, endAt);
     }
 
+    public IssuePeriod update(LocalDateTime newIssueStartAt, LocalDateTime newIssueEndAt) {
+        LocalDateTime updateIssueStartAt = newIssueStartAt != null ? newIssueStartAt : this.issueStartAt;
+        LocalDateTime updateIssueEndAt = newIssueEndAt != null ? newIssueEndAt : this.issueEndAt;
+        validate(updateIssueStartAt, updateIssueEndAt);
+        return IssuePeriod.of(updateIssueStartAt, updateIssueEndAt);
+    }
+
     private void validate(LocalDateTime issueStartAt, LocalDateTime issueEndAt) {
         if (issueStartAt == null || issueEndAt == null) return;
 
-        if (issueStartAt.isAfter(issueEndAt)) {
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_DATE_RANGE.getMessage());
-        }
+        if (issueStartAt.isAfter(issueEndAt))
+            throw new BusinessException(CouponErrorCode.INVALID_DATE_RANGE);
     }
 }
