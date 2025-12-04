@@ -29,7 +29,7 @@ public class ProductRepositoryAdapter implements ProductRepository {
 
     @Override
     public Product findProduct(UUID productId) {
-        return jpaProductRepository.findById(productId).orElseThrow();
+        return jpaProductRepository.findByIdFetchStock(productId).orElseThrow();
     }
 
     @Override

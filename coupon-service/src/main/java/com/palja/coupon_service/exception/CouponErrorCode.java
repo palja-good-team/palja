@@ -36,7 +36,8 @@ public enum CouponErrorCode implements ErrorCode {
     INSUFFICIENT_ORDER_AMOUNT(HttpStatus.BAD_REQUEST, "최소 주문 금액을 충족하지 못했습니다."),
 
     // 쿠폰 수정/삭제 관련
-    CANNOT_MODIFY_ACTIVE_COUPON(HttpStatus.BAD_REQUEST, "발급 중인 쿠폰은 수정할 수 없습니다."),
+    CANNOT_MODIFY_DELETED_OR_EXPIRED_COUPON(HttpStatus.BAD_REQUEST, "삭제되거나 만료된 쿠폰은 수정할 수 없습니다."),
+    CANNOT_MODIFY_ISSUED_COUPON(HttpStatus.BAD_REQUEST, "발급 중인 쿠폰은 수정할 수 없습니다."),
     CANNOT_DELETE_ISSUED_COUPON(HttpStatus.BAD_REQUEST, "이미 발급된 쿠폰은 삭제할 수 없습니다."),
 
     // 권한 관련

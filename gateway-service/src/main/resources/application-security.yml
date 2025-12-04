@@ -1,0 +1,4 @@
+jwt:
+  access:
+    secret: ${ACCESS_SECRET_KEY}
+    expiration: 1h

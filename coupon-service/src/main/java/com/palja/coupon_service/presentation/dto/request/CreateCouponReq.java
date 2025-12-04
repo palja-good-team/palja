@@ -2,10 +2,7 @@ package com.palja.coupon_service.presentation.dto.request;
 
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.domain.vo.DiscountType;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,16 +23,19 @@ public class CreateCouponReq {
     private String description;
 
     @NotNull(message = "쿠폰 타입은 필수입니다.")
-    private DiscountType discountType;
+    private String discountType;
 
     @NotNull(message = "할인율은 필수입니다.")
-    @Min(value = 1)
+    @Positive(message = "할인율은 0보다 커야합니다.")
     private Integer discountValue;
 
+    @Positive(message = "발행 총 수량은 0보다 커야합니다.")
     private Integer totalQuantity;
 
+    @Positive(message = "최대 할인율은 0보다 커야합니다.")
     private Integer maxDiscountAmount;
 
+    @Positive(message = "최소 주문 금액은 0보다 커야합니다.")
     private Integer minOrderAmount;
 
     private LocalDateTime issueStartAt;
@@ -43,11 +43,11 @@ public class CreateCouponReq {
     @Future(message = "발급 종료일은 현재 시간 이후여야 합니다")
     private LocalDateTime issueEndAt;
 
-    public static CreateCouponCommand of (CreateCouponReq request) {
+    public static CreateCouponCommand of(CreateCouponReq request) {
         return CreateCouponCommand.builder()
                 .couponName(request.getCouponName())
                 .description(request.getDescription())
-                .discountType(request.getDiscountType())
+                .discountType(DiscountType.valueOf(request.getDiscountType().toUpperCase()))
                 .discountValue(request.getDiscountValue())
                 .totalQuantity(request.getTotalQuantity())
                 .maxDiscountAmount(request.getMaxDiscountAmount())

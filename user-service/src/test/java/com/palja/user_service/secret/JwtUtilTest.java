@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
-import com.palja.user_service.domain.vo.UserRole;
 
 import io.jsonwebtoken.Claims;
 

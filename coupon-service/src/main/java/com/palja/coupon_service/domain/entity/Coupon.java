@@ -1,11 +1,13 @@
 package com.palja.coupon_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
+import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.domain.vo.*;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -65,11 +67,48 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
+    public void update(
+            String name,
+            String description,
+            Integer newTotalQuantity,
+            Integer maxDiscountAmount,
+            Integer minOrderAmount,
+            LocalDateTime issueStartAt,
+            LocalDateTime issueEndAt
+    ) {
+        validateModifiable();
+
+        if (name != null) {
+            if (hasIssued())
+                throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
+            this.name = name;
+        }
+
+        if (description != null)
+            this.description = description;
+
+        if (totalQuantity != null) {
+            validateTotalQuantityUpdate(totalQuantity);
+            this.totalQuantity = newTotalQuantity;
+        }
+
+        if (maxDiscountAmount != null || minOrderAmount != null) {
+            if (hasIssued())
+                throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
+            this.amountPolicy = this.amountPolicy.update(maxDiscountAmount, minOrderAmount);
+        }
+
+        if (issueStartAt != null || issueEndAt != null) {
+            if (hasIssued())
+                throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
+            this.issuePeriod = this.issuePeriod.update(issueStartAt, issueEndAt);
+        }
+    }
+
     // 필수 필드 검증
     private static void validateRequiredFields(String name) {
-        // TODO. BusinessException 적용 필요
         if (name == null || name.isBlank())
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_COUPON_NAME.getMessage());
+            throw new BusinessException(CouponErrorCode.INVALID_COUPON_NAME);
     }
 
     // 수량 정책 검증
@@ -79,6 +118,23 @@ public class Coupon extends BaseEntity {
             return;
 
         if (totalQuantity < 1)
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_QUANTITY.getMessage());
+            throw new BusinessException(CouponErrorCode.INVALID_QUANTITY);
+    }
+
+    // 발행 여부 검증
+    public boolean hasIssued() {
+        return this.issuedQuantity != null && this.issuedQuantity > 0;
+    }
+
+    // 수정 가능 검증 (삭제, 만료된 쿠폰은 불가)
+    public void validateModifiable() {
+        if (this.status == CouponStatus.DELETED || this.status == CouponStatus.EXPIRED)
+            throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_DELETED_OR_EXPIRED_COUPON);
+    }
+
+    // 총 발급 수량 검증
+    private void validateTotalQuantityUpdate(Integer newTotalQuantity) {
+        if (this.issuedQuantity != null && newTotalQuantity < this.issuedQuantity)
+            throw new BusinessException(CouponErrorCode.INVALID_QUANTITY);
     }
 }

@@ -25,6 +25,7 @@ public class DslProductRepository {
         return queryFactory
                 .select(product)
                 .from(product)
+                .join(product.productStock).fetchJoin()
                 .where(nameLike(condition.getName()),
                         priceBetween(condition.getMinPrice(), condition.getMaxPrice()),
                         categoryEq(condition.getCategory()),

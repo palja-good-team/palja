@@ -1,6 +1,5 @@
 package com.palja.payment_service.application.command;
 
-import com.palja.payment_service.domain.vo.PaymentMethod;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -13,7 +12,7 @@ public record CreatePaymentCommand(
         Long userId,
         BigDecimal amount,
         String currency,
-        PaymentMethod paymentMethod,
+        String paymentMethod,
         String paymentKey
 ) {
 }

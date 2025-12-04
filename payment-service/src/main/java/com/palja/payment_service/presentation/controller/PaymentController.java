@@ -8,7 +8,6 @@ import com.palja.payment_service.application.service.PaymentService;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
 import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
-import com.palja.payment_service.presentation.dto.response.PaymentRes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -28,27 +27,25 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PaymentRes>> createPayment(
+    public ResponseEntity<ApiResponse<PaymentDetailRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
     ) {
         PaymentDetailRes detail = paymentService.createPayment(req.toCommand());
-        PaymentRes res = PaymentRes.from(detail);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(res, "결제가 생성되었습니다."));
+                .body(ApiResponse.success(detail, "결제가 생성되었습니다."));
     }
 
     @PostMapping("/{paymentId}/cancel")
-    public ResponseEntity<ApiResponse<PaymentRes>> cancelPayment(
+    public ResponseEntity<ApiResponse<PaymentDetailRes>> cancelPayment(
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
-    ) {
+    ){
         PaymentDetailRes detail = paymentService.cancelPayment(req.toCommand(paymentId));
-        PaymentRes res = PaymentRes.from(detail);
 
         return ResponseEntity
-                .ok(ApiResponse.success(res, "결제가 취소되었습니다."));
+                .ok(ApiResponse.success(detail,"결제가 취소되었습니다."));
     }
 
     @GetMapping("/{paymentId}")

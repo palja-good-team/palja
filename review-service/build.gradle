@@ -45,7 +45,7 @@ dependencies {
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'com.palja:common-module:0.3.6'
+    implementation 'com.palja:common-module:0.5.1'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
