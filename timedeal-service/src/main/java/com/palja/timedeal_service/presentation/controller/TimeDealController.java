@@ -14,10 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -44,5 +43,15 @@ public class TimeDealController {
 
         log.info("타임딜 생성 성공: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(res, "타임딜이 생성되었습니다."));
+    }
+
+    @GetMapping("/{timeDealId}")
+    public ResponseEntity<ApiResponse<TimeDealDetailRes>> getTimeDeal(@PathVariable UUID timeDealId) {
+        log.info("GET /api/v1/time-deal/{} 타임딜 상세조회 요청", timeDealId);
+
+        TimeDealDetailRes res = timeDealService.getTimeDeal(timeDealId);
+
+        log.info("타임딜 상세 조회 성공 timeDealId = {}", res.getTimeDealId());
+        return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상세조회에 성공했습니다."));
     }
 }

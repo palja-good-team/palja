@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import com.palja.common.exception.BusinessException;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Amount;
@@ -9,7 +10,6 @@ import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Builder
-public class TimeDeal {
+public class TimeDeal extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
