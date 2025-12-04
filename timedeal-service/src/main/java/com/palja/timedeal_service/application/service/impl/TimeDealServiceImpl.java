@@ -1,15 +1,19 @@
 package com.palja.timedeal_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
-import com.palja.timedeal_service.application.validator.AuthorityValidator;
+import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
+import com.palja.timedeal_service.domain.vo.Amount;
+import com.palja.timedeal_service.domain.vo.Period;
+import com.palja.timedeal_service.domain.vo.Quantity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +29,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     private final TimeDealRepository timeDealRepository;
     private final ProductClient productClient;
-    private final AuthorityValidator authorityValidator;
+    private final TimeDealValidator timeDealValidator;
 
     @Override
     @Transactional
@@ -34,35 +38,29 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        UUID companyUserId = authorityValidator.verifyCompanyUserId(
-                command.loginId(),
-                command.role(),
-                product.companyUserId()
-        );
+        if (command.role().equals(UserRole.COMPANY_USER)) {
+            timeDealValidator.verifyCompanyUserId(command.loginId(), product.companyUserId());
+        }
 
-        validateStock(command, product);
+        timeDealValidator.verifyStock(command.totalQuantity(), product.stock());
+
+        Period period = Period.of(command.startAt(), command.endAt());
+        Amount amount = Amount.of(product.price(), command.timeDealPrice());
+        Quantity quantity = Quantity.of(command.totalQuantity());
 
         TimeDeal timeDeal = TimeDeal.create(
                 command.productId(),
-                companyUserId,
+                product.companyUserId(),
                 command.title(),
                 command.description(),
-                command.startAt(),
-                command.endAt(),
-                product.price(),
-                command.timeDealPrice(),
-                command.totalQuantity()
+                period,
+                amount,
+                quantity
         );
 
         TimeDeal savedTimeDeal = timeDealRepository.save(timeDeal);
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
         return TimeDealDetailRes.from(savedTimeDeal);
-    }
-
-    private void validateStock(CreateTimeDealCommand command, ProductInfo product) {
-        if (product.stock() < command.totalQuantity()) {
-            throw new BusinessException(TimeDealErrorCode.INVALID_STOCK_QUANTITY);
-        }
     }
 }

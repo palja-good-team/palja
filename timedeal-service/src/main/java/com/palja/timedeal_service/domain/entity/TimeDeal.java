@@ -61,17 +61,11 @@ public class TimeDeal {
             UUID companyUserId,
             String title,
             String description,
-            LocalDateTime startAt,
-            LocalDateTime endAt,
-            long originalPrice,
-            long timeDealPrice,
-            long totalQuantity
+            Period period,
+            Amount amount,
+            Quantity quantity
     ) {
         validate(productId, companyUserId, title, description);
-
-        Period period = Period.of(startAt, endAt);
-        Amount amount = Amount.of(originalPrice, timeDealPrice);
-        Quantity quantity = Quantity.of(totalQuantity);
 
         TimeDeal timeDeal = TimeDeal.builder()
                 .productId(productId)
@@ -82,8 +76,7 @@ public class TimeDeal {
                 .amount(amount)
                 .build();
 
-        TimeDealStock timeDealStock = TimeDealStock.create(timeDeal, quantity);
-        timeDeal.timeDealStock = timeDealStock;
+        timeDeal.timeDealStock = TimeDealStock.create(timeDeal, quantity);
 
         return timeDeal;
     }

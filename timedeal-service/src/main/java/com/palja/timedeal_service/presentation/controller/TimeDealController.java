@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.presentation.controller;
 
+import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
@@ -28,6 +29,7 @@ public class TimeDealController {
     private final TimeDealService timeDealService;
 
     @PostMapping
+    @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
     public ResponseEntity<ApiResponse<TimeDealDetailRes>> createTimeDeal(
             @RequestBody @Valid CreateTimeDealReq req
     ) {
