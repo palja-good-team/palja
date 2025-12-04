@@ -1,6 +1,7 @@
 package com.palja.order_service.presentation.controller;
 
 import com.palja.common.annotation.RequiredRole;
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.dto.CreateOrderRes;
@@ -23,14 +24,11 @@ public class OrderController {
     @PostMapping
     @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CreateOrderRes>> createOrder(
-            @Valid @RequestBody CreateOrderReq request,
-            // TODO: 추후 AuditorContext로 변경
-            @RequestHeader("X-Login-Id") String loginId,
-            @RequestHeader("X-User-Role") UserRole userRole
+            @Valid @RequestBody CreateOrderReq request
         ) {
 
         // Request → Command 변환
-        CreateOrderRes response = orderService.createOrder(request.toCommand(loginId));
+        CreateOrderRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
