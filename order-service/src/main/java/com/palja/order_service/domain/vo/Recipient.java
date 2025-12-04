@@ -2,15 +2,15 @@ package com.palja.order_service.domain.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.regex.Pattern;
 
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 public class Recipient {
 
     // 이메일 형식
@@ -29,30 +29,36 @@ public class Recipient {
     @Column(name = "delivery_message", length = 255)
     private String deliveryMessage;
 
-    private Recipient(
+    public static Recipient create(
             String name,
             String email,
             String address,
             String deliveryMessage
     ) {
-        this.name = validateName(name);
-        this.email = validateEmail(email);
-        this.address = validateAddress(address);
-        this.deliveryMessage = validateDeliveryMessage(deliveryMessage);
+        String validatedName = validateName(name);
+        String validatedEmail = validateEmail(email);
+        String validatedAddress = validateAddress(address);
+        String validatedMessage = validateDeliveryMessage(deliveryMessage);
+
+        return Recipient.builder()
+                .name(validatedName)
+                .email(validatedEmail)
+                .address(validatedAddress)
+                .deliveryMessage(validatedMessage)
+                .build();
     }
 
-    // 생성
-    public static Recipient of(
+    public Recipient change(
             String name,
             String email,
             String address,
             String deliveryMessage
     ) {
-        return new Recipient(name, email, address, deliveryMessage);
+        return create(name, email, address, deliveryMessage);
     }
 
-    // ======= Validation + Normalization ======
-    private String validateName(String name) {
+    // ====== Validation + Normalization ======
+    private static String validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("수령인 이름은 필수입니다.");
         }
@@ -62,7 +68,7 @@ public class Recipient {
         return name.trim();
     }
 
-    private String validateAddress(String address) {
+    private static String validateAddress(String address) {
         if (address == null || address.isBlank()) {
             throw new IllegalArgumentException("수령인 주소는 필수입니다.");
         }
@@ -72,7 +78,7 @@ public class Recipient {
         return address.trim();
     }
 
-    private String validateEmail(String email) {
+    private static String validateEmail(String email) {
         // optional
         if (email == null || email.isBlank()) {
             return null;
@@ -91,7 +97,7 @@ public class Recipient {
         return trimmed.toLowerCase();
     }
 
-    private String validateDeliveryMessage(String message) {
+    private static String validateDeliveryMessage(String message) {
         // optional
         if (message == null || message.isBlank()) {
             return null;
@@ -102,15 +108,5 @@ public class Recipient {
         }
 
         return message.trim();
-    }
-
-    // 변경 시 새 VO 반환
-    public Recipient change(
-            String name,
-            String email,
-            String address,
-            String deliveryMessage
-    ) {
-        return new Recipient(name, email, address, deliveryMessage);
     }
 }
