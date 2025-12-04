@@ -1,5 +1,6 @@
 package com.palja.coupon_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -29,12 +30,17 @@ public class AmountPolicy {
         return new AmountPolicy(maxDiscountAmount, minOrderAmount);
     }
 
+    public AmountPolicy update(Integer newMaxDiscountAmount, Integer newMinOrderAmount) {
+        Integer updateMaxDiscountAmount = newMaxDiscountAmount != null ? newMaxDiscountAmount : this.maxDiscountAmount;
+        Integer updateMinOrderAmount =  newMinOrderAmount != null ? newMinOrderAmount : this.minOrderAmount;
+        return AmountPolicy.of(updateMaxDiscountAmount, updateMinOrderAmount);
+    }
+
     private void validate(Integer maxDiscountAmount, Integer minOrderAmount) {
-        // TODO. BusinessException 적용 필요
         if (minOrderAmount == null || maxDiscountAmount == null)
             return;
 
         if (maxDiscountAmount > minOrderAmount)
-            throw new IllegalArgumentException(CouponErrorCode.INVALID_AMOUNT_RELATIONSHIP.getMessage());
+            throw new BusinessException(CouponErrorCode.INVALID_AMOUNT_RELATIONSHIP);
     }
 }

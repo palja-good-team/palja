@@ -2,6 +2,7 @@ package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
+import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponRes;
 import com.palja.coupon_service.application.dto.CouponDetailRes;
 import com.palja.coupon_service.application.service.CouponManagerService;
@@ -35,7 +36,7 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         Coupon coupon = Coupon.create(
                 command.couponName(),
                 command.description(),
-                DiscountPolicy.of(command.discountType(),  command.discountValue()),
+                DiscountPolicy.of(command.discountType(), command.discountValue()),
                 command.totalQuantity(),
                 AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
                 IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
@@ -43,7 +44,30 @@ public class CouponManagerServiceImpl implements CouponManagerService {
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
+        log.info("쿠폰 생성 완료 - couponId={}", savedCoupon.getId());
         return CouponRes.from(savedCoupon);
+    }
+
+    @Override
+    @Transactional
+    public CouponRes updateCoupon(UpdateCouponCommand command) {
+        log.info("쿠폰 수정 시작 - couponId={}", command.couponId());
+
+        Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        coupon.update(
+                command.couponName(),
+                command.description(),
+                command.totalQuantity(),
+                command.maxDiscountAmount(),
+                command.minOrderAmount(),
+                command.issueStartAt(),
+                command.issueEndAt()
+        );
+
+        log.info("쿠폰 수정 완료 - couponId={}", command.couponId());
+        return CouponRes.from(coupon);
     }
 
     @Override
