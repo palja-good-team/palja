@@ -1,7 +1,6 @@
 package com.palja.product_service.application.dto.res;
 
 import com.palja.product_service.domain.entity.Product;
-import com.palja.product_service.presentation.dto.req.UpdateProductReq;
 import lombok.Getter;
 
 import java.util.UUID;
