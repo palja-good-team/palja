@@ -143,6 +143,10 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
+        /*
+        TODO: 사용자 권한 확인하는 로직 추가
+         */
+
         if(payment.getStatus() == PaymentStatus.PENDING) {
             payment.softDelete();
             paymentRepository.save(payment);
