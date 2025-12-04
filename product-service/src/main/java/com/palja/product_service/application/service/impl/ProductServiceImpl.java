@@ -148,4 +148,21 @@ public class ProductServiceImpl implements ProductService {
 
         return UpdateStockRes.fromEntity(updateProduct);
     }
+
+    @Override
+    @Transactional
+    public UpdateStockRes updateStock(UUID productId, Integer stock) {
+
+        Product product = repository.findProduct(productId);
+        /*
+            String loginId = CurrentUser.getLoginId();
+            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
+            UUID companyUserId = userClient.요청(loginId);
+            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
+         */
+
+        Product updateProduct = product.updateStock(stock);
+
+        return UpdateStockRes.fromEntity(updateProduct);
+    }
 }
