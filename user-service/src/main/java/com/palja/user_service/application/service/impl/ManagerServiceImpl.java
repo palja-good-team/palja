@@ -1,5 +1,7 @@
 package com.palja.user_service.application.service.impl;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.ManagerService;
@@ -61,8 +64,21 @@ public class ManagerServiceImpl implements ManagerService {
 		);
 	}
 
+	@Override
+	public ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId) {
+		getUserByLoginId(currentUserLoginId);
+
+		return ReadManagerDetailRes.from(getManagerByLoginId(loginId));
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private User getManagerByLoginId(String loginId) {
+		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.MANAGER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}

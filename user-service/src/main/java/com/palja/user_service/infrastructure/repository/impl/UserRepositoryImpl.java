@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.UserRepository;
 import com.palja.user_service.infrastructure.repository.DslUserRepository;
@@ -43,6 +44,11 @@ public class UserRepositoryImpl implements UserRepository {
 	@Override
 	public Page<User> searchAllManagers(String loginId, String email, String name, Pageable pageable) {
 		return dslUserRepository.searchAllManagers(loginId, email, name, pageable);
+	}
+
+	@Override
+	public Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role) {
+		return jpaUserRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, role);
 	}
 
 }

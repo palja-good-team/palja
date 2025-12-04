@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.command.CreateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
 
 public interface ManagerService {
@@ -14,5 +15,7 @@ public interface ManagerService {
 	PageResponse<ReadManagerSummaryRes> getAllManagers(
 		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
 	);
+
+	ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId);
 
 }

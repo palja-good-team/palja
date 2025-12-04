@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
 
 public interface JpaUserRepository extends JpaRepository<User, Long> {
@@ -13,5 +14,7 @@ public interface JpaUserRepository extends JpaRepository<User, Long> {
 	boolean existsByEmailAndDeletedAtIsNull(String email);
 
 	Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
+
+	Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role);
 
 }

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.presentation.controller.ManagerController;
@@ -60,6 +62,16 @@ public class ManagerControllerImpl implements ManagerController {
 		);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(pagedResponseDto, "관리자 목록을 조회했습니다."));
+	}
+
+	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	@GetMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByLoginId(@PathVariable String loginId) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadManagerDetailRes responseDto = managerService.getManagerByLoginId(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
 
 }
