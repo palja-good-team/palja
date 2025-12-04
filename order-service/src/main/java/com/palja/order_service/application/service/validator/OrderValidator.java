@@ -92,13 +92,13 @@ public class OrderValidator {
     }
 
     private void validateUserStatus(UserRes user) {
-        if (!"ACTIVE".equals(user.status())) {
+        if (!"ACTIVE".equals(user.getStatus())) {
             throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
         }
     }
 
     private void validateUserRoleForOrder(UserRes user) {
-        if (UserRole.COMPANY_USER.equals(user.role())) {
+        if (UserRole.COMPANY_USER.equals(user.getRole())) {
             throw new BusinessException(OrderErrorCode.USER_NOT_ALLOWED);
         }
     }

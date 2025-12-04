@@ -1,6 +1,8 @@
 package com.palja.order_service.application.dto;
 
 import com.palja.order_service.domain.entity.OrderItem;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +11,8 @@ import java.util.UUID;
 
 // 주문 상품 정보
 @Getter
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderItemRes {
     private UUID orderItemId;
     private UUID productId;

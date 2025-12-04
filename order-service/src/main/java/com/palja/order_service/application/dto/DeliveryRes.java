@@ -1,13 +1,16 @@
 package com.palja.order_service.application.dto;
 
 import com.palja.order_service.domain.entity.OrderDelivery;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DeliveryRes {
     private String status;
     private String recipientName;
