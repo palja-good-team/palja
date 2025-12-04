@@ -15,7 +15,7 @@ public class CreateProductRes {
     private UUID productId;
     private String name;
     private String description;
-    private Money price;
+    private String price;
     private String category;
     private BigDecimal avgRating;
     private String companyName;
@@ -27,7 +27,7 @@ public class CreateProductRes {
         result.productId = product.getId();
         result.name = product.getName();
         result.description = product.getDescription();
-        result.price = product.getPrice();
+        result.price = product.getPrice().toString();
         result.category = product.getCategory().name();
         result.avgRating = product.getAvgRating();
         result.companyName = product.getCompanyName();
