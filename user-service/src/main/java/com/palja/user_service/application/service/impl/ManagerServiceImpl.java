@@ -1,14 +1,18 @@
 package com.palja.user_service.application.service.impl;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
+import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.ManagerService;
 import com.palja.user_service.domain.entity.User;
@@ -18,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ManagerServiceImpl implements ManagerService {
 
 	private final UserRepository userRepository;
@@ -26,7 +31,7 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	@Transactional
 	public CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command) {
-		getUserByLoginId(currentUserLoginId);
+		validateUserExistsByLoginId(currentUserLoginId);
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
@@ -45,10 +50,59 @@ public class ManagerServiceImpl implements ManagerService {
 		return CreateUserRes.from(user);
 	}
 
+	@Override
+	public PageResponse<ReadManagerSummaryRes> getAllManagers(
+		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
+	) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return PageResponse.from(
+			userRepository.searchAllManagers(loginId, email, name, pageable)
+				.map(ReadManagerSummaryRes::from)
+		);
+	}
+
+	@Override
+	public ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadManagerDetailRes.from(getManagerByLoginId(loginId));
+	}
+
+	@Override
+	public ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadManagerDetailRes.from(getManagerByUserId(userId));
+	}
+
+	@Override
+	public ReadManagerDetailRes getMe(String currentUserLoginId) {
+		return ReadManagerDetailRes.from(getUserByLoginId(currentUserLoginId));
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
+	}
+
+	private User getManagerByLoginId(String loginId) {
+		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.MANAGER).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private User getManagerByUserId(Long userId) {
+		return userRepository.findByIdAndRoleAndDeletedAtIsNull(userId, UserRole.MANAGER).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private void validateUserExistsByLoginId(String loginId) {
+		if (!userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
+			throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+		}
 	}
 
 	private void validateDuplicateLoginId(String loginId) {
