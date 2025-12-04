@@ -54,7 +54,7 @@ public class ProductController {
         return new ResponseEntity<>(PageResponse.from(res), HttpStatus.OK);
     }
 
-    @GetMapping("/timedeal/{productId}")
+    @GetMapping("/time-deal/{productId}")
     public ResponseEntity<ApiResponse<ProductInfoForTimeDealRes>> provideProductInfoToTimeDeal(@PathVariable UUID productId) {
 
         ProductInfoForTimeDealRes res = service.findProductForTimeDeal(productId);
