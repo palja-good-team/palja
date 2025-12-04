@@ -22,7 +22,7 @@ import java.util.UUID;
 public class PaymentRepositoryImpl implements PaymentRepository {
 
     private final PaymentJpaRepository paymentJpaRepository;
-    private final JPAQueryFactory queryFactory;
+    private final PaymentQueryDSLRepositoryImpl paymentQueryDSLRepository;
 
     @Override
     public Payment save(Payment payment) {
@@ -40,40 +40,14 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Page<Payment> findPayments(PaymentStatus status, Long userId, UUID orderId, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest) {
-        QPayment payment = QPayment.payment;
-
-        BooleanBuilder builder = new BooleanBuilder();
-
-        if (status != null) {
-            builder.and(payment.status.eq(status));
-        }
-        if (userId != null) {
-            builder.and(payment.userId.eq(userId));
-            /*
-            TODO: 권한별로 userID 조회 다르게 (일반 사용자는 본인것만 볼 수 있게)
-             */
-        }
-        if (orderId != null) {
-            builder.and(payment.orderId.eq(orderId));
-            /*
-            TODO: 권한별로 orderID 조회 다르게 (일반 사용자는 본인것만 볼 수 있게)
-             */
-        }
-        if (startDate != null) {
-            builder.and(payment.requestedAt.goe(startDate));
-        }
-        if (endDate != null) {
-            builder.and(payment.requestedAt.loe(endDate));
-        }
-
-        QueryResults<Payment> queryResults = queryFactory
-                .selectFrom(payment)
-                .where(builder)
-                .offset(pageRequest.getOffset())
-                .limit(pageRequest.getPageSize())
-                .fetchResults();
-
-        return new PageImpl<>(queryResults.getResults(), pageRequest, queryResults.getTotal());
+    public Page<Payment> findPayments(
+            PaymentStatus status,
+            Long userId,
+            UUID orderId,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            PageRequest pageRequest
+    ){
+        return paymentQueryDSLRepository.findPayments(status, userId, orderId, startDate, endDate, pageRequest);
     }
 }
