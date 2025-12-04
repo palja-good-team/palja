@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
@@ -33,6 +33,7 @@ public class ProductServiceImpl implements ProductService {
     private final DslProductRepository dslProductRepository;
 
     @Override
+    @Transactional
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
         /*
@@ -61,7 +62,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public FindProductRes findProduct(UUID productId) {
 
         Product product = repository.findProduct(productId);
@@ -69,7 +69,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<FindProductListByConditionRes> findProducts(FindProductListByConditionCommand command, Pageable pageable) {
 
         FindListByConditionReq req = new FindListByConditionReq(
