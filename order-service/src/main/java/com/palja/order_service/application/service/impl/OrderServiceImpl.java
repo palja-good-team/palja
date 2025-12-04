@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -27,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private final TimeDealService timeDealService;
     private final CouponService couponService;
     private final UserService userService;
+    private final PaymentService paymentService;
     private final OrderDomainService orderDomainService;
 
     private final OrderValidator orderValidator;
@@ -34,86 +36,38 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public CreateOrderRes createOrder(CreateOrderCommand command) {
-        log.info("주문 생성 시작: loginId={}, productId={}",
-                command.loginId(), command.productId());
+        log.info("주문 생성 시작: loginId={}, productId={}", command.loginId(), command.productId());
 
-        // 1. 요청 검증
         orderValidator.validateCreateOrderCommand(command);
 
-        // 2. 사용자 검증 및 정보 조회
-        UserRes user = userService.getUserByLoginId(command.loginId());
-        orderValidator.validateUserOrderable(user);
+        UserRes user = getValidUser(command);
+        ProductRes product = getValidProduct(command);
+        TimeDealRes timeDeal = getValidTimeDeal(command);
 
-        // 3. 상품 검증 및 정보 조회
-        ProductRes product = productService.getProduct(command.productId(), command.quantity());
-        orderValidator.validateProductStock(product, command.quantity());
+        BigDecimal amountBeforeCoupon = calculateAmountBeforeCoupon(product, timeDeal, command.quantity());
 
-        // 4. 타임딜 검증 및 정보 조회 (타임딜 주문인 경우)
-        TimeDealRes timeDeal = null;
-        if (command.timeDealId() != null) {
-            timeDeal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
-            orderValidator.validateTimeDeal(timeDeal, command.quantity());
-        }
+        CouponResult couponResult = CalculateValidCoupon(command.couponId(), amountBeforeCoupon);
 
-        // 5. 할인 전 금액 계산 (상품 총액 - 타임딜 할인)
-        BigDecimal amountBeforeCoupon = orderCalculator.calculateAmountBeforeCoupon(
-                product, timeDeal, command.quantity());
-
-        // 6. 쿠폰 검증 및 할인 금액 계산 (쿠폰 사용 시)
-        BigDecimal couponDiscountAmount = BigDecimal.ZERO;
-        String couponName = null;
-        if (command.couponId() != null) {
-            CouponRes coupon = couponService.getCoupon(command.couponId());
-            orderValidator.validateCoupon(coupon, amountBeforeCoupon);
-            couponDiscountAmount = orderCalculator.calculateCouponDiscount(coupon, amountBeforeCoupon);
-            couponName = coupon.getName();
-
-            log.info("쿠폰 할인 적용: couponId={}, discount={}",
-                    command.couponId(), couponDiscountAmount);
-        }
-
-        // 7. 배송 정보 생성
         Recipient recipient = createRecipient(command);
 
-        // 8. 배송비 계산
         BigDecimal deliveryFee = orderDomainService.calculateDeliveryFee(amountBeforeCoupon);
 
-        // 9. 주문 생성
-        Order order = Order.create(
-                user.userId(),
-                command.productId(),
-                product.getProductName(),
-                product.getPrice(),
-                command.quantity(),
-                command.timeDealId(),
-                timeDeal != null ? timeDeal.getTimeDealPrice() : null,
-                command.couponId(),
-                couponName,
-                couponDiscountAmount,
-                deliveryFee,
-                recipient
-        );
+        Order order = createOrder(command, user, product, timeDeal, couponResult, deliveryFee, recipient);
+        orderRepository.save(order);
+        log.info("주문 임시 저장 완료(결제 전): orderId={}", order.getOrderId());
 
         // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        // 10. 재고 차감
         deductStock(command, timeDeal);
-
         // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        // 11. 쿠폰 사용 처리
-        if (command.couponId() != null) {
-            couponService.useCoupon(command.couponId(), order.getOrderId());
-        }
+        processCouponUsage(command.couponId(), order.getOrderId());
+        // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
+        processPayment(order, user.getUserId(), "CARD");
 
-        // 12. 주문 저장
-        Order savedOrder = orderRepository.save(order);
+        orderRepository.save(order);
         log.info("주문 생성 완료: orderId={}, finalAmount={}",
-                savedOrder.getOrderId(), savedOrder.getOrderAmount().getFinalAmount());
+                order.getOrderId(), order.getOrderAmount().getFinalAmount());
 
-        // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        // 13. 결제
-
-        // 14. 응답 생성
-        return CreateOrderRes.from(savedOrder);
+        return CreateOrderRes.from(order);
     }
 
     // ===== 도메인 객체 생성 =====
@@ -127,8 +81,7 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // ===== 외부 서비스 호출 =====
-
+    // ====== 외부 서비스 호출 ======
     // 재고 차감
     private void deductStock(CreateOrderCommand command, TimeDealRes timeDeal) {
         // 타임딜 주문인 경우 타임딜 재고 차감
@@ -145,5 +98,104 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("상품 재고 차감 완료: productId={}, quantity={}",
                 command.productId(), command.quantity());
+    }
+
+    // ====== private ======
+    // 사용자 검증 및 정보 조회
+    private UserRes getValidUser(CreateOrderCommand command) {
+        UserRes user = userService.getUserByLoginId(command.loginId());
+        orderValidator.validateUserOrderable(user);
+        return user;
+    }
+
+    // 상품 검증 및 정보 조회
+    private ProductRes getValidProduct(CreateOrderCommand command) {
+        ProductRes product = productService.getProduct(command.productId(), command.quantity());
+        orderValidator.validateProductStock(product, command.quantity());
+        return product;
+    }
+
+    // 타임딜 검증 및 정보 조회 (타임딜 주문인 경우)
+    private TimeDealRes getValidTimeDeal(CreateOrderCommand command) {
+        if (command.timeDealId() == null) return null;
+
+        TimeDealRes timeDeal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
+        orderValidator.validateTimeDeal(timeDeal, command.quantity());
+        return timeDeal;
+    }
+
+    // 쿠폰 사용 전 금액 계산 (상품 총액 - 타임딜 할인)
+    private BigDecimal calculateAmountBeforeCoupon(ProductRes product, TimeDealRes timeDeal, Integer quantity) {
+        return orderCalculator.calculateAmountBeforeCoupon(product, timeDeal, quantity);
+    }
+
+    // 쿠폰 검증 및 할인 계산
+    private CouponResult CalculateValidCoupon(UUID couponId, BigDecimal amountBeforeCoupon) {
+        if (couponId == null) {
+            return new CouponResult(BigDecimal.ZERO, null, null);
+        }
+
+        CouponRes coupon = couponService.getCoupon(couponId);
+        orderValidator.validateCoupon(coupon, amountBeforeCoupon);
+
+        BigDecimal discountAmount = orderCalculator.calculateCouponDiscount(coupon, amountBeforeCoupon);
+
+        log.info("쿠폰 할인 적용: couponId={}, discount={}", couponId, discountAmount);
+
+        return new CouponResult(discountAmount, couponId, coupon.getName());
+    }
+
+    // 주문 엔티티 생성 (CouponResult 사용)
+    private Order createOrder(
+            CreateOrderCommand command,
+            UserRes user,
+            ProductRes product,
+            TimeDealRes timeDeal,
+            CouponResult couponResult,
+            BigDecimal deliveryFee,
+            Recipient recipient) {
+
+        return Order.create(
+                user.getUserId(),
+                command.productId(),
+                product.getProductName(),
+                product.getPrice(),
+                command.quantity(),
+                command.timeDealId(),
+                timeDeal != null ? timeDeal.getTimeDealPrice() : null,
+                couponResult.couponId(),
+                couponResult.couponName(),
+                couponResult.discountAmount(),
+                deliveryFee,
+                recipient
+        );
+    }
+
+    // 쿠폰 사용 처리
+    private void processCouponUsage(UUID couponId, UUID orderId) {
+        if (couponId != null) {
+            couponService.useCoupon(couponId, orderId);
+        }
+    }
+
+    // 결제 처리
+    private void processPayment(Order order, Long userId, String paymentMethod) {
+        PaymentRes payment = paymentService.createPayment(
+                order.getOrderId(),
+                userId,
+                order.getOrderAmount().getFinalAmount(),
+                paymentMethod
+        );
+
+        order.markAsPaid(payment.getPaymentId());
+        log.info("주문 결제 완료: paymentId={}, amount={}", payment.getPaymentId(), payment.getAmount());
+    }
+
+    // 쿠폰 처리 결과를 담는 내부 레코드
+    private record CouponResult(
+            BigDecimal discountAmount,
+            UUID couponId,
+            String couponName
+    ) {
     }
 }
