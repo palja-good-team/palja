@@ -9,6 +9,8 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.UUID;
 
+import java.util.UUID;
+
 public interface PaymentService {
 
     PaymentDetailRes createPayment(CreatePaymentCommand command);
@@ -20,4 +22,6 @@ public interface PaymentService {
     Page<PaymentDetailRes> getPayments(PageRequest pageRequest);
 
     Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest);
+
+    void deletePayment(UUID paymentId);
 }

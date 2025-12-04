@@ -23,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -159,9 +158,20 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest) {
+    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command,
+                                                 PageRequest pageRequest) {
+
+        PaymentStatus status = null;
+        if (command.status() != null) {
+            try {
+                status = PaymentStatus.valueOf(command.status());
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            }
+        }
+
         Page<Payment> payments = paymentRepository.findPayments(
-                command.status(),
+                status,
                 command.userId(),
                 command.orderId(),
                 command.startDate(),
@@ -170,6 +180,24 @@ public class PaymentServiceImpl implements PaymentService {
         );
 
         return payments.map(PaymentDetailRes::from);
+    }
+
+    @Override
+    @Transactional
+    public void deletePayment(UUID paymentId){
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        /*
+        TODO: 사용자 권한 확인하는 로직 추가
+         */
+
+        if(payment.getStatus() == PaymentStatus.PENDING) {
+            payment.softDelete();
+            paymentRepository.save(payment);
+        }else {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_BE_DELETED);
+        }
     }
 
     private void approvePayment(Payment payment, String paymentKey) {
