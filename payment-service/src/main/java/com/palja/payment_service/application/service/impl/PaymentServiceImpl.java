@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
+import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
 import com.palja.payment_service.application.service.PGPaymentService;
@@ -17,8 +18,13 @@ import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -133,6 +139,37 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentDetailRes getPayment(UUID paymentId){
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        return PaymentDetailRes.from(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PaymentDetailRes> getPayments(PageRequest pageRequest) {
+        Page<Payment> payments = paymentRepository.findAll(pageRequest);
+        return payments.map(PaymentDetailRes::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest) {
+        Page<Payment> payments = paymentRepository.findPayments(
+                command.status(),
+                command.userId(),
+                command.orderId(),
+                command.startDate(),
+                command.endDate(),
+                pageRequest
+        );
+
+        return payments.map(PaymentDetailRes::from);
     }
 
     private void approvePayment(Payment payment, String paymentKey) {
