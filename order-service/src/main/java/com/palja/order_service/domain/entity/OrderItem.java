@@ -2,14 +2,12 @@ package com.palja.order_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Getter
 @Entity
 @Table(name = "p_order_item")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,10 +24,6 @@ public class OrderItem extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
-
-    // 조회용으로만 쓰는 read-only FK
-    @Column(name = "order_id", nullable = false, insertable = false, updatable = false)
-    private UUID orderId;
 
     @Column(name = "product_id", nullable = false)
     private UUID productId;
@@ -54,4 +48,87 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "time_deal_discount_amount")
     private BigDecimal timeDealDiscountAmount;
+
+     // OrderItem 생성
+    public static OrderItem create(
+            Order order,
+            UUID productId,
+            String productName,
+            BigDecimal unitPrice,
+            int quantity,
+            UUID timeDealId,
+            BigDecimal timeDealPrice
+    ) {
+        validateQuantity(quantity);
+        validateUnitPrice(unitPrice);
+        validateProductName(productName);
+
+        // 자동 계산
+        BigDecimal lineTotalAmount = calculateLineTotalAmount(unitPrice, quantity);
+        BigDecimal timeDealDiscountAmount = calculateTimeDealDiscount(unitPrice, timeDealPrice, quantity);
+
+        return OrderItem.builder()
+                .order(order)
+                .productId(productId)
+                .productName(productName)
+                .unitPrice(unitPrice)
+                .quantity(quantity)
+                .timeDealId(timeDealId)
+                .timeDealPrice(timeDealPrice)
+                .lineTotalAmount(lineTotalAmount)
+                .timeDealDiscountAmount(timeDealDiscountAmount)
+                .build();
+    }
+
+    // 할인 전 총 금액 계산
+    private static BigDecimal calculateLineTotalAmount(BigDecimal unitPrice, int quantity) {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    // 타임딜 할인 금액 계산
+    private static BigDecimal calculateTimeDealDiscount(
+            BigDecimal unitPrice,
+            BigDecimal timeDealPrice,
+            int quantity
+    ) {
+        if (timeDealPrice == null) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal discountPerUnit = unitPrice.subtract(timeDealPrice);
+
+        if (discountPerUnit.compareTo(BigDecimal.ZERO) <= 0) {
+            // 타임딜 가격이 정상이거나 더 비싸다면 할인 없음
+            return BigDecimal.ZERO;
+        }
+
+        return discountPerUnit.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    // 타임딜 주문 여부
+    public boolean isTimeDeal() {
+        return timeDealId != null;
+    }
+
+    // ====== Validation ======
+    private static void validateQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+        }
+    }
+
+    private static void validateUnitPrice(BigDecimal unitPrice) {
+        if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("상품 단가는 0보다 커야 합니다.");
+        }
+    }
+
+    private static void validateProductName(String productName) {
+        if (productName == null || productName.isBlank()) {
+            throw new IllegalArgumentException("상품명은 필수입니다.");
+        }
+        if (productName.length() > 200) {
+            throw new IllegalArgumentException("상품명은 200자를 초과할 수 없습니다.");
+        }
+    }
 }
