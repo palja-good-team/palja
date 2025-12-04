@@ -33,6 +33,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
     public CouponRes createCoupon(CreateCouponCommand command) {
         log.info("쿠폰 생성 시작");
 
+        validateCouponNameDuplicate(command.couponName());
+
         Coupon coupon = Coupon.create(
                 command.couponName(),
                 command.description(),
@@ -55,6 +57,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
 
         Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        validateCouponNameDuplicate(command.couponName());
 
         coupon.update(
                 command.couponName(),
@@ -85,5 +89,13 @@ public class CouponManagerServiceImpl implements CouponManagerService {
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
 
         return CouponDetailRes.from(coupon);
+    }
+
+    // 쿠폰명 중복 체크
+    private void validateCouponNameDuplicate(String couponName) {
+        if (couponRepository.existsByNameAndDeletedAtIsNull(couponName)) {
+            log.warn("쿠폰명 중복 - couponName: {}", couponName);
+            throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_NAME);
+        }
     }
 }

@@ -16,4 +16,6 @@ public interface CouponRepository {
     Optional<Coupon> findByIdAndDeletedAtIsNull(UUID id);
 
     void delete(Coupon coupon);
+
+    boolean existsByNameAndDeletedAtIsNull(String couponName);
 }
