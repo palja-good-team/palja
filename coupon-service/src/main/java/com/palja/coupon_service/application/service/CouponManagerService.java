@@ -1,5 +1,6 @@
 package com.palja.coupon_service.application.service;
 
+import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponRes;
@@ -15,7 +16,10 @@ public interface CouponManagerService {
 
     CouponRes updateCoupon(UpdateCouponCommand command);
 
+    CouponRes changeCouponStatus(ChangeCouponStatusCommand command);
+
     Page<CouponRes> getCouponList(Pageable pageable);
 
     CouponDetailRes getCouponDetail(UUID couponId);
+
 }

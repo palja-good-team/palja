@@ -105,6 +105,15 @@ public class Coupon extends BaseEntity {
         }
     }
 
+    public void changeStatus(CouponStatus newStatus) {
+        validateStatusTransition(newStatus);
+
+        if (newStatus == CouponStatus.DELETED)
+            softDelete();
+
+        this.status = newStatus;
+    }
+
     // 필수 필드 검증
     private static void validateRequiredFields(String name) {
         if (name == null || name.isBlank())
@@ -136,5 +145,12 @@ public class Coupon extends BaseEntity {
     private void validateTotalQuantityUpdate(Integer newTotalQuantity) {
         if (this.issuedQuantity != null && newTotalQuantity < this.issuedQuantity)
             throw new BusinessException(CouponErrorCode.INVALID_QUANTITY);
+    }
+
+    // 쿠폰 상태 변경 검증
+    private void validateStatusTransition(CouponStatus newStatus) {
+        if (!this.status.canTransitionTo(newStatus)) {
+            throw new BusinessException(CouponErrorCode.INVALID_STATUS_TRANSITION);
+        }
     }
 }

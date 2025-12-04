@@ -5,12 +5,15 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
+import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponDetailRes;
 import com.palja.coupon_service.application.dto.CouponRes;
 import com.palja.coupon_service.application.service.CouponManagerService;
+import com.palja.coupon_service.domain.vo.CouponStatus;
 import com.palja.coupon_service.exception.CouponErrorCode;
+import com.palja.coupon_service.presentation.dto.request.ChangeCouponStatusReq;
 import com.palja.coupon_service.presentation.dto.request.CreateCouponReq;
 import com.palja.coupon_service.presentation.dto.request.UpdateCouponReq;
 import jakarta.validation.Valid;
@@ -55,7 +58,21 @@ public class CouponManagerController {
 
         CouponRes couponRes = couponManagerService.updateCoupon(command);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(couponRes, "쿠폰이 수정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(couponRes, "쿠폰이 수정되었습니다."));
+    }
+
+    @PutMapping("/{couponId}/status")
+    public ResponseEntity<ApiResponse<CouponRes>> changeCouponStatus(@PathVariable UUID couponId,
+                                                                     @Valid @RequestBody ChangeCouponStatusReq request) {
+        log.info("PUT /api/v1/coupons/manager/{}/status - 쿠폰 상태 변경 요청 status: {}", couponId, request.getStatus());
+
+        validateRole();
+
+        ChangeCouponStatusCommand command = ChangeCouponStatusReq.of(couponId, request);
+
+        CouponRes couponRes = couponManagerService.changeCouponStatus(command);
+
+        return ResponseEntity.ok(ApiResponse.success(couponRes, "쿠폰 상태가 변경되었습니다."));
     }
 
 

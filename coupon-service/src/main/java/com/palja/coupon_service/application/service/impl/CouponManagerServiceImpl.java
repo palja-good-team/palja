@@ -1,6 +1,7 @@
 package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.command.UpdateCouponCommand;
 import com.palja.coupon_service.application.dto.CouponRes;
@@ -9,6 +10,7 @@ import com.palja.coupon_service.application.service.CouponManagerService;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
 import com.palja.coupon_service.domain.vo.AmountPolicy;
+import com.palja.coupon_service.domain.vo.CouponStatus;
 import com.palja.coupon_service.domain.vo.DiscountPolicy;
 import com.palja.coupon_service.domain.vo.IssuePeriod;
 import com.palja.coupon_service.exception.CouponErrorCode;
@@ -71,6 +73,22 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         );
 
         log.info("쿠폰 수정 완료 - couponId={}", command.couponId());
+        return CouponRes.from(coupon);
+    }
+
+    @Override
+    @Transactional
+    public CouponRes changeCouponStatus(ChangeCouponStatusCommand command) {
+        log.info("쿠폰 상태 변경 시작 - couponId={} status={}", command.couponId(), command.status());
+
+        Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        CouponStatus oldStatus = coupon.getStatus();
+
+        coupon.changeStatus(command.status());
+
+        log.info("쿠폰 상태 변경 완료 - couponId={} status={} -> {}", command.couponId(), oldStatus, command.status());
         return CouponRes.from(coupon);
     }
 
