@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum ProductErrorCode implements ErrorCode {
     INVALID_PRODUCT_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
     INVALID_PRICE(HttpStatus.BAD_REQUEST, "가격은 양수여야 합니다."),
+    INVALID_STOCK(HttpStatus.BAD_REQUEST, "재고는 양수여야 합니다"),
     NOT_SUPPORT_CATEGORY(HttpStatus.BAD_REQUEST, "지원되지 않는 카테고리입니다."),
     NAME_TOO_LONG(HttpStatus.BAD_REQUEST, "상품의 이름은 최대 30자까지 입니다"),
 

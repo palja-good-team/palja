@@ -70,4 +70,13 @@ public class ProductController {
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 수정 성공"), HttpStatus.OK);
     }
+
+    @PutMapping("/manager/modifyStock/{productId}")
+    public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
+                                                                          @RequestParam Integer stock) {
+
+        UpdateStockRes res = service.updateStock(productId, stock);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
+    }
 }

@@ -20,4 +20,6 @@ public interface ProductService {
     ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId);
 
     UpdateProductRes updateProduct(UUID productId, UpdateProductCommand updateCommand);
+
+    UpdateStockRes updateStock(UUID productId, Integer stock);
 }

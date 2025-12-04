@@ -80,6 +80,14 @@ public class Product extends BaseEntity {
         return this;
     }
 
+    public Product updateStock(Integer stock) {
+        if(Objects.isNull(stock) || stock < 0)
+            throw new BusinessException(ProductErrorCode.INVALID_STOCK);
+
+        this.productStock.updateQuantity(stock);
+        return this;
+    }
+
     public ProductStock increaseStock(Integer quantity) {
         this.productStock = productStock.increase(quantity);
         return this.productStock;
