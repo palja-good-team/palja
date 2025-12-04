@@ -66,10 +66,8 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaymentStatus paymentStatus = (status != null) ? PaymentStatus.valueOf(status) : null;
-
         FindPaymentListByConditionCommand command = new FindPaymentListByConditionCommand(
-                paymentStatus,
+                status,
                 userId,
                 orderId,
                 startDate,
@@ -83,5 +81,13 @@ public class PaymentController {
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail, "결제 목록 조회에 성공했습니다."));
+    }
+
+    @DeleteMapping("/manager/{paymentId}")
+    public ResponseEntity<ApiResponse<String>> deletePayment(
+            @PathVariable UUID paymentId
+    ){
+        paymentService.deletePayment(paymentId);
+        return new ResponseEntity<>(ApiResponse.success("결제가 삭제되었습니다."),HttpStatus.OK);
     }
 }
