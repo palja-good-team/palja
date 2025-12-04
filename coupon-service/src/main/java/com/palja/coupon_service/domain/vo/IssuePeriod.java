@@ -35,7 +35,7 @@ public class IssuePeriod {
     public IssuePeriod update(LocalDateTime newIssueStartAt, LocalDateTime newIssueEndAt) {
         LocalDateTime updateIssueStartAt = newIssueStartAt != null ? newIssueStartAt : this.issueStartAt;
         LocalDateTime updateIssueEndAt = newIssueEndAt != null ? newIssueEndAt : this.issueEndAt;
-        validate(newIssueStartAt, newIssueEndAt);
+        validate(updateIssueStartAt, updateIssueEndAt);
         return IssuePeriod.of(updateIssueStartAt, updateIssueEndAt);
     }
 
