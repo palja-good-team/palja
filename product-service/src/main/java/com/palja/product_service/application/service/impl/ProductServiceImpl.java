@@ -1,10 +1,9 @@
 package com.palja.product_service.application.service.impl;
 
-import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -100,7 +99,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public UpdateProductRes updateProduct(UUID productId, UpdateProductCommand updateCommand) {
+    public UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand) {
 
         Product product = repository.findProduct(productId);
 
@@ -116,12 +115,12 @@ public class ProductServiceImpl implements ProductService {
                 updateCommand.name()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
-        Product updateProduct = product.updateProduct(updateCommand.name(),
+        Product updateProduct = product.updateInfo(updateCommand.name(),
                 updateCommand.description(),
                 updateCommand.price(),
                 updateCommand.category());
 
-        return UpdateProductRes.fromEntity(updateProduct);
+        return UpdateProductInfoRes.fromEntity(updateProduct);
     }
 
     @Override

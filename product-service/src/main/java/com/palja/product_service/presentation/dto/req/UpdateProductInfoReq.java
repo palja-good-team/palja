@@ -1,12 +1,12 @@
 package com.palja.product_service.presentation.dto.req;
 
-import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class UpdateProductReq {
+public class UpdateProductInfoReq {
 
     @Size(min = 2, max = 30)
     private String name;
@@ -18,7 +18,7 @@ public class UpdateProductReq {
 
     private String category;
 
-    public UpdateProductCommand toCommand() {
-        return new UpdateProductCommand(name, description, price, category);
+    public UpdateProductInfoCommand toCommand() {
+        return new UpdateProductInfoCommand(name, description, price, category);
     }
 }

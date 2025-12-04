@@ -64,7 +64,7 @@ public class Product extends BaseEntity {
         return product;
     }
 
-    public Product updateProduct(String name, String description, Long price, String category) {
+    public Product updateInfo(String name, String description, Long price, String category) {
 
         if (Objects.nonNull(name)) {
             if(name.length() <= 30) this.name = name;
