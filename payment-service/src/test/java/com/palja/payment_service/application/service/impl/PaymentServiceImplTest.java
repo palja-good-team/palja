@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +63,7 @@ class PaymentServiceImplTest {
                 .paymentKey("tviva20251202001935xysU8")
                 .build();
     }
+
 
     @Test
     @DisplayName("PG 승인 성공 시 결제 상태가 APPROVED가 되고 결제 로그 생성")
@@ -247,5 +249,28 @@ class PaymentServiceImplTest {
         ))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
+    }
+
+    @Test
+    @DisplayName("결제 status가 PENDING 상태가 아닌 결제 삭제 실패")
+    void deletePayment_notPending() {
+        Payment payment = Payment.create(
+                UUID.randomUUID(),
+                1L,
+                new BigDecimal("10000"),
+                "KRW",
+                PaymentMethod.CARD,
+                "paymentKey123"
+        );
+        payment.approve("paymentKey123");
+
+        given(paymentRepository.findById(payment.getId()))
+                .willReturn(Optional.of(payment));
+
+        assertThatThrownBy(() -> paymentService.deletePayment(payment.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_CANNOT_BE_DELETED);
+
+        then(paymentRepository).should(never()).deleteById(payment.getId());
     }
 }
