@@ -10,45 +10,67 @@ public enum DeliveryStatus {
     READY("배송 준비 (출고 전)") {
         @Override
         public boolean canTransitionTo(DeliveryStatus newStatus) {
+            // 송장 등록 → REQUESTED
             return newStatus == REQUESTED;
         }
 
         @Override
         public boolean isOrderCancellable() {
-            return true;                // 주문 취소 가능
+            // 주문 취소 가능
+            return true;
         }
 
         @Override
         public boolean isBeforeTransit() {
-            return true;                // 집하 전
+            // 집하 전
+            return true;
         }
 
         @Override
         public boolean isDeliveryEditable() {
-            return true;                // 배송 정보 수정 가능 (READY만)
+            // 배송 정보 수정 가능 (READY만)
+            return true;
+        }
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public boolean canRegisterTracking() {
+            return true;
         }
     },
 
     REQUESTED("송장 발행/배송요청 (수거 전)") {
         @Override
         public boolean canTransitionTo(DeliveryStatus newStatus) {
+            // 집하 완료 → IN_TRANSIT
             return newStatus == IN_TRANSIT;
         }
 
         @Override
         public boolean isOrderCancellable() {
-            return true;                // 주문 취소 가능
+            // 주문 취소 가능
+            return true;
         }
 
         @Override
         public boolean isBeforeTransit() {
-            return true;                // 집하 전
+            // 집하 전
+            return true;
+        }
+
+        @Override
+        public boolean isRequested() {
+            return true;
         }
     },
 
     IN_TRANSIT("배송 중 (집하/이동 시작)") {
         @Override
         public boolean canTransitionTo(DeliveryStatus newStatus) {
+            // 배송 완료 → DELIVERED
             return newStatus == DELIVERED;
         }
 
@@ -61,6 +83,7 @@ public enum DeliveryStatus {
     DELIVERED("배송 완료") {
         @Override
         public boolean canTransitionTo(DeliveryStatus newStatus) {
+            // 완료 이후 상태 전이 없음
             return false;
         }
 
@@ -77,8 +100,6 @@ public enum DeliveryStatus {
 
     private final String description;
 
-    // --- 상태 전이 검증 ---
-
     public abstract boolean canTransitionTo(DeliveryStatus newStatus);
 
     public void validateTransition(DeliveryStatus newStatus) {
@@ -93,7 +114,15 @@ public enum DeliveryStatus {
         }
     }
 
-    // --- 기본 정책 (override하지 않으면 false) ---
+    /** 배송 준비 상태인지 */
+    public boolean isReady() {
+        return false;
+    }
+
+    /** 배송 요청 상태인지 */
+    public boolean isRequested() {
+        return false;
+    }
 
     /** 배송 상태 기준 주문 취소 가능 여부 (READY, REQUESTED만 true) */
     public boolean isOrderCancellable() {
@@ -122,6 +151,11 @@ public enum DeliveryStatus {
 
     /** 배송 정보 수정 가능 여부 (정책: READY만 true) */
     public boolean isDeliveryEditable() {
+        return false;
+    }
+
+    /** 송장 등록 가능한 상태인지 (운송장 번호 + 택배사 등록 가능 여부) */
+    public boolean canRegisterTracking() {
         return false;
     }
 }

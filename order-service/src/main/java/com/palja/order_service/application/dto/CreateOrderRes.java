@@ -34,5 +34,4 @@ public class CreateOrderRes {
                 .createdAt(order.getCreatedAt())
                 .build();
     }
-
 }

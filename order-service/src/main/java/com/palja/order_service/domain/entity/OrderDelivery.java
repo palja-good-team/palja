@@ -58,7 +58,7 @@ public class OrderDelivery {
 
     // 송장 등록
     public void registerTracking(String trackingNumber, String courierCompany) {
-        if (this.status != DeliveryStatus.READY) {
+        if (!this.status.canRegisterTracking()) {
             throw new IllegalStateException("배송 준비 상태에서만 송장을 등록할 수 있습니다.");
         }
 
@@ -67,7 +67,9 @@ public class OrderDelivery {
 
         this.trackingNumber = trackingNumber;
         this.courierCompany = courierCompany;
-        transitionToRequested();
+
+        // 송장 발행/배송요청 상태로 변경
+        transitionTo(DeliveryStatus.REQUESTED);
     }
 
     // 배송 정보 수정 (READY 상태에서만)
@@ -91,11 +93,27 @@ public class OrderDelivery {
         }
     }
 
-    private void transitionToRequested() {
-        this.status = DeliveryStatus.REQUESTED;
+    public boolean isOrderCancellable() {
+        return this.status.isOrderCancellable();
     }
 
-    // ====== Validation ======
+    public boolean isDelivered() {
+        return this.status.isDelivered();
+    }
+
+    public boolean isBeforeTransit() {
+        return this.status.isBeforeTransit();
+    }
+
+    public boolean isReady() {
+        return this.status.isReady();
+    }
+
+    public boolean isRequested() {
+        return this.status.isRequested();
+    }
+
+    // ===== Validation =====
     private void validateTrackingNumber(String trackingNumber) {
         if (trackingNumber == null || trackingNumber.isBlank()) {
             throw new IllegalArgumentException("운송장 번호는 필수입니다.");

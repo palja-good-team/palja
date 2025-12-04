@@ -2,6 +2,7 @@ package com.palja.order_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
 import com.palja.order_service.domain.vo.OrderAmount;
+import com.palja.order_service.domain.vo.OrderCancellation;
 import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.domain.vo.Recipient;
 import jakarta.persistence.*;
@@ -46,14 +47,8 @@ public class Order extends BaseEntity {
     @Column(name = "time_deal_order", nullable = false)
     private Boolean timeDealOrder;
 
-    @Column(name = "canceled_at")
-    private LocalDateTime canceledAt;
-
-    @Column(name = "cancel_reason")
-    private String cancelReason;
-
-    @Column(name = "canceled_by")
-    private String canceledBy;
+    @Embedded
+    private OrderCancellation cancellation;
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
@@ -65,8 +60,7 @@ public class Order extends BaseEntity {
     @OneToOne(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private OrderDelivery delivery;
 
-    // 주문 생성
-    // 주문, 주문상품, 배송정보를 한 번에 생성
+    // 주문 생성 (주문, 주문상품, 배송정보)
     public static Order create(
             Long userId,
             UUID productId,
@@ -81,25 +75,46 @@ public class Order extends BaseEntity {
             BigDecimal deliveryFee,
             Recipient recipient
     ) {
-        // 1. 주문자 검증
         validateUserId(userId);
-        // 2. 주문 상품 검증
         validateProductId(productId);
 
-        // 3. 타임딜 주문 여부 결정
+        Order order = createOrder(userId, timeDealId, timeDealPrice, couponId, couponName);
+
+        createOrderItem(order, productId, productName, unitPrice, quantity, timeDealId, timeDealPrice);
+        createOrderDelivery(order, recipient);
+        calculateAmount(order, couponDiscountAmount, deliveryFee);
+
+        return order;
+    }
+
+    private static Order createOrder(
+            Long userId,
+            UUID timeDealId,
+            BigDecimal timeDealPrice,
+            UUID couponId,
+            String couponName
+    ) {
         boolean isTimeDealOrder = (timeDealId != null && timeDealPrice != null);
 
-        // 4. Order 생성 (아직 자식 없음)
-        Order order = Order.builder()
+        return Order.builder()
                 .userId(userId)
                 .status(OrderStatus.CREATED)
                 .timeDealOrder(isTimeDealOrder)
                 .couponId(couponId)
                 .couponName(couponName)
                 .build();
+    }
 
-        // 5. OrderItem 생성 및 연결
-        OrderItem orderItem = OrderItem.create(
+    private static void createOrderItem(
+            Order order,
+            UUID productId,
+            String productName,
+            BigDecimal unitPrice,
+            int quantity,
+            UUID timeDealId,
+            BigDecimal timeDealPrice
+    ) {
+        order.orderItem = OrderItem.create(
                 order,
                 productId,
                 productName,
@@ -108,33 +123,28 @@ public class Order extends BaseEntity {
                 timeDealId,
                 timeDealPrice
         );
-        order.orderItem = orderItem;
+    }
 
-        // 6. OrderDelivery 생성 및 연결
-        order.delivery = OrderDelivery.create(order, recipient);
+    private static void calculateAmount(
+            Order order,
+            BigDecimal couponDiscountAmount,
+            BigDecimal deliveryFee
+    ) {
+        BigDecimal productTotal = order.orderItem.getLineTotalAmount();
+        BigDecimal itemDiscount = order.orderItem.getTimeDealDiscountAmount();
 
-        // 7. 금액 계산 (OrderItem의 할인 정보 활용)
-        BigDecimal productTotalAmount = orderItem.getLineTotalAmount();
-        BigDecimal itemDiscountAmount = orderItem.getTimeDealDiscountAmount();
-
-        order.orderAmount = OrderAmount.of(
-                productTotalAmount,
-                itemDiscountAmount,
+        order.orderAmount = OrderAmount.create(
+                productTotal,
+                itemDiscount,
                 couponDiscountAmount != null ? couponDiscountAmount : BigDecimal.ZERO,
                 deliveryFee != null ? deliveryFee : BigDecimal.ZERO
         );
-
-        return order;
     }
 
-    // 결제 완료 처리
-    public void markAsPaid(UUID paymentId) {
-        validatePaymentId(paymentId);
-        this.status.validateTransition(OrderStatus.PAID);
-
-        this.paymentId = paymentId;
-        this.status = OrderStatus.PAID;
+    private static void createOrderDelivery(Order order, Recipient recipient) {
+        order.delivery = OrderDelivery.create(order, recipient);
     }
+
 
     // 주문 취소
     public void cancel(String cancelReason, String canceledBy) {
@@ -146,21 +156,15 @@ public class Order extends BaseEntity {
         }
 
         // 2. 배송 상태 검증 (배송 시작 전만 가능)
-        if (this.delivery != null && !this.delivery.getStatus().isOrderCancellable()) {
+        if (this.delivery != null && !this.delivery.isOrderCancellable()) {
             throw new IllegalStateException(
                     String.format("취소할 수 없는 배송 상태입니다: %s",
                             this.delivery.getStatus().getDescription())
             );
         }
 
-        // 3. 상태 전환 검증
-        this.status.validateTransition(OrderStatus.CANCELED);
-
-        // 4. 취소 처리
-        this.status = OrderStatus.CANCELED;
-        this.canceledAt = LocalDateTime.now();
-        this.cancelReason = validateCancelReason(cancelReason);
-        this.canceledBy = validateCanceledBy(canceledBy);
+        transitionTo(OrderStatus.CANCELED);
+        this.cancellation = OrderCancellation.create(cancelReason, canceledBy);
     }
 
     // 구매 확정
@@ -173,32 +177,40 @@ public class Order extends BaseEntity {
         }
 
         // 2. 배송 완료 확인
-        if (this.delivery == null || !this.delivery.getStatus().isDelivered()) {
+        if (this.delivery == null || !this.delivery.isDelivered()) {
             throw new IllegalStateException("배송이 완료되지 않은 주문입니다.");
         }
 
         // 3. 상태 전환
-        this.status.validateTransition(OrderStatus.COMPLETED);
-        this.status = OrderStatus.COMPLETED;
+        transitionTo(OrderStatus.COMPLETED);
         this.confirmedAt = LocalDateTime.now();
+    }
+
+    // 주문 상태 전환 (CREATED/PAID/PREPARING/SHIPPED/DELIVERED)
+    private void transitionTo(OrderStatus newStatus) {
+        this.status.validateTransition(newStatus);
+        this.status = newStatus;
     }
 
     // 상품 준비 중으로 상태 변경
     public void markAsPreparing() {
-        this.status.validateTransition(OrderStatus.PREPARING);
-        this.status = OrderStatus.PREPARING;
+        transitionTo(OrderStatus.PREPARING);
     }
 
     /// 배송 출발로 상태 변경
     public void markAsShipped() {
-        this.status.validateTransition(OrderStatus.SHIPPED);
-        this.status = OrderStatus.SHIPPED;
+        transitionTo(OrderStatus.SHIPPED);
+    }
+
+    public void markAsDelivered() {
+        transitionTo(OrderStatus.DELIVERED);
     }
 
     // 배송 완료로 상태 변경
-    public void markAsDelivered() {
-        this.status.validateTransition(OrderStatus.DELIVERED);
-        this.status = OrderStatus.DELIVERED;
+    public void markAsPaid(UUID paymentId) {
+        validatePaymentId(paymentId);
+        this.paymentId = paymentId;
+        transitionTo(OrderStatus.PAID);
     }
 
     // 타임딜 주문인지 확인
@@ -211,7 +223,7 @@ public class Order extends BaseEntity {
         return couponId != null;
     }
 
-    // ====== Validation ======
+    // ===== Validation ===== //
 
     private static void validateUserId(Long userId) {
         if (userId == null) {
@@ -229,25 +241,5 @@ public class Order extends BaseEntity {
         if (paymentId == null) {
             throw new IllegalArgumentException("결제 ID는 필수입니다.");
         }
-    }
-
-    private String validateCancelReason(String cancelReason) {
-        if (cancelReason == null || cancelReason.isBlank()) {
-            throw new IllegalArgumentException("취소 사유는 필수입니다.");
-        }
-        if (cancelReason.length() > 500) {
-            throw new IllegalArgumentException("취소 사유는 500자를 초과할 수 없습니다.");
-        }
-        return cancelReason.trim();
-    }
-
-    private String validateCanceledBy(String canceledBy) {
-        if (canceledBy == null || canceledBy.isBlank()) {
-            throw new IllegalArgumentException("취소자 정보는 필수입니다.");
-        }
-        if (canceledBy.length() > 50) {
-            throw new IllegalArgumentException("취소자 정보는 50자를 초과할 수 없습니다.");
-        }
-        return canceledBy.trim();
     }
 }

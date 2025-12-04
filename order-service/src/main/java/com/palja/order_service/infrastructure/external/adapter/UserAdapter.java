@@ -25,11 +25,6 @@ public class UserAdapter implements UserService {
         // 임시 더미 데이터
         UserDTO response = UserDTO.dummy(loginId);
 
-        UserRes user = UserRes.from(response);
-
-        // 주문 가능한 사용자 여부 검증
-        user.validateOrderable();
-
-        return user;
+        return UserRes.from(response);
     }
 }

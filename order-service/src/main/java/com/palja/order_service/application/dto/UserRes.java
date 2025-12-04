@@ -1,8 +1,6 @@
 package com.palja.order_service.application.dto;
 
-import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.infrastructure.external.dto.response.UserDTO;
 import lombok.Builder;
 
@@ -22,10 +20,6 @@ public record UserRes(
 ) {
     // Infrastructure DTO → Application DTO 변환
     public static UserRes from(UserDTO userDTO) {
-        if (userDTO == null) {
-            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
-        }
-
         return UserRes.builder()
                 .userId(userDTO.getUserId())
                 .loginId(userDTO.getLoginId())
@@ -36,21 +30,5 @@ public record UserRes(
                 .status(userDTO.getStatus())
                 .createdAt(userDTO.getCreatedAt())
                 .build();
-    }
-
-    // 주문 가능 여부 검증
-    public void validateOrderable() {
-        if (!"ACTIVE".equals(status)) {
-            throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
-        }
-
-        if (UserRole.COMPANY_USER.equals(role)) {
-            throw new BusinessException(OrderErrorCode.USER_NOT_ALLOWED);
-        }
-    }
-
-    // 활성 사용자 여부
-    public boolean isActive() {
-        return "ACTIVE".equals(status);
     }
 }

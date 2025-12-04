@@ -41,6 +41,5 @@ public class CouponAdapter implements CouponService {
         CouponUseDTO response = CouponUseDTO.dummy(couponId, orderId);
 
         log.info("쿠폰 사용 완료: couponId={}, orderId={}", couponId, orderId);
-
     }
 }

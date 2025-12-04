@@ -27,13 +27,7 @@ public class TimeDealAdapter implements TimeDealService {
         // 임시 더미 데이터
         TimeDealDTO response = TimeDealDTO.dummy(timeDealId);
 
-        TimeDealRes timeDeal = TimeDealRes.from(response);
-
-        // 판매기간/재고 검증
-        timeDeal.validatePeriod();
-        timeDeal.validateStock(quantity);
-
-        return timeDeal;
+        return TimeDealRes.from(response);
     }
 
     @Override

@@ -131,9 +131,9 @@ public enum OrderStatus {
         }
     }
 
-    // === 헬퍼 메서드들 (필요한 것만 override) === //
+    // ==== 헬퍼 메서드 (필요한 것만 override) ===== //
 
-    /** 최종 상태 여부 (CANCELED, COMPLETED 등) */
+    /** 최종 상태 여부 (CANCELED, COMPLETED) */
     public boolean isFinalState() {
         return false;
     }
@@ -170,9 +170,9 @@ public enum OrderStatus {
     }
 
     /**
-     * "상태 기준"으로만 봤을 때 취소 후보 상태인지
+     * 상태 기준 취소 가능 상태인지
      * - CREATED / PAID / PREPARING
-     * - 실제 취소 가능 여부는 배송 상태(READY/REQUESTED 이하)까지 같이 체크해야 함
+     * - 실제 취소 가능 여부는 배송 상태(READY/REQUESTED 이하)까지 같이 확인
      */
     public boolean isCancelableCandidate() {
         return false;

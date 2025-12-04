@@ -20,8 +20,8 @@ public class OrderController {
     private final OrderService orderService;
 
     // 주문 생성
-    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
     @PostMapping
+    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CreateOrderRes>> createOrder(
             @Valid @RequestBody CreateOrderReq request,
             // TODO: 추후 AuditorContext로 변경
