@@ -66,10 +66,8 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaymentStatus paymentStatus = (status != null) ? PaymentStatus.valueOf(status) : null;
-
         FindPaymentListByConditionCommand command = new FindPaymentListByConditionCommand(
-                paymentStatus,
+                status,
                 userId,
                 orderId,
                 startDate,

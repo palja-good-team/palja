@@ -322,7 +322,7 @@ class PaymentServiceImplTest {
         )).willReturn(paymentPage);
 
         var result = paymentService.searchPayments(
-                new FindPaymentListByConditionCommand(PaymentStatus.APPROVED, userId, orderId, startDate, endDate),
+                new FindPaymentListByConditionCommand("APPROVED", userId, orderId, startDate, endDate),
                 pageRequest
         );
 

@@ -158,9 +158,20 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest) {
+    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command,
+                                                 PageRequest pageRequest) {
+
+        PaymentStatus status = null;
+        if (command.status() != null) {
+            try {
+                status = PaymentStatus.valueOf(command.status());
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            }
+        }
+
         Page<Payment> payments = paymentRepository.findPayments(
-                command.status(),
+                status,
                 command.userId(),
                 command.orderId(),
                 command.startDate(),

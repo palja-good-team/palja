@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FindPaymentListByConditionCommand(
-        PaymentStatus status,
+        String status,
         Long userId,
         UUID orderId,
         LocalDateTime startDate,
