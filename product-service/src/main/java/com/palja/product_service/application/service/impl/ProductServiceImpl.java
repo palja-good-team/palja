@@ -98,6 +98,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductInfoForOrderRes findProductForOrder(UUID productId) {
+        return Optional.ofNullable(
+                        dslProductRepository.findProductForOrder(productId))
+                .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
+                );
+    }
+
+    @Override
     @Transactional
     public UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand) {
 

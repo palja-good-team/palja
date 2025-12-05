@@ -19,6 +19,8 @@ public interface ProductService {
 
     ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId);
 
+    ProductInfoForOrderRes findProductForOrder(UUID productId);
+
     UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand);
 
     UpdateStockRes updateStock(UUID productId, Integer stock);

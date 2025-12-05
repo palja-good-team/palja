@@ -61,6 +61,14 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 
+    @GetMapping("/order/{productId}")
+    public ResponseEntity<ApiResponse<ProductInfoForOrderRes>> provideProductInfoToOrder(@PathVariable UUID productId) {
+
+        ProductInfoForOrderRes res = service.findProductForOrder(productId);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
+    }
+
     @PutMapping("/manager/{productId}")
     public ResponseEntity<ApiResponse<UpdateProductInfoRes>> updateProductInfo(@RequestBody @Valid UpdateProductInfoReq req,
                                                                                @PathVariable UUID productId) {
