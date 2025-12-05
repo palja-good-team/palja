@@ -155,6 +155,16 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
+	@Override
+	@Transactional
+	public void rejectCompanyUser(String currentUserLoginId, String loginId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
+		validateStatusIsPending(companyUser);
+		companyUser.softDelete();
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
@@ -188,6 +198,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
+		}
+	}
+
+	private void validateStatusIsPending(CompanyUser companyUser) {
+		if (companyUser.getUser().getStatus().equals(UserStatus.ACTIVE)) {
+			throw new BusinessException(UserErrorCode.COMPANY_USER_STATUS_ALREADY_ACTIVE);
 		}
 	}
 

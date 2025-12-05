@@ -41,4 +41,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<Void>> deleteMe(String accessToken, HttpServletResponse response);
 
+	ResponseEntity<ApiResponse<Void>> reject(String loginId);
+
 }

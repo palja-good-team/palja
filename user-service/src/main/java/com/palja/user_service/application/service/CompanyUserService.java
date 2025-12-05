@@ -37,5 +37,7 @@ public interface CompanyUserService {
 
 	void deleteMe(String accessToken, String currentUserLoginId);
 
+	void rejectCompanyUser(String currentUserLoginId, String loginId);
+
 }
 

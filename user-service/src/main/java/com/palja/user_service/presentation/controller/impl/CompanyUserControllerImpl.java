@@ -183,4 +183,15 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자가 삭제되었습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@DeleteMapping("/{loginId}/reject")
+	public ResponseEntity<ApiResponse<Void>> reject(@PathVariable String loginId) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		companyUserService.rejectCompanyUser(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자 가입이 거절되었습니다."));
+	}
+
 }
