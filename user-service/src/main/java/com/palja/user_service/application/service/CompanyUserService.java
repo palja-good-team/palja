@@ -35,5 +35,7 @@ public interface CompanyUserService {
 
 	void deleteCompanyByLoginId(String currentUserLoginId, String loginId);
 
+	void deleteMe(String accessToken, String currentUserLoginId);
+
 }
 

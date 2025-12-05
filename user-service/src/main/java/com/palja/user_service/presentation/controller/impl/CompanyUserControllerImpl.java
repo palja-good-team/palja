@@ -3,7 +3,9 @@ package com.palja.user_service.presentation.controller.impl;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +37,7 @@ import com.palja.user_service.presentation.dto.request.CreateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserStatusReq;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -153,6 +157,28 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
 		companyUserService.deleteCompanyByLoginId(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자가 삭제되었습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.COMPANY_USER})
+	@DeleteMapping("/me")
+	public ResponseEntity<ApiResponse<Void>> deleteMe(
+		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		companyUserService.deleteMe(accessToken, currentUserLoginId);
+
+		ResponseCookie cookie = ResponseCookie
+			.from("refresh_token", "")
+			.path("/")
+			.httpOnly(true)
+			.secure(false)
+			.maxAge(0)
+			.build();
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자가 삭제되었습니다."));
 	}

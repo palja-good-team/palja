@@ -1,5 +1,7 @@
 package com.palja.user_service.application.service.impl;
 
+import static com.palja.user_service.application.util.RedisKeyConstants.*;
+
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -20,9 +22,11 @@ import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
+import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.CompanyUserRepository;
+import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 import com.palja.user_service.domain.vo.UserStatus;
 
@@ -35,6 +39,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private final CompanyUserRepository companyUserRepository;
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtUtil jwtUtil;
+	private final TokenRepository tokenRepository;
 
 	@Override
 	@Transactional
@@ -132,6 +138,21 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.softDelete();
+	}
+
+	@Override
+	@Transactional
+	public void deleteMe(String accessToken, String currentUserLoginId) {
+		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
+		companyUser.softDelete();
+
+		String substringAccessToken = jwtUtil.substringToken(accessToken);
+		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
+
+		tokenRepository.save(
+			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
 	private User getUserByLoginId(String loginId) {

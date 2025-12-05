@@ -15,6 +15,8 @@ import com.palja.user_service.presentation.dto.request.CreateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserStatusReq;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<CreateUserRes>> create(CreateCompanyUserReq requestDto);
@@ -36,5 +38,7 @@ public interface CompanyUserController {
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(UpdateCompanyUserReq requestDto);
 
 	ResponseEntity<ApiResponse<Void>> deleteByLoginId(String loginId);
+
+	ResponseEntity<ApiResponse<Void>> deleteMe(String accessToken, HttpServletResponse response);
 
 }
