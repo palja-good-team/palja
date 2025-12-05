@@ -10,11 +10,13 @@ import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.application.validator.TimeDealValidator;
+import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
 import com.palja.timedeal_service.domain.vo.Quantity;
+import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -86,8 +88,6 @@ public class TimeDealServiceImpl implements TimeDealService {
             timeDealValidator.validateCompanyUserId(command.loginId(), timeDeal.getCompanyUserId());
         }
 
-        timeDealValidator.validateEditableStatus(timeDeal);
-
         updateTimeDealFields(timeDeal, command);
 
         log.info("타임딜 수정 완료");
@@ -95,27 +95,35 @@ public class TimeDealServiceImpl implements TimeDealService {
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
+        TimeDealStatus timeDealStatus = timeDeal.getTimeDealStatus();
+
         if (command.title() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TITLE);
             timeDeal.changeTitle(command.title());
         }
 
         if (command.description() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.DESCRIPTION);
             timeDeal.changeDescription(command.description());
         }
 
         if (command.startAt() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.START_AT);
             timeDeal.changeStartAt(command.startAt());
         }
 
         if (command.endAt() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.END_AT);
             timeDeal.changeEndAt(command.endAt());
         }
 
         if (command.timeDealPrice() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TITLE);
             timeDeal.changeTimeDealPrice(command.timeDealPrice());
         }
 
         if (command.totalQuantity() != null) {
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TOTAL_QUANTITY);
             timeDeal.changeTotalQuantity(command.totalQuantity());
         }
     }

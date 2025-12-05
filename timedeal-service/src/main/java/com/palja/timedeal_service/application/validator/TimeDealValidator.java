@@ -7,6 +7,7 @@ import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.external.CompanyUserInfo;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.UserClient;
+import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.vo.TimeDealStatus;
@@ -37,12 +38,8 @@ public class TimeDealValidator {
         }
     }
 
-    public void validateEditableStatus(TimeDeal timeDeal) {
-        if(
-                timeDeal.getTimeDealStatus() == TimeDealStatus.OPEN
-                        || timeDeal.getTimeDealStatus() == TimeDealStatus.SOLD_OUT
-                        || timeDeal.getTimeDealStatus() == TimeDealStatus.CLOSED
-        ) {
+    public void validateEditable(TimeDealStatus status, TimeDealEditableField field) {
+        if (!status.canEditField(field)) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_EDITABLE);
         }
     }
