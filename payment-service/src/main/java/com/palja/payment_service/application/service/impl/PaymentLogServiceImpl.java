@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,5 +60,12 @@ public class PaymentLogServiceImpl implements PaymentLogService {
         );
 
         return logs.map(PaymentLogDetailRes::from);
+    }
+
+    @Override
+    @Transactional
+    public void deleteOldLogs(){
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+        paymentLogRepository.deleteLogsOlder(oneYearAgo);
     }
 }

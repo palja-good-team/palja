@@ -43,4 +43,14 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
                 paymentId, orderId, status, startDate, endDate, pageRequest
         );
     }
+
+    @Override
+    public List<PaymentLog> findLogsOlder(LocalDateTime cutoffDate) {
+        return paymentLogJpaRepository.findLogsOlder(cutoffDate);
+    }
+
+    @Override
+    public void deleteLogsOlder(LocalDateTime cutoffDate) {
+        paymentLogJpaRepository.deleteLogsOlder(cutoffDate);
+    }
 }

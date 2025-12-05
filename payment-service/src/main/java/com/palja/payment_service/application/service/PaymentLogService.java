@@ -12,4 +12,6 @@ public interface PaymentLogService {
     List<PaymentLogDetailRes> getLogsByPaymentId(UUID paymentId);
 
     Page<PaymentLogDetailRes> searchLogs(FindPaymentLogListByConditionCommand command, PageRequest pageRequest);
+
+    void deleteOldLogs();
 }
