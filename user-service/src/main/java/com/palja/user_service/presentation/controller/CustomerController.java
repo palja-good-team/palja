@@ -30,4 +30,6 @@ public interface CustomerController {
 
 	ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateMe(UpdateCustomerReq requestDto);
 
+	ResponseEntity<ApiResponse<Void>> deleteByLoginId(String loginId);
+
 }

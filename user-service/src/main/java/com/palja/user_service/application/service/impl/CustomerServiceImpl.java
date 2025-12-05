@@ -103,6 +103,15 @@ public class CustomerServiceImpl implements CustomerService {
 		return UpdateCustomerDetailRes.from(user);
 	}
 
+	@Override
+	@Transactional
+	public void deleteCustomerByLoginId(String currentUserLoginId, String loginId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		User user = getCustomerByLoginId(loginId);
+		user.softDelete();
+	}
+
 	private User getCustomerByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.CUSTOMER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)

@@ -3,6 +3,7 @@ package com.palja.user_service.presentation.controller.impl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -124,6 +125,17 @@ public class CustomerControllerImpl implements CustomerController {
 		UpdateCustomerDetailRes responseDto = customerService.updateMe(currentUserLoginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@DeleteMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		customerService.deleteCustomerByLoginId(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("일반 사용자가 삭제되었습니다."));
 	}
 
 }

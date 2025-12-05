@@ -26,4 +26,6 @@ public interface CustomerService {
 
 	UpdateCustomerDetailRes updateMe(String currentUserLoginId, UpdateCustomerCommand command);
 
+	void deleteCustomerByLoginId(String currentUserLoginId, String loginId);
+
 }
