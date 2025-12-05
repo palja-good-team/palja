@@ -1,14 +1,17 @@
 package com.palja.user_service.application.service.impl;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCustomerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.domain.entity.User;
@@ -42,6 +45,24 @@ public class CustomerServiceImpl implements CustomerService {
 		userRepository.save(user);
 
 		return CreateUserRes.from(user);
+	}
+
+	@Override
+	public PageResponse<ReadCustomerSummaryRes> getAllCustomers(
+		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
+	) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return PageResponse.from(
+			userRepository.searchAllCustomers(loginId, email, name, pageable)
+				.map(ReadCustomerSummaryRes::from)
+		);
+	}
+
+	private void validateUserExistsByLoginId(String loginId) {
+		if (!userRepository.existsByLoginIdAndDeletedAtIsNull(loginId)) {
+			throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+		}
 	}
 
 	private void validateDuplicateLoginId(String loginId) {

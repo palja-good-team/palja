@@ -47,6 +47,11 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
+	public Page<User> searchAllCustomers(String loginId, String email, String name, Pageable pageable) {
+		return dslUserRepository.searchAllCustomers(loginId, email, name, pageable);
+	}
+
+	@Override
 	public Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role) {
 		return jpaUserRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, role);
 	}

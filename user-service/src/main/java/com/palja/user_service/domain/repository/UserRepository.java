@@ -20,6 +20,8 @@ public interface UserRepository {
 
 	Page<User> searchAllManagers(String loginId, String email, String name, Pageable pageable);
 
+	Page<User> searchAllCustomers(String loginId, String email, String name, Pageable pageable);
+
 	Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role);
 
 	Optional<User> findByIdAndRoleAndDeletedAtIsNull(Long userId, UserRole role);
