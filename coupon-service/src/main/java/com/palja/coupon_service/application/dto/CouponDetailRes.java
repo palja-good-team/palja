@@ -24,6 +24,7 @@ public class CouponDetailRes {
     private Integer minOrderAmount;
     private LocalDateTime issueStartAt;
     private LocalDateTime issueEndAt;
+    private Integer usageDays;
     private CouponStatus status;
     private Instant createdAt;
     private String createdBy;
@@ -43,6 +44,7 @@ public class CouponDetailRes {
                 .minOrderAmount(coupon.getAmountPolicy().getMinOrderAmount())
                 .issueStartAt(coupon.getIssuePeriod().getIssueStartAt())
                 .issueEndAt(coupon.getIssuePeriod().getIssueEndAt())
+                .usageDays(coupon.getUsageDays())
                 .status(coupon.getStatus())
                 .createdAt(coupon.getCreatedAt())
                 .createdBy(coupon.getCreatedBy())

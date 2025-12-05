@@ -23,6 +23,7 @@ public class CouponRes {
     private Integer minOrderAmount;
     private LocalDateTime issueStartAt;
     private LocalDateTime issueEndAt;
+    private Integer usageDays;
     private CouponStatus status;
 
     public static CouponRes from(Coupon coupon) {
@@ -37,6 +38,7 @@ public class CouponRes {
                 .minOrderAmount(coupon.getAmountPolicy().getMinOrderAmount())
                 .issueStartAt(coupon.getIssuePeriod().getIssueStartAt())
                 .issueEndAt(coupon.getIssuePeriod().getIssueEndAt())
+                .usageDays(coupon.getUsageDays())
                 .status(coupon.getStatus())
                 .build();
     }

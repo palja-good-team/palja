@@ -14,6 +14,7 @@ public record UpdateCouponCommand(
         Integer maxDiscountAmount,
         Integer minOrderAmount,
         LocalDateTime issueStartAt,
-        LocalDateTime issueEndAt
+        LocalDateTime issueEndAt,
+        Integer usageDays
 ) {
 }

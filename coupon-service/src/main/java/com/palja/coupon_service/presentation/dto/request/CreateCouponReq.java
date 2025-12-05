@@ -36,6 +36,9 @@ public class CreateCouponReq {
     @Future(message = "발급 종료일은 현재 시간 이후여야 합니다")
     private LocalDateTime issueEndAt;
 
+    @Positive(message = "사용 기간은 0보다 커야합니다.")
+    private Integer usageDays;
+
     public static CreateCouponCommand of(CreateCouponReq request) {
         return CreateCouponCommand.builder()
                 .couponName(request.getCouponName())
@@ -47,6 +50,7 @@ public class CreateCouponReq {
                 .minOrderAmount(request.getMinOrderAmount())
                 .issueStartAt(request.getIssueStartAt())
                 .issueEndAt(request.getIssueEndAt())
+                .usageDays(request.getUsageDays())
                 .build();
     }
 }

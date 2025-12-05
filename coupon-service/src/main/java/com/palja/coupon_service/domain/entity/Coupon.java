@@ -41,6 +41,9 @@ public class Coupon extends BaseEntity {
     @Embedded
     private IssuePeriod issuePeriod; // 발급 시작일, 종료일
 
+    @Column(nullable = false)
+    private Integer usageDays; // 사용 기간 (발행일로부터 N일)
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponStatus status;
@@ -51,9 +54,10 @@ public class Coupon extends BaseEntity {
             DiscountPolicy discountPolicy,
             Integer totalQuantity,
             AmountPolicy amountPolicy,
-            IssuePeriod issuePeriod
+            IssuePeriod issuePeriod,
+            Integer usageDays
     ) {
-        validateRequiredFields(name);
+        validateRequiredFields(name, usageDays);
         validateQuantity(totalQuantity);
 
         return Coupon.builder()
@@ -63,45 +67,57 @@ public class Coupon extends BaseEntity {
                 .totalQuantity(totalQuantity)
                 .amountPolicy(amountPolicy)
                 .issuePeriod(issuePeriod)
+                .usageDays(usageDays)
                 .status(CouponStatus.ACTIVE)
                 .build();
     }
 
     public void update(
-            String name,
-            String description,
+            String newName,
+            String newDescription,
             Integer newTotalQuantity,
-            Integer maxDiscountAmount,
-            Integer minOrderAmount,
-            LocalDateTime issueStartAt,
-            LocalDateTime issueEndAt
+            Integer newMaxDiscountAmount,
+            Integer newMinOrderAmount,
+            LocalDateTime newIssueStartAt,
+            LocalDateTime newIssueEndAt,
+            Integer newUsageDays
     ) {
         validateModifiable();
 
-        if (name != null) {
+        if (newName != null) {
             if (hasIssued())
                 throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
-            this.name = name;
+            this.name = newName;
         }
 
-        if (description != null)
-            this.description = description;
+        if (newDescription != null)
+            this.description = newDescription;
 
-        if (totalQuantity != null) {
+        if (newTotalQuantity != null) {
             validateTotalQuantityUpdate(totalQuantity);
             this.totalQuantity = newTotalQuantity;
         }
 
-        if (maxDiscountAmount != null || minOrderAmount != null) {
+        if (newMaxDiscountAmount != null || newMinOrderAmount != null) {
             if (hasIssued())
                 throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
-            this.amountPolicy = this.amountPolicy.update(maxDiscountAmount, minOrderAmount);
+            this.amountPolicy = this.amountPolicy.update(newMaxDiscountAmount, newMinOrderAmount);
         }
 
-        if (issueStartAt != null || issueEndAt != null) {
+        if (newIssueStartAt != null || newIssueEndAt != null) {
             if (hasIssued())
                 throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
-            this.issuePeriod = this.issuePeriod.update(issueStartAt, issueEndAt);
+            this.issuePeriod = this.issuePeriod.update(newIssueStartAt, newIssueEndAt);
+        }
+
+        if (newUsageDays != null) {
+            if (hasIssued())
+                throw new BusinessException(CouponErrorCode.CANNOT_MODIFY_ISSUED_COUPON);
+
+            if (newUsageDays < 1)
+                throw new BusinessException(CouponErrorCode.INVALID_VALIDITY_DAYS);
+
+            this.usageDays = newUsageDays;
         }
     }
 
@@ -114,10 +130,20 @@ public class Coupon extends BaseEntity {
         this.status = newStatus;
     }
 
+    public void increaseIssuedQuantity() {
+        if (totalQuantity != null && issuedQuantity >= totalQuantity)
+            throw new BusinessException(CouponErrorCode.COUPON_EXHAUSTED);
+
+        this.issuedQuantity++;
+    }
+
     // 필수 필드 검증
-    private static void validateRequiredFields(String name) {
+    private static void validateRequiredFields(String name, Integer usageDays) {
         if (name == null || name.isBlank())
             throw new BusinessException(CouponErrorCode.INVALID_COUPON_NAME);
+
+        if (usageDays == null || usageDays < 1)
+            throw new BusinessException(CouponErrorCode.INVALID_VALIDITY_DAYS);
     }
 
     // 수량 정책 검증
@@ -130,7 +156,7 @@ public class Coupon extends BaseEntity {
             throw new BusinessException(CouponErrorCode.INVALID_QUANTITY);
     }
 
-    // 발행 여부 검증
+    // 발행된 쿠폰인지 검증
     public boolean hasIssued() {
         return this.issuedQuantity != null && this.issuedQuantity > 0;
     }
@@ -152,5 +178,17 @@ public class Coupon extends BaseEntity {
         if (!this.status.canTransitionTo(newStatus)) {
             throw new BusinessException(CouponErrorCode.INVALID_STATUS_TRANSITION);
         }
+    }
+
+    // 쿠폰 발급 가능 상태 검증
+    public void validateIssuable() {
+        if (this.status != CouponStatus.ACTIVE)
+            throw new BusinessException(CouponErrorCode.COUPON_NOT_AVAILABLE);
+    }
+
+    // 쿠폰 발행 기간 검증
+    public void validateIssuePeriod() {
+        LocalDateTime now = LocalDateTime.now();
+        issuePeriod.validateIssuePeriod(now);
     }
 }
