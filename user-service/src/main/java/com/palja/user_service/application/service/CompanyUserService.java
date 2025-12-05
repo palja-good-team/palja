@@ -31,5 +31,7 @@ public interface CompanyUserService {
 
 	UpdateCompanyUserDetailRes updateCompanyUserByLoginId(String currentUserLoginId, String loginId, UpdateCompanyUserCommand command);
 
+	UpdateCompanyUserDetailRes updateMe(String currentUserLoginId, UpdateCompanyUserCommand command);
+
 }
 

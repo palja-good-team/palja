@@ -133,4 +133,16 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.COMPANY_USER})
+	@PutMapping("/me")
+	public ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(@Valid @RequestBody UpdateCompanyUserReq requestDto) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateCompanyUserCommand command = UpdateCompanyUserReq.of(requestDto);
+		UpdateCompanyUserDetailRes responseDto = companyUserService.updateMe(currentUserLoginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
+	}
+
 }

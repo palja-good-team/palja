@@ -33,4 +33,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateByLoginId(String loginId, UpdateCompanyUserReq requestDto);
 
+	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(UpdateCompanyUserReq requestDto);
+
 }

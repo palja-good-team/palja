@@ -116,6 +116,15 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		return UpdateCompanyUserDetailRes.from(companyUser);
 	}
 
+	@Override
+	@Transactional
+	public UpdateCompanyUserDetailRes updateMe(String currentUserLoginId, UpdateCompanyUserCommand command) {
+		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
+		companyUser.update(command.companyName(), command.address());
+
+		return UpdateCompanyUserDetailRes.from(companyUser);
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
