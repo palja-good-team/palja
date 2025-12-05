@@ -5,12 +5,15 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
+import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.presentation.dto.request.CreateTimeDealReq;
+import com.palja.timedeal_service.presentation.dto.request.UpdateTimeDealReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +29,7 @@ import java.util.UUID;
 public class TimeDealController {
 
     private final TimeDealService timeDealService;
+    private final ResourceLoader resourceLoader;
 
     @PostMapping
     @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
@@ -53,5 +57,24 @@ public class TimeDealController {
 
         log.info("타임딜 상세 조회 성공 timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상세조회에 성공했습니다."));
+    }
+
+    @PutMapping("/{timeDealId}")
+    @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
+    public ResponseEntity<ApiResponse<TimeDealDetailRes>> updateTimeDeal(
+            @PathVariable UUID timeDealId,
+            @RequestBody @Valid UpdateTimeDealReq req
+    ) {
+        log.info("PUT /api/v1/time-deals/{} 타임딜 수정 요청", timeDealId);
+
+        String loginId = CurrentUser.getLoginId();
+        UserRole role = CurrentUser.getRole();
+
+        UpdateTimeDealCommand command = req.toCommand(timeDealId, loginId, role);
+
+        TimeDealDetailRes res = timeDealService.updateTimeDeal(command);
+
+        log.info("타임딜 수정 성공: timeDealId = {}", res.getTimeDealId());
+        return ResponseEntity.ok(ApiResponse.success(res, "타임딜 수정에 성공했습니다."));
     }
 }

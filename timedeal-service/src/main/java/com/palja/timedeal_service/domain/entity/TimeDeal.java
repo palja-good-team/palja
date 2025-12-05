@@ -10,6 +10,7 @@ import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -79,6 +80,36 @@ public class TimeDeal extends BaseEntity {
         timeDeal.timeDealStock = TimeDealStock.create(timeDeal, quantity);
 
         return timeDeal;
+    }
+
+    public void changeTitle(String newTitle) {
+        if (newTitle == null || newTitle.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.TITLE_REQUIRED);
+        }
+        this.title = newTitle;
+    }
+
+    public void changeDescription(String newDescription) {
+        if (newDescription == null || newDescription.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
+        }
+        this.description = newDescription;
+    }
+
+    public void changeStartAt(LocalDateTime newStartAt) {
+        this.period = this.period.updateStartAt(newStartAt);
+    }
+
+    public void changeEndAt(LocalDateTime newEndAt) {
+        this.period = this.period.updateEndAt(newEndAt);
+    }
+
+    public void changeTimeDealPrice(long newTimeDealPrice) {
+        this.amount = this.amount.updateTimeDealPrice(newTimeDealPrice);
+    }
+
+    public void changeTotalQuantity(long newTotalQuantity) {
+        this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
 
     private static void validate(

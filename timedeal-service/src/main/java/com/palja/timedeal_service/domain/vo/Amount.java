@@ -34,11 +34,15 @@ public class Amount {
         return new Amount(originalPrice, timeDealPrice);
     }
 
+    public Amount updateTimeDealPrice(long newTimeDealPrice) {
+        return new Amount(this.originalPrice, newTimeDealPrice);
+    }
+
     private int calculateDiscount(long originalPrice, long timeDealPrice) {
         return (int)(((double)(originalPrice - timeDealPrice) / originalPrice) * 100);
     }
 
-    private static void validate(long originalPrice, long timeDealPrice) {
+    private void validate(long originalPrice, long timeDealPrice) {
         if (originalPrice <= 0) {
             throw new BusinessException(TimeDealErrorCode.INVALID_ORIGINAL_PRICE);
         }
