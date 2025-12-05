@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderCalculator orderCalculator;
 
     @Transactional
-    public CreateOrderRes createOrder(CreateOrderCommand command) {
+    public OrderCreateRes createOrder(CreateOrderCommand command) {
         log.info("주문 생성 시작: loginId={}, productId={}", command.loginId(), command.productId());
 
         orderValidator.validateCreateOrderCommand(command);
@@ -46,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal amountBeforeCoupon = calculateAmountBeforeCoupon(product, timeDeal, command.quantity());
 
-        CouponResult couponResult = CalculateValidCoupon(command.couponId(), amountBeforeCoupon);
+        CouponResult couponResult = calculateValidCoupon(command.couponId(), amountBeforeCoupon);
 
         Recipient recipient = createRecipient(command);
 
@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("주문 생성 완료: orderId={}, finalAmount={}",
                 order.getOrderId(), order.getOrderAmount().getFinalAmount());
 
-        return CreateOrderRes.from(order);
+        return OrderCreateRes.from(order);
     }
 
     // ===== 도메인 객체 생성 =====
@@ -130,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // 쿠폰 검증 및 할인 계산
-    private CouponResult CalculateValidCoupon(UUID couponId, BigDecimal amountBeforeCoupon) {
+    private CouponResult calculateValidCoupon(UUID couponId, BigDecimal amountBeforeCoupon) {
         if (couponId == null) {
             return new CouponResult(BigDecimal.ZERO, null, null);
         }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class CreateOrderRes {
+public class OrderCreateRes {
     private UUID orderId;
     private String status;
     private OrderItemRes orderItem;
@@ -24,9 +24,9 @@ public class CreateOrderRes {
     private Instant createdAt;
 
     // Order 엔티티 → 주문 생성 응답 DTO 변환
-    public static CreateOrderRes from(Order order) {
+    public static OrderCreateRes from(Order order) {
 
-        return CreateOrderRes.builder()
+        return OrderCreateRes.builder()
                 .orderId(order.getOrderId())
                 .status(order.getStatus().name())
                 .orderItem(OrderItemRes.from(order.getOrderItem()))

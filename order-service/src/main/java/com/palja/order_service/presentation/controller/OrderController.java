@@ -4,14 +4,17 @@ import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.application.dto.CreateOrderRes;
+import com.palja.order_service.application.dto.OrderCreateRes;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.presentation.dto.request.CreateOrderReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -23,12 +26,12 @@ public class OrderController {
     // 주문 생성
     @PostMapping
     @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
-    public ResponseEntity<ApiResponse<CreateOrderRes>> createOrder(
+    public ResponseEntity<ApiResponse<OrderCreateRes>> createOrder(
             @Valid @RequestBody CreateOrderReq request
         ) {
 
         // Request → Command 변환
-        CreateOrderRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId()));
+        OrderCreateRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
