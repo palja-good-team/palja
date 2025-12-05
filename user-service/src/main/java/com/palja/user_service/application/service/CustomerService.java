@@ -24,4 +24,6 @@ public interface CustomerService {
 
 	UpdateCustomerDetailRes updateCustomerByLoginId(String currentUserLoginId, String loginId, UpdateCustomerCommand command);
 
+	UpdateCustomerDetailRes updateMe(String currentUserLoginId, UpdateCustomerCommand command);
+
 }

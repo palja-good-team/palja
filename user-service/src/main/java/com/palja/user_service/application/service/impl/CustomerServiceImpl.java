@@ -94,6 +94,15 @@ public class CustomerServiceImpl implements CustomerService {
 		return UpdateCustomerDetailRes.from(user);
 	}
 
+	@Override
+	@Transactional
+	public UpdateCustomerDetailRes updateMe(String currentUserLoginId, UpdateCustomerCommand command) {
+		User user = getCustomerByLoginId(currentUserLoginId);
+		user.update(command.address());
+
+		return UpdateCustomerDetailRes.from(user);
+	}
+
 	private User getCustomerByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.CUSTOMER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)

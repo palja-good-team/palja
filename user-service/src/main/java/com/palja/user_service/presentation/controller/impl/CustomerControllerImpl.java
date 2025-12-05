@@ -114,4 +114,16 @@ public class CustomerControllerImpl implements CustomerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.CUSTOMER})
+	@PutMapping("/me")
+	public ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateMe(@Valid @RequestBody UpdateCustomerReq requestDto) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateCustomerCommand command = UpdateCustomerReq.of(requestDto);
+		UpdateCustomerDetailRes responseDto = customerService.updateMe(currentUserLoginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
+	}
+
 }

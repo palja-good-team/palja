@@ -28,4 +28,6 @@ public interface CustomerController {
 
 	ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateByLoginId(String loginId, UpdateCustomerReq requestDto);
 
+	ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateMe(UpdateCustomerReq requestDto);
+
 }
