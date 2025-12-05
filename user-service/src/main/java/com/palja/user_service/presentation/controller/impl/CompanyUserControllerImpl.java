@@ -21,13 +21,16 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
+import com.palja.user_service.application.command.UpdateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.presentation.controller.CompanyUserController;
 import com.palja.user_service.presentation.dto.request.CreateCompanyUserReq;
+import com.palja.user_service.presentation.dto.request.UpdateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserStatusReq;
 
 import jakarta.validation.Valid;
@@ -114,6 +117,20 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		ReadCompanyUserDetailRes responseDto = companyUserService.getMe(currentUserLoginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@PutMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateByLoginId(
+		@PathVariable String loginId, @Valid @RequestBody UpdateCompanyUserReq requestDto
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateCompanyUserCommand command = UpdateCompanyUserReq.of(requestDto);
+		UpdateCompanyUserDetailRes responseDto = companyUserService.updateCompanyUserByLoginId(currentUserLoginId, loginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
 	}
 
 }

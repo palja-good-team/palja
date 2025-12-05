@@ -60,6 +60,13 @@ public class CompanyUser {
 		this.companyNumber = companyNumber;
 	}
 
+	public void update(String companyName, String address) {
+		if (companyName != null && !companyName.isBlank()) {
+			this.companyName = companyName;
+		}
+		this.user.update(address);
+	}
+
 	public void updateStatus(String status) {
 		this.user.updateStatus(status);
 	}

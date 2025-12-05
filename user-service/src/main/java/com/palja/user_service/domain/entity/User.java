@@ -65,7 +65,9 @@ public class User extends BaseEntity {
 	}
 
 	public void update(String address) {
-		this.address = address;
+		if (address != null && !address.isBlank()) {
+			this.address = address;
+		}
 	}
 
 	public void updateStatus(String status) {

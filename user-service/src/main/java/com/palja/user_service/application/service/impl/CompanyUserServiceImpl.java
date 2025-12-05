@@ -12,10 +12,12 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
+import com.palja.user_service.application.command.UpdateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -99,6 +101,19 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	@Override
 	public ReadCompanyUserDetailRes getMe(String currentUserLoginId) {
 		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(currentUserLoginId));
+	}
+
+	@Override
+	@Transactional
+	public UpdateCompanyUserDetailRes updateCompanyUserByLoginId(
+		String currentUserLoginId, String loginId, UpdateCompanyUserCommand command
+	) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
+		companyUser.update(command.companyName(), command.address());
+
+		return UpdateCompanyUserDetailRes.from(companyUser);
 	}
 
 	private User getUserByLoginId(String loginId) {

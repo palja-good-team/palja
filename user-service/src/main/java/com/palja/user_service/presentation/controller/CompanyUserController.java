@@ -10,7 +10,9 @@ import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 import com.palja.user_service.presentation.dto.request.CreateCompanyUserReq;
+import com.palja.user_service.presentation.dto.request.UpdateCompanyUserReq;
 import com.palja.user_service.presentation.dto.request.UpdateCompanyUserStatusReq;
 
 public interface CompanyUserController {
@@ -28,5 +30,7 @@ public interface CompanyUserController {
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(UUID companyUserId);
 
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getMe();
+
+	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateByLoginId(String loginId, UpdateCompanyUserReq requestDto);
 
 }

@@ -6,10 +6,12 @@ import org.springframework.data.domain.Pageable;
 
 import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
+import com.palja.user_service.application.command.UpdateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 
 public interface CompanyUserService {
 
@@ -26,6 +28,8 @@ public interface CompanyUserService {
 	ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId);
 
 	ReadCompanyUserDetailRes getMe(String currentUserLoginId);
+
+	UpdateCompanyUserDetailRes updateCompanyUserByLoginId(String currentUserLoginId, String loginId, UpdateCompanyUserCommand command);
 
 }
 
