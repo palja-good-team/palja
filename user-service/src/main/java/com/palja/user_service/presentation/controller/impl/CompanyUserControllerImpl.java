@@ -21,6 +21,7 @@ import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.presentation.controller.CompanyUserController;
@@ -78,6 +79,17 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(pagedResponseDto, "업체 판매자 목록을 조회했습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@GetMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByLoginId(@PathVariable String loginId) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCustomerByLoginId(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체판매자 사용자를 조회했습니다."));
 	}
 
 }

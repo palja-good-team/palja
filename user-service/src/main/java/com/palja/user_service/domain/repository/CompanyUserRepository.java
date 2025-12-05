@@ -11,4 +11,6 @@ public interface CompanyUserRepository {
 
 	Optional<CompanyUser> findByIdAndDeletedAtIsNull(UUID companyUserId);
 
+	Optional<CompanyUser> findByLoginIdAndDeletedAtIsNull(String loginId);
+
 }

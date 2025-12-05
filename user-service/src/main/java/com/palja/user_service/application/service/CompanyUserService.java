@@ -6,6 +6,7 @@ import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 
 public interface CompanyUserService {
@@ -17,6 +18,8 @@ public interface CompanyUserService {
 	PageResponse<ReadCompanyUserSummaryRes> getAllCompanyUsers(
 		String currentUserLoginId, String loginId, String email, String name, String status, Pageable pageable
 	);
+
+	ReadCompanyUserDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId);
 
 }
 

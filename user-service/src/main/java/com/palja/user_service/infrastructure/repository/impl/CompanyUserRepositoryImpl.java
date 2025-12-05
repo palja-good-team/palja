@@ -27,4 +27,9 @@ public class CompanyUserRepositoryImpl implements CompanyUserRepository {
 		return jpaCompanyUserRepository.findByIdAndDeletedAtIsNull(companyUserId);
 	}
 
+	@Override
+	public Optional<CompanyUser> findByLoginIdAndDeletedAtIsNull(String loginId) {
+		return jpaCompanyUserRepository.findByLoginIdAndDeletedAtIsNull(loginId);
+	}
+
 }

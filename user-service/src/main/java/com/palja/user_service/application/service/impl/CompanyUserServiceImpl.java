@@ -14,6 +14,7 @@ import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
@@ -81,13 +82,26 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		);
 	}
 
+	@Override
+	public ReadCompanyUserDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(loginId));
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}
 
-	private CompanyUser getCompanyUserById(UUID companyUserId) {
+	private CompanyUser getCompanyUserByLoginId(String loginId) {
+		return companyUserRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private CompanyUser getCompanyUserByCompanyUserId(UUID companyUserId) {
 		return companyUserRepository.findByIdAndDeletedAtIsNull(companyUserId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
