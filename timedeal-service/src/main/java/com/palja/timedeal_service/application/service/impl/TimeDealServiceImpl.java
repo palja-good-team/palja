@@ -1,6 +1,7 @@
 package com.palja.timedeal_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
@@ -8,7 +9,6 @@ import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.application.validator.TimeDealValidator;
-import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
@@ -62,5 +62,20 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
         return TimeDealDetailRes.from(savedTimeDeal);
+    }
+
+    @Override
+    public TimeDealDetailRes getTimeDeal(UUID timeDealId) {
+        log.info("타임딜 상세조회 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(timeDealId);
+
+        log.info("타임딜 상세조회 완료");
+        return TimeDealDetailRes.from(timeDeal);
+    }
+
+    private TimeDeal getActiveTimeDeal(UUID timeDealId) {
+        return timeDealRepository.findDetailByTimeDealId(timeDealId)
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 }

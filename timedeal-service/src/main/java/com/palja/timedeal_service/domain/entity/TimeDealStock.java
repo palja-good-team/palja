@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import com.palja.timedeal_service.domain.vo.Quantity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Builder
-public class TimeDealStock {
+public class TimeDealStock extends BaseEntity {
 
     @Id
     @Column(name = "time_deal_id")
