@@ -2,7 +2,6 @@ package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.order_service.application.dto.PaymentRes;
 import com.palja.order_service.application.service.PaymentService;
-import com.palja.order_service.infrastructure.external.PaymentClient;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +30,6 @@ public class PaymentAdapter implements PaymentService {
         // 임시 더미 데이터
         PaymentDTO dummy = PaymentDTO.dummy(orderId, userId, amount);
 
-        return PaymentRes.from(dummy);
+        return PaymentRes.of(dummy.getPaymentId(), dummy.getAmount());
     }
 }

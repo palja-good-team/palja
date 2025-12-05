@@ -27,7 +27,20 @@ public class TimeDealAdapter implements TimeDealService {
         // 임시 더미 데이터
         TimeDealDTO response = TimeDealDTO.dummy(timeDealId);
 
-        return TimeDealRes.from(response);
+        return toTimeDealRes(response);
+    }
+
+    private TimeDealRes toTimeDealRes(TimeDealDTO dto) {
+        return TimeDealRes.of(
+                dto.getTimeDealId(),
+                dto.getProductId(),
+                dto.getStartAt(),
+                dto.getEndAt(),
+                dto.getTimeDealPrice(),
+                dto.getDiscountRate(),
+                dto.getQuantity(),
+                dto.getStatus()
+        );
     }
 
     @Override

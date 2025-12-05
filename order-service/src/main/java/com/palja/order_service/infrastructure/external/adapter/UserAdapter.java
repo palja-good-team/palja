@@ -26,6 +26,18 @@ public class UserAdapter implements UserService {
         // 임시 더미 데이터
         CustomerUserDTO response = CustomerUserDTO.dummy(loginId);
 
-        return UserRes.from(response);
+        return toUserRes(response);
     }
+
+    private UserRes toUserRes(CustomerUserDTO dto) {
+        return UserRes.of(
+                dto.getUserId(),
+                dto.getLoginId(),
+                dto.getName(),
+                dto.getEmail(),
+                dto.getRole(),
+                dto.getStatus()
+        );
+    }
+
 }

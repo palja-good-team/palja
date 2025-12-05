@@ -8,9 +8,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * 결제 응답 DTO
- */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

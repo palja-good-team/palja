@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto;
 
-import com.palja.order_service.infrastructure.external.dto.response.TimeDealDTO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,17 +23,25 @@ public class TimeDealRes {
     private final int timeDealStockQuantity;
     private final String status;
 
-    // Infrastructure DTO → Application DTO 변환
-    public static TimeDealRes from(TimeDealDTO timeDealDTO) {
+    public static TimeDealRes of(
+            UUID timeDealId,
+            UUID productId,
+            LocalDateTime startAt,
+            LocalDateTime endAt,
+            BigDecimal timeDealPrice,
+            int discountRate,
+            int timeDealStockQuantity,
+            String status
+    ) {
         return TimeDealRes.builder()
-                .timeDealId(timeDealDTO.getTimeDealId())
-                .productId(timeDealDTO.getProductId())
-                .startAt(timeDealDTO.getStartAt())
-                .endAt(timeDealDTO.getEndAt())
-                .timeDealPrice(timeDealDTO.getTimeDealPrice())
-                .discountRate(timeDealDTO.getDiscountRate())
-                .timeDealStockQuantity(timeDealDTO.getQuantity())
-                .status(timeDealDTO.getStatus())
+                .timeDealId(timeDealId)
+                .productId(productId)
+                .startAt(startAt)
+                .endAt(endAt)
+                .timeDealPrice(timeDealPrice)
+                .discountRate(discountRate)
+                .timeDealStockQuantity(timeDealStockQuantity)
+                .status(status)
                 .build();
     }
 }

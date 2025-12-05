@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto;
 
-import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,19 +25,29 @@ public class CouponRes {
     private final Integer validityDays;
     private final String status;            // ACTIVE, PAUSED, EXPIRED, DELETED
 
-    // Infrastructure DTO → Application DTO 변환
-    public static CouponRes from(CouponDTO couponDTO) {
+    public static CouponRes of(
+            UUID couponId,
+            String name,
+            String discountType,
+            int discountValue,
+            BigDecimal maxDiscountAmount,
+            BigDecimal minOrderAmount,
+            LocalDateTime issueStartAt,
+            LocalDateTime issueEndAt,
+            Integer validityDays,
+            String status
+    ) {
         return CouponRes.builder()
-                .couponId(couponDTO.getCouponId())
-                .name(couponDTO.getName())
-                .discountType(couponDTO.getDiscountType())
-                .discountValue(couponDTO.getDiscountValue())
-                .maxDiscountAmount(couponDTO.getMaxDiscountAmount())
-                .minOrderAmount(couponDTO.getMinOrderAmount())
-                .issueStartAt(couponDTO.getIssueStartAt())
-                .issueEndAt(couponDTO.getIssueEndAt())
-                .validityDays(couponDTO.getValidityDays())
-                .status(couponDTO.getStatus())
+                .couponId(couponId)
+                .name(name)
+                .discountType(discountType)
+                .discountValue(discountValue)
+                .maxDiscountAmount(maxDiscountAmount)
+                .minOrderAmount(minOrderAmount)
+                .issueStartAt(issueStartAt)
+                .issueEndAt(issueEndAt)
+                .validityDays(validityDays)
+                .status(status)
                 .build();
     }
 }

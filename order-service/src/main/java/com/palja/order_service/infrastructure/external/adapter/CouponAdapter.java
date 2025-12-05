@@ -26,9 +26,23 @@ public class CouponAdapter implements CouponService {
         //CouponDTO response = couponClient.getCoupon(couponId).data();
         // 임시 더미 데이터
         CouponDTO response = CouponDTO.dummy(couponId);
-        CouponRes coupon = CouponRes.from(response);
 
-        return coupon;
+        return toCouponRes(response);
+    }
+
+    private CouponRes toCouponRes(CouponDTO dto) {
+        return CouponRes.of(
+                dto.getCouponId(),
+                dto.getName(),
+                dto.getDiscountType(),
+                dto.getDiscountValue(),
+                dto.getMaxDiscountAmount(),
+                dto.getMinOrderAmount(),
+                dto.getIssueStartAt(),
+                dto.getIssueEndAt(),
+                dto.getValidityDays(),
+                dto.getStatus()
+        );
     }
 
     @Override

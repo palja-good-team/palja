@@ -1,8 +1,6 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.ProductRes;
-import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.service.ProductService;
 import com.palja.order_service.infrastructure.external.dto.response.ProductDTO;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +29,16 @@ public class ProductAdapter implements ProductService {
         // 임시 더미 데이터
         ProductDTO response = ProductDTO.dummy(productId);
 
-        return ProductRes.from(response);
+        return toProductRes(response);
+    }
+
+    private ProductRes toProductRes(ProductDTO dto) {
+        return ProductRes.of(
+                dto.getProductId(),
+                dto.getName(),
+                dto.getPrice(),
+                dto.getStock()
+        );
     }
 
     @Override
