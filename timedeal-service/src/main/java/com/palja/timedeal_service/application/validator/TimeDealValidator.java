@@ -8,6 +8,8 @@ import com.palja.timedeal_service.application.dto.external.CompanyUserInfo;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.UserClient;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
+import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,7 @@ public class TimeDealValidator {
 
     private final UserClient userClient;
 
-    public void verifyCompanyUserId(String loginId, UUID ownerCompanyUserId) {
+    public void validateCompanyUserId(String loginId, UUID ownerCompanyUserId) {
             CompanyUserInfo companyUserInfo = userClient.getCompanyUserByLoginId(loginId);
 
             if (!companyUserInfo.companyUserId().equals(ownerCompanyUserId)) {
@@ -29,9 +31,19 @@ public class TimeDealValidator {
             }
     }
 
-    public void verifyStock(long totalQuantity, long productStock) {
+    public void validateStock(long totalQuantity, long productStock) {
         if (productStock < totalQuantity) {
             throw new BusinessException(TimeDealErrorCode.INVALID_STOCK_QUANTITY);
+        }
+    }
+
+    public void validateEditableStatus(TimeDeal timeDeal) {
+        if(
+                timeDeal.getTimeDealStatus() == TimeDealStatus.OPEN
+                        || timeDeal.getTimeDealStatus() == TimeDealStatus.SOLD_OUT
+                        || timeDeal.getTimeDealStatus() == TimeDealStatus.CLOSED
+        ) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_EDITABLE);
         }
     }
 }

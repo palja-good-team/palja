@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
+import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
@@ -39,10 +40,10 @@ public class TimeDealServiceImpl implements TimeDealService {
         ProductInfo product = productClient.getProduct(command.productId());
 
         if (command.role().equals(UserRole.COMPANY_USER)) {
-            timeDealValidator.verifyCompanyUserId(command.loginId(), product.companyUserId());
+            timeDealValidator.validateCompanyUserId(command.loginId(), product.companyUserId());
         }
 
-        timeDealValidator.verifyStock(command.totalQuantity(), product.stock());
+        timeDealValidator.validateStock(command.totalQuantity(), product.stock());
 
         Period period = Period.of(command.startAt(), command.endAt());
         Amount amount = Amount.of(product.price(), command.timeDealPrice());
@@ -72,6 +73,51 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         log.info("타임딜 상세조회 완료");
         return TimeDealDetailRes.from(timeDeal);
+    }
+
+    @Override
+    @Transactional
+    public TimeDealDetailRes updateTimeDeal(UpdateTimeDealCommand command) {
+        log.info("타임딜 수정 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+
+        if (command.role().equals(UserRole.COMPANY_USER)) {
+            timeDealValidator.validateCompanyUserId(command.loginId(), timeDeal.getCompanyUserId());
+        }
+
+        timeDealValidator.validateEditableStatus(timeDeal);
+
+        updateTimeDealFields(timeDeal, command);
+
+        log.info("타임딜 수정 완료");
+        return TimeDealDetailRes.from(timeDeal);
+    }
+
+    private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
+        if (command.title() != null) {
+            timeDeal.changeTitle(command.title());
+        }
+
+        if (command.description() != null) {
+            timeDeal.changeDescription(command.description());
+        }
+
+        if (command.startAt() != null) {
+            timeDeal.changeStartAt(command.startAt());
+        }
+
+        if (command.endAt() != null) {
+            timeDeal.changeEndAt(command.endAt());
+        }
+
+        if (command.timeDealPrice() != null) {
+            timeDeal.changeTimeDealPrice(command.timeDealPrice());
+        }
+
+        if (command.totalQuantity() != null) {
+            timeDeal.changeTotalQuantity(command.totalQuantity());
+        }
     }
 
     private TimeDeal getActiveTimeDeal(UUID timeDealId) {
