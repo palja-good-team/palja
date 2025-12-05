@@ -22,4 +22,6 @@ public interface CustomerController {
 
 	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(Long userId);
 
+	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getMe();
+
 }

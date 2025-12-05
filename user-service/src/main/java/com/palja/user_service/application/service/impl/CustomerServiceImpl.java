@@ -74,6 +74,11 @@ public class CustomerServiceImpl implements CustomerService {
 		return ReadCustomerDetailRes.from(getCustomerByUserId(userId));
 	}
 
+	@Override
+	public ReadCustomerDetailRes getMe(String currentUserLoginId) {
+		return ReadCustomerDetailRes.from(getCustomerByLoginId(currentUserLoginId));
+	}
+
 	private User getCustomerByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.CUSTOMER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)

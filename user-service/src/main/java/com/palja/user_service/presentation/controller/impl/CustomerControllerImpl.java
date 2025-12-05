@@ -85,4 +85,15 @@ public class CustomerControllerImpl implements CustomerController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.CUSTOMER})
+	@GetMapping("/me")
+	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getMe() {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadCustomerDetailRes responseDto = customerService.getMe(currentUserLoginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
+	}
+
 }

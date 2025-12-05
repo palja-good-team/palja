@@ -18,4 +18,6 @@ public interface CustomerService {
 
 	ReadCustomerDetailRes getCustomerByUserId(String currentUserLoginId, Long userId);
 
+	ReadCustomerDetailRes getMe(String currentUserLoginId);
+
 }
