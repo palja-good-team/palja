@@ -42,6 +42,8 @@ public enum OrderErrorCode implements ErrorCode {
     COUPON_MIN_AMOUNT_NOT_MET(HttpStatus.BAD_REQUEST, "쿠폰 사용 최소 금액을 충족하지 않습니다."),
     INVALID_COUPON(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰입니다."),
     COUPON_USE_FAILED(HttpStatus.BAD_REQUEST, "쿠폰 사용에 실패했습니다."),
+    INVALID_COUPON_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰 타입입니다."),
+    INVALID_COUPON_VALUE(HttpStatus.BAD_REQUEST, "쿠폰 할인 값이 올바르지 않습니다."),
 
     // ==== 상품 관련 =====
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),

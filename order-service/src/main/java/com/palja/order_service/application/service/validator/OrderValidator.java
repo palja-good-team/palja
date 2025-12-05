@@ -4,10 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
-import com.palja.order_service.application.dto.CouponRes;
-import com.palja.order_service.application.dto.ProductRes;
-import com.palja.order_service.application.dto.TimeDealRes;
-import com.palja.order_service.application.dto.UserRes;
+import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -148,6 +145,7 @@ public class OrderValidator {
     // ===== 쿠폰 검증 =====
     public void validateCoupon(CouponRes coupon, BigDecimal orderAmount) {
         validateCouponStatus(coupon);
+        validateCouponDiscountType(coupon);   // ← 추가
         validateCouponIssuePeriod(coupon);
         validateCouponMinOrderAmount(coupon, orderAmount);
     }
@@ -156,6 +154,22 @@ public class OrderValidator {
     private void validateCouponStatus(CouponRes coupon) {
         if (!"ACTIVE".equals(coupon.getStatus())) {
             throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
+        }
+    }
+
+    // 쿠폰 할인 타입/할인값 검증
+    private void validateCouponDiscountType(CouponRes coupon) {
+        if (coupon.getDiscountType() == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_COUPON_TYPE);
+        }
+
+        if (coupon.getDiscountValue() <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_COUPON_VALUE);
+        }
+
+        if (coupon.getDiscountType() == CouponDiscountType.PERCENTAGE
+                && coupon.getDiscountValue() > 100) {
+            throw new BusinessException(OrderErrorCode.INVALID_COUPON_VALUE);
         }
     }
 

@@ -16,7 +16,7 @@ public class CouponRes {
 
     private final UUID couponId;
     private final String name;
-    private final String discountType;      // PERCENTAGE, FIXED 등
+    private final CouponDiscountType discountType;      // PERCENTAGE, FIXED 등
     private final int discountValue;
     private final BigDecimal maxDiscountAmount;
     private final BigDecimal minOrderAmount;
@@ -28,7 +28,7 @@ public class CouponRes {
     public static CouponRes of(
             UUID couponId,
             String name,
-            String discountType,
+            CouponDiscountType discountType,
             int discountValue,
             BigDecimal maxDiscountAmount,
             BigDecimal minOrderAmount,

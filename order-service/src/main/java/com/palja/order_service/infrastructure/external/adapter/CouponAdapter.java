@@ -1,5 +1,6 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
+import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponRes;
 import com.palja.order_service.application.service.CouponService;
 import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;
@@ -31,10 +32,13 @@ public class CouponAdapter implements CouponService {
     }
 
     private CouponRes toCouponRes(CouponDTO dto) {
+
+        CouponDiscountType discountType = CouponDiscountType.from(dto.getDiscountType());
+
         return CouponRes.of(
                 dto.getCouponId(),
                 dto.getName(),
-                dto.getDiscountType(),
+                discountType,
                 dto.getDiscountValue(),
                 dto.getMaxDiscountAmount(),
                 dto.getMinOrderAmount(),

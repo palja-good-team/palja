@@ -11,14 +11,12 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-// 주문 금액 계산을 담당
+// 주문 금액 계산 담당
 @Slf4j
 @Component
 public class OrderCalculator {
 
-    /**
-     * 쿠폰 할인 전 총 금액 계산
-     */
+    // 쿠폰 할인 전 총 금액 계산
     public BigDecimal calculateAmountBeforeCoupon(
             ProductRes product,
             TimeDealRes timeDeal,
@@ -31,9 +29,7 @@ public class OrderCalculator {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 
-    /**
-     * 쿠폰 할인 금액 계산
-     */
+    // 쿠폰 할인 금액 계산
     public BigDecimal calculateCouponDiscount(CouponRes coupon, BigDecimal orderAmount) {
         if (orderAmount == null || orderAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
@@ -43,25 +39,13 @@ public class OrderCalculator {
             throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
         }
 
-        BigDecimal discountAmount;
+        BigDecimal discountAmount = calculateDiscountByType(coupon, orderAmount);
 
-        if ("PERCENTAGE".equalsIgnoreCase(coupon.getDiscountType())) {
-            // 퍼센트 할인
-            discountAmount = calculatePercentageDiscount(coupon.getDiscountValue(), orderAmount);
-        } else if ("FIXED".equalsIgnoreCase(coupon.getDiscountType())) {
-            // 정액 할인
-            discountAmount = BigDecimal.valueOf(coupon.getDiscountValue());
-        } else {
-            throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
-        }
-
-        // 최대 할인 금액 제한
         if (coupon.getMaxDiscountAmount() != null
                 && discountAmount.compareTo(coupon.getMaxDiscountAmount()) > 0) {
             discountAmount = coupon.getMaxDiscountAmount();
         }
 
-        // 할인 금액은 주문 금액을 초과할 수 없음
         if (discountAmount.compareTo(orderAmount) > 0) {
             discountAmount = orderAmount;
         }
@@ -71,6 +55,14 @@ public class OrderCalculator {
         }
 
         return discountAmount;
+    }
+
+    private BigDecimal calculateDiscountByType(CouponRes coupon, BigDecimal orderAmount) {
+        return switch (coupon.getDiscountType()) {
+            case PERCENTAGE -> calculatePercentageDiscount(coupon.getDiscountValue(), orderAmount);
+            case FIXED -> BigDecimal.valueOf(coupon.getDiscountValue());
+            default -> throw new BusinessException(OrderErrorCode.INVALID_COUPON_TYPE);
+        };
     }
 
     private BigDecimal calculatePercentageDiscount(int discountValue, BigDecimal orderAmount) {
