@@ -1,6 +1,7 @@
 package com.palja.user_service.application.dto.response;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.palja.user_service.domain.entity.CompanyUser;
 
@@ -13,6 +14,7 @@ import lombok.Getter;
 public class ReadCompanyUserDetailRes {
 
 	private Long userId;
+	private UUID companyUserId;
 	private String loginId;
 	private String name;
 	private String companyName;
@@ -29,6 +31,7 @@ public class ReadCompanyUserDetailRes {
 	public static ReadCompanyUserDetailRes from(CompanyUser companyUser) {
 		return ReadCompanyUserDetailRes.builder()
 			.userId(companyUser.getUser().getId())
+			.companyUserId(companyUser.getId())
 			.loginId(companyUser.getUser().getLoginId())
 			.name(companyUser.getUser().getName())
 			.companyName(companyUser.getCompanyName())

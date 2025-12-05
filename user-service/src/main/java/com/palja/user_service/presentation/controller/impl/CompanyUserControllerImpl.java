@@ -1,5 +1,7 @@
 package com.palja.user_service.presentation.controller.impl;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,7 +91,18 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 
 		ReadCompanyUserDetailRes responseDto = companyUserService.getCustomerByLoginId(currentUserLoginId, loginId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체판매자 사용자를 조회했습니다."));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@GetMapping("/internal/{companyUserId}")
+	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(@PathVariable UUID companyUserId) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCustomerByCompanyUserId(currentUserLoginId, companyUserId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
 
 }

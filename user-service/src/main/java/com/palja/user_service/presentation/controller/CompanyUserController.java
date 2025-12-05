@@ -1,5 +1,7 @@
 package com.palja.user_service.presentation.controller;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
@@ -22,5 +24,7 @@ public interface CompanyUserController {
 	);
 
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByLoginId(String loginId);
+
+	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(UUID companyUserId);
 
 }

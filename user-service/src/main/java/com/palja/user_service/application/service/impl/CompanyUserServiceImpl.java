@@ -89,6 +89,13 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(loginId));
 	}
 
+	@Override
+	public ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadCompanyUserDetailRes.from(getCompanyUserByCompanyUserId(companyUserId));
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)

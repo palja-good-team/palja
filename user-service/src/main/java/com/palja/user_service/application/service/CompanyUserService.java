@@ -1,5 +1,7 @@
 package com.palja.user_service.application.service;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 
 import com.palja.common.response.PageResponse;
@@ -20,6 +22,8 @@ public interface CompanyUserService {
 	);
 
 	ReadCompanyUserDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId);
+
+	ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId);
 
 }
 
