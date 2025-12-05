@@ -58,4 +58,16 @@ public class PaymentLogController {
         return ResponseEntity
                 .ok(ApiResponse.success(detail, "결제 로그 목록 조회에 성공했습니다."));
     }
+
+    /*
+        스케줄러를 이용해서 1년 지난 결제 로그를 삭제하지만,
+        API를 만들어 수동으로 삭제할 수 있도록 테스트했습니다.
+        실제 운영 환경에서는 스케줄러에 의해 1년 지난 결제 로그가 자동으로 삭제됩니다.
+     */
+    @PostMapping("/payment-logs/delete")
+    public ResponseEntity<ApiResponse<String>> deleteOldLogs(){
+        paymentLogService.deleteOldLogs();
+        return ResponseEntity
+                .ok(ApiResponse.success("1년 지난 결제 로그가 삭제되었습니다."));
+    }
 }
