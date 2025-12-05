@@ -20,4 +20,6 @@ public interface CustomerController {
 
 	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByLoginId(String loginId);
 
+	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(Long userId);
+
 }

@@ -67,8 +67,21 @@ public class CustomerServiceImpl implements CustomerService {
 		return ReadCustomerDetailRes.from(getCustomerByLoginId(loginId));
 	}
 
+	@Override
+	public ReadCustomerDetailRes getCustomerByUserId(String currentUserLoginId, Long userId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadCustomerDetailRes.from(getCustomerByUserId(userId));
+	}
+
 	private User getCustomerByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.CUSTOMER).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
+		);
+	}
+
+	private User getCustomerByUserId(Long userId) {
+		return userRepository.findByIdAndRoleAndDeletedAtIsNull(userId, UserRole.CUSTOMER).orElseThrow(
 			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}
