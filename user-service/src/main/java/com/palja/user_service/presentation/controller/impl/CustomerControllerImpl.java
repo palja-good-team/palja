@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,12 +19,15 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCustomerCommand;
+import com.palja.user_service.application.command.UpdateCustomerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.presentation.controller.CustomerController;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
+import com.palja.user_service.presentation.dto.request.UpdateCustomerReq;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +98,20 @@ public class CustomerControllerImpl implements CustomerController {
 		ReadCustomerDetailRes responseDto = customerService.getMe(currentUserLoginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@PutMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateByLoginId(
+		@PathVariable String loginId, @Valid @RequestBody UpdateCustomerReq requestDto
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateCustomerCommand command = UpdateCustomerReq.of(requestDto);
+		UpdateCustomerDetailRes responseDto = customerService.updateCustomerByLoginId(currentUserLoginId, loginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
 	}
 
 }

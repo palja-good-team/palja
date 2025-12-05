@@ -10,9 +10,11 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCustomerCommand;
+import com.palja.user_service.application.command.UpdateCustomerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.domain.entity.User;
@@ -77,6 +79,19 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public ReadCustomerDetailRes getMe(String currentUserLoginId) {
 		return ReadCustomerDetailRes.from(getCustomerByLoginId(currentUserLoginId));
+	}
+
+	@Override
+	@Transactional
+	public UpdateCustomerDetailRes updateCustomerByLoginId(
+		String currentUserLoginId, String loginId, UpdateCustomerCommand command
+	) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		User user = getCustomerByLoginId(loginId);
+		user.update(command.address());
+
+		return UpdateCustomerDetailRes.from(user);
 	}
 
 	private User getCustomerByLoginId(String loginId) {

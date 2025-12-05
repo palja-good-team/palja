@@ -8,7 +8,9 @@ import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
+import com.palja.user_service.presentation.dto.request.UpdateCustomerReq;
 
 public interface CustomerController {
 
@@ -23,5 +25,7 @@ public interface CustomerController {
 	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(Long userId);
 
 	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getMe();
+
+	ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateByLoginId(String loginId, UpdateCustomerReq requestDto);
 
 }
