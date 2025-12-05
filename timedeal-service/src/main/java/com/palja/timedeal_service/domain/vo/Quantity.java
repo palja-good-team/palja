@@ -31,7 +31,7 @@ public class Quantity {
         return new Quantity(totalQuantity);
     }
 
-    public Quantity UpdateTotalQuantity(long newTotalQuantity) {
+    public Quantity updateTotalQuantity(long newTotalQuantity) {
         return new Quantity(newTotalQuantity);
     }
 

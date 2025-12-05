@@ -13,7 +13,7 @@ public enum TimeDealStatus {
     OPEN("진행중") {
         @Override
         public boolean canEditField(TimeDealEditableField field) {
-            return field.equals("endAt");
+            return field == TimeDealEditableField.END_AT;
         }
     },
 

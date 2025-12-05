@@ -118,7 +118,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         }
 
         if (command.timeDealPrice() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TITLE);
+            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TIME_DEAL_PRICE);
             timeDeal.changeTimeDealPrice(command.timeDealPrice());
         }
 

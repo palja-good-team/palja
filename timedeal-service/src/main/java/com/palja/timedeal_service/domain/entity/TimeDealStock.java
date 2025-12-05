@@ -38,6 +38,6 @@ public class TimeDealStock extends BaseEntity {
     }
 
     public void changeTotalQuantity(long newTotalQuantity) {
-        this.quantity = this.quantity.UpdateTotalQuantity(newTotalQuantity);
+        this.quantity = this.quantity.updateTotalQuantity(newTotalQuantity);
     }
 }
