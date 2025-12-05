@@ -35,4 +35,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(UpdateCompanyUserReq requestDto);
 
+	ResponseEntity<ApiResponse<Void>> deleteByLoginId(String loginId);
+
 }
