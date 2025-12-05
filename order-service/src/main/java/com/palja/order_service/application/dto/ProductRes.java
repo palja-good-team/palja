@@ -1,0 +1,33 @@
+package com.palja.order_service.application.dto;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Getter
+@Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class ProductRes {
+    private UUID productId;
+    private String productName;
+    private BigDecimal price;
+    private int stockQuantity;
+
+    public static ProductRes of(
+            UUID productId,
+            String productName,
+            BigDecimal price,
+            int stockQuantity
+    ) {
+        return ProductRes.builder()
+                .productId(productId)
+                .productName(productName)
+                .price(price)
+                .stockQuantity(stockQuantity)
+                .build();
+    }
+}
