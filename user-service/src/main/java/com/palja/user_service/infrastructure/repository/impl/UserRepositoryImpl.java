@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.UserRepository;
+import com.palja.user_service.domain.vo.UserStatus;
 import com.palja.user_service.infrastructure.repository.DslUserRepository;
 import com.palja.user_service.infrastructure.repository.JpaUserRepository;
 
@@ -49,6 +50,11 @@ public class UserRepositoryImpl implements UserRepository {
 	@Override
 	public Page<User> searchAllCustomers(String loginId, String email, String name, Pageable pageable) {
 		return dslUserRepository.searchAllCustomers(loginId, email, name, pageable);
+	}
+
+	@Override
+	public Page<User> searchAllCompanyUsers(String loginId, String email, String name, UserStatus status, Pageable pageable) {
+		return dslUserRepository.searchAllCompanyUsers(loginId, email, name, status, pageable);
 	}
 
 	@Override

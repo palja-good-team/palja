@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.QUser;
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.vo.UserStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,28 @@ public class DslUserRepository {
 		Long total = getTotal(qUser, UserRole.CUSTOMER, loginId, email, name);
 
 		return new PageImpl<>(customers, pageable, total != null ? total : 0);
+	}
+
+	public Page<User> searchAllCompanyUsers(String loginId, String email, String name, UserStatus status, Pageable pageable) {
+		QUser qUser = QUser.user;
+
+		List<User> managers = jpaQueryFactory
+			.selectFrom(qUser)
+			.where(
+				loginId != null ? qUser.loginId.contains(loginId) : null,
+				email != null ? qUser.email.contains(email) : null,
+				name != null ? qUser.name.contains(name) : null,
+				status != null ? qUser.status.eq(status) : null,
+				qUser.role.eq(UserRole.COMPANY_USER),
+				qUser.deletedAt.isNull()
+			)
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		Long total = getTotal(qUser, UserRole.COMPANY_USER, loginId, email, name);
+
+		return new PageImpl<>(managers, pageable, total != null ? total : 0);
 	}
 
 	private Long getTotal(QUser qUser, UserRole role, String loginId, String email, String name) {

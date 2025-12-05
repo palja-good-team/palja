@@ -1,8 +1,12 @@
 package com.palja.user_service.application.service;
 
+import org.springframework.data.domain.Pageable;
+
+import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.command.CreateCompanyUserCommand;
 import com.palja.user_service.application.command.UpdateCompanyUserStatusCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 
 public interface CompanyUserService {
 
@@ -10,4 +14,9 @@ public interface CompanyUserService {
 
 	void updateCompanyUserStatus(String currentUserLoginId, String loginId, UpdateCompanyUserStatusCommand command);
 
+	PageResponse<ReadCompanyUserSummaryRes> getAllCompanyUsers(
+		String currentUserLoginId, String loginId, String email, String name, String status, Pageable pageable
+	);
+
 }
+
