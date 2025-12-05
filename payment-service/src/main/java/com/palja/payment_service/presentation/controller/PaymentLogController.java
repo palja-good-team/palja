@@ -8,7 +8,6 @@ import com.palja.payment_service.application.service.PaymentLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +35,7 @@ public class PaymentLogController {
     @GetMapping("/payment-logs")
     public ResponseEntity<ApiResponse<PageResponse<PaymentLogDetailRes>>> getPaymentLogs(
             @RequestParam(required = false) UUID paymentId,
+            @RequestParam(required = false) UUID orderId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
@@ -44,6 +44,7 @@ public class PaymentLogController {
     ){
         FindPaymentLogListByConditionCommand command = new FindPaymentLogListByConditionCommand(
                 paymentId,
+                orderId,
                 status,
                 startDate,
                 endDate

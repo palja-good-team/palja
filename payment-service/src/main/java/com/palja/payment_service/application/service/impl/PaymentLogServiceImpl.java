@@ -51,6 +51,7 @@ public class PaymentLogServiceImpl implements PaymentLogService {
 
         Page<PaymentLog> logs = paymentLogRepository.findLogs(
                 command.paymentId(),
+                command.orderId(),
                 status,
                 command.startDate(),
                 command.endDate(),

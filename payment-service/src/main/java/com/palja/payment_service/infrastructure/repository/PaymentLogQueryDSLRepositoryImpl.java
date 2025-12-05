@@ -23,6 +23,7 @@ public class PaymentLogQueryDSLRepositoryImpl {
 
     public Page<PaymentLog> findLogs(
             UUID paymentId,
+            UUID orderId,
             PaymentStatus status,
             LocalDateTime startDate,
             LocalDateTime endDate,
@@ -33,6 +34,9 @@ public class PaymentLogQueryDSLRepositoryImpl {
 
         if (paymentId != null) {
             builder.and(paymentLog.payment.id.eq(paymentId));
+        }
+        if (orderId != null) {
+            builder.and(paymentLog.payment.orderId.eq(orderId));
         }
         if (status != null) {
             builder.and(paymentLog.status.eq(status));

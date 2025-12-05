@@ -14,6 +14,7 @@ public class PaymentLogDetailRes {
 
     private UUID paymentLogId;
     private UUID paymentId;
+    private UUID orderId;
     private Long userId;
     private BigDecimal amount;
     private String status;
@@ -26,6 +27,7 @@ public class PaymentLogDetailRes {
         return PaymentLogDetailRes.builder()
                 .paymentLogId(log.getId())
                 .paymentId(log.getPayment().getId())
+                .orderId(log.getOrderId())
                 .userId(log.getUserId())
                 .amount(log.getAmount())
                 .status(log.getStatus().name())

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record FindPaymentLogListByConditionCommand(
         UUID paymentId,
+        UUID orderId,
         String status,
         LocalDateTime startDate,
         LocalDateTime endDate

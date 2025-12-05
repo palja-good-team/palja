@@ -33,13 +33,14 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
     @Override
     public Page<PaymentLog> findLogs(
             UUID paymentId,
+            UUID orderId,
             PaymentStatus status,
             LocalDateTime startDate,
             LocalDateTime endDate,
             PageRequest pageRequest
     ){
         return paymentLogQueryDSLRepository.findLogs(
-                paymentId, status, startDate, endDate, pageRequest
+                paymentId, orderId, status, startDate, endDate, pageRequest
         );
     }
 }

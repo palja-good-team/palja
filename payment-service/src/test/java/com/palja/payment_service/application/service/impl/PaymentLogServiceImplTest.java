@@ -104,6 +104,7 @@ class PaymentLogServiceImplTest {
 
         given(paymentLogRepository.findLogs(
                 eq(paymentId),
+                eq((UUID) null),
                 eq(PaymentStatus.APPROVED),
                 eq(startDate),
                 eq(endDate),
@@ -113,6 +114,7 @@ class PaymentLogServiceImplTest {
         FindPaymentLogListByConditionCommand command =
                 new FindPaymentLogListByConditionCommand(
                         paymentId,
+                        null,
                         "APPROVED",
                         startDate,
                         endDate
@@ -132,6 +134,7 @@ class PaymentLogServiceImplTest {
 
         FindPaymentLogListByConditionCommand command =
                 new FindPaymentLogListByConditionCommand(
+                        null,
                         null,
                         "NONE",
                         null,

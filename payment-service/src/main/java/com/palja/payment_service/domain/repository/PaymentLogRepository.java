@@ -7,7 +7,6 @@ import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentLogRepository {
@@ -15,5 +14,5 @@ public interface PaymentLogRepository {
 
     List<PaymentLog> findByPaymentId(UUID paymentId);
 
-    Page<PaymentLog> findLogs(UUID paymentId, PaymentStatus status, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest);
+    Page<PaymentLog> findLogs(UUID paymentId, UUID orderId, PaymentStatus status, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest);
 }
