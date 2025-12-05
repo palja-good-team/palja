@@ -27,4 +27,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(UUID companyUserId);
 
+	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getMe();
+
 }

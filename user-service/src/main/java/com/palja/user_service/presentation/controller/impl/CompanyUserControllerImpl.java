@@ -105,4 +105,15 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
 
+	@Override
+	@RequiredRole({UserRole.COMPANY_USER})
+	@GetMapping("/me")
+	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getMe() {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		ReadCompanyUserDetailRes responseDto = companyUserService.getMe(currentUserLoginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
+	}
+
 }

@@ -25,5 +25,7 @@ public interface CompanyUserService {
 
 	ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId);
 
+	ReadCompanyUserDetailRes getMe(String currentUserLoginId);
+
 }
 
