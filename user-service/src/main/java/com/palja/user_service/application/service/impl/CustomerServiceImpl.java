@@ -11,6 +11,7 @@ import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateCustomerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
@@ -56,6 +57,19 @@ public class CustomerServiceImpl implements CustomerService {
 		return PageResponse.from(
 			userRepository.searchAllCustomers(loginId, email, name, pageable)
 				.map(ReadCustomerSummaryRes::from)
+		);
+	}
+
+	@Override
+	public ReadCustomerDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		return ReadCustomerDetailRes.from(getCustomerByLoginId(loginId));
+	}
+
+	private User getCustomerByLoginId(String loginId) {
+		return userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(loginId, UserRole.CUSTOMER).orElseThrow(
+			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
 		);
 	}
 

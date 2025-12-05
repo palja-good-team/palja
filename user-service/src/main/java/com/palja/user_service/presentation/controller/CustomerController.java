@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.dto.response.CreateUserRes;
+import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
 
@@ -16,5 +17,7 @@ public interface CustomerController {
 	ResponseEntity<ApiResponse<PageResponse<ReadCustomerSummaryRes>>> getAll(
 		String loginId, String email, String name, Pageable pageable
 	);
+
+	ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByLoginId(String loginId);
 
 }
