@@ -11,6 +11,7 @@ public enum PaymentErrorCode implements ErrorCode {
 
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 상태입니다."),
     PAYMENT_CANNOT_BE_DELETED(HttpStatus.BAD_REQUEST, "PENDING 상태인 결제만 삭제할 수 있습니다."),
+    PAYMENT_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 로그를 찾을 수 없습니다."),
     PAYMENT_EXCEED_AMOUNT(HttpStatus.BAD_REQUEST, "취소 금액이 결제 금액을 초과할 수 없습니다."),
     PAYMENT_NOT_PARTIAL_REFUND(HttpStatus.BAD_REQUEST, "부분 환불이 불가합니다,"),
     PAYMENT_NOT_APPROVED(HttpStatus.BAD_REQUEST,"승인된 결제만 취소할 수 있습니다."),
