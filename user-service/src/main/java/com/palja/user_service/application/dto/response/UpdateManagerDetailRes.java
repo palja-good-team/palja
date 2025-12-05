@@ -10,7 +10,7 @@ import lombok.Getter;
 
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
-public class ReadManagerDetailRes {
+public class UpdateManagerDetailRes {
 
 	private Long userId;
 	private String loginId;
@@ -24,8 +24,8 @@ public class ReadManagerDetailRes {
 	private Instant updatedAt;
 	private String updatedBy;
 
-	public static ReadManagerDetailRes from(User user) {
-		return ReadManagerDetailRes.builder()
+	public static UpdateManagerDetailRes from(User user) {
+		return UpdateManagerDetailRes.builder()
 			.userId(user.getId())
 			.loginId(user.getLoginId())
 			.name(user.getName())

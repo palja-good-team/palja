@@ -4,9 +4,11 @@ import org.springframework.data.domain.Pageable;
 
 import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.command.CreateManagerCommand;
+import com.palja.user_service.application.command.UpdateManagerCommand;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateManagerDetailRes;
 
 public interface ManagerService {
 
@@ -21,5 +23,9 @@ public interface ManagerService {
 	ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId);
 
 	ReadManagerDetailRes getMe(String currentUserLoginId);
+
+	UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command);
+
+	UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command);
 
 }

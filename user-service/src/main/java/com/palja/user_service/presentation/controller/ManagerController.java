@@ -8,7 +8,9 @@ import com.palja.common.response.PageResponse;
 import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadManagerDetailRes;
 import com.palja.user_service.application.dto.response.ReadManagerSummaryRes;
+import com.palja.user_service.application.dto.response.UpdateManagerDetailRes;
 import com.palja.user_service.presentation.dto.request.CreateManagerReq;
+import com.palja.user_service.presentation.dto.request.UpdateManagerReq;
 
 public interface ManagerController {
 
@@ -23,5 +25,10 @@ public interface ManagerController {
 	ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByUserId(Long userId);
 
 	ResponseEntity<ApiResponse<ReadManagerDetailRes>> getMe();
+
+	ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateByLoginId(String loginId, UpdateManagerReq requestDto);
+
+	ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateMe(UpdateManagerReq requestDto);
+
 
 }
