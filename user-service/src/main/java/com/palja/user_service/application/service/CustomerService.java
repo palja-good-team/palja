@@ -28,4 +28,6 @@ public interface CustomerService {
 
 	void deleteCustomerByLoginId(String currentUserLoginId, String loginId);
 
+	void deleteMe(String accessToken, String currentUserLoginId);
+
 }

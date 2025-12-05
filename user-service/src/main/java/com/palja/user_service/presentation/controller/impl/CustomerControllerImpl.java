@@ -1,7 +1,9 @@
 package com.palja.user_service.presentation.controller.impl;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +33,7 @@ import com.palja.user_service.presentation.controller.CustomerController;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
 import com.palja.user_service.presentation.dto.request.UpdateCustomerReq;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -134,6 +138,28 @@ public class CustomerControllerImpl implements CustomerController {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
 		customerService.deleteCustomerByLoginId(currentUserLoginId, loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("일반 사용자가 삭제되었습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.CUSTOMER})
+	@DeleteMapping("/me")
+	public ResponseEntity<ApiResponse<Void>> deleteMe(
+		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		customerService.deleteMe(accessToken, currentUserLoginId);
+
+		ResponseCookie cookie = ResponseCookie
+			.from("refresh_token", "")
+			.path("/")
+			.httpOnly(true)
+			.secure(false)
+			.maxAge(0)
+			.build();
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("일반 사용자가 삭제되었습니다."));
 	}

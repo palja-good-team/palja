@@ -1,5 +1,7 @@
 package com.palja.user_service.application.service.impl;
 
+import static com.palja.user_service.application.util.RedisKeyConstants.*;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,9 @@ import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
+import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtUtil jwtUtil;
+	private final TokenRepository tokenRepository;
 
 	@Override
 	@Transactional
@@ -110,6 +116,21 @@ public class CustomerServiceImpl implements CustomerService {
 
 		User user = getCustomerByLoginId(loginId);
 		user.softDelete();
+	}
+
+	@Override
+	@Transactional
+	public void deleteMe(String accessToken, String currentUserLoginId) {
+		User user = getCustomerByLoginId(currentUserLoginId);
+		user.softDelete();
+
+		String substringAccessToken = jwtUtil.substringToken(accessToken);
+		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
+
+		tokenRepository.save(
+			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		);
+		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
 	private User getCustomerByLoginId(String loginId) {
