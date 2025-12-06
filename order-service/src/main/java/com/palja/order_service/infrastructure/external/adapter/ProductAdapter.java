@@ -20,7 +20,7 @@ public class ProductAdapter implements ProductService {
      //private final ProductClient productClient;
 
     @Override
-    public ProductRes getProduct(UUID productId, int quantity) {
+    public ProductRes getProduct(UUID productId) {
         log.debug("상품 정보 조회: productId={}", productId);
 
         // TODO: 실제 상품 API 호출 (Feign)
