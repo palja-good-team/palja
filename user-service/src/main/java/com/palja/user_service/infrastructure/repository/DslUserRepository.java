@@ -44,7 +44,7 @@ public class DslUserRepository {
 	public Page<User> searchAllCustomers(String loginId, String email, String name, Pageable pageable) {
 		QUser qUser = QUser.user;
 
-		List<User> managers = jpaQueryFactory
+		List<User> customers = jpaQueryFactory
 			.selectFrom(qUser)
 			.where(
 				loginId != null ? qUser.loginId.contains(loginId) : null,
@@ -59,7 +59,7 @@ public class DslUserRepository {
 
 		Long total = getTotal(qUser, UserRole.CUSTOMER, loginId, email, name);
 
-		return new PageImpl<>(managers, pageable, total != null ? total : 0);
+		return new PageImpl<>(customers, pageable, total != null ? total : 0);
 	}
 
 	private Long getTotal(QUser qUser, UserRole role, String loginId, String email, String name) {
