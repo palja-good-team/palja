@@ -1,6 +1,6 @@
 package com.palja.user_service.application.dto.response;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -23,9 +23,9 @@ public class UpdateCompanyUserDetailRes {
 	private String address;
 	private String role;
 	private String status;
-	private Instant createdAt;
+	private LocalDateTime createdAt;
 	private String createdBy;
-	private Instant updatedAt;
+	private LocalDateTime updatedAt;
 	private String updatedBy;
 
 	public static UpdateCompanyUserDetailRes from(CompanyUser companyUser) {
