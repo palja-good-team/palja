@@ -31,7 +31,6 @@ import java.util.UUID;
 public class TimeDealController {
 
     private final TimeDealService timeDealService;
-    private final ResourceLoader resourceLoader;
 
     @PostMapping
     @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
