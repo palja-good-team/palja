@@ -2,7 +2,6 @@ package com.palja.timedeal_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
-import com.palja.common.exception.ErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
@@ -44,9 +43,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        if (command.role().equals(UserRole.COMPANY_USER)) {
-            timeDealValidator.validateCompanyUserId(command.loginId(), product.companyUserId());
-        }
+        ValidateCompanyUser(command.role(), command.loginId(), product.companyUserId());
 
         timeDealValidator.validateStock(command.totalQuantity(), product.stock());
 
@@ -87,9 +84,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        if (command.role().equals(UserRole.COMPANY_USER)) {
-            timeDealValidator.validateCompanyUserId(command.loginId(), timeDeal.getCompanyUserId());
-        }
+        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         updateTimeDealFields(timeDeal, command);
 
@@ -104,9 +99,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        if (command.role().equals(UserRole.COMPANY_USER)) {
-            timeDealValidator.validateCompanyUserId(command.loginId(), timeDeal.getCompanyUserId());
-        }
+        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
 
@@ -153,6 +146,12 @@ public class TimeDealServiceImpl implements TimeDealService {
     private TimeDeal getActiveTimeDeal(UUID timeDealId) {
         return timeDealRepository.findDetailByTimeDealId(timeDealId)
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
+    }
+
+    private void ValidateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
+        if (role.equals(UserRole.COMPANY_USER)) {
+            timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
+        }
     }
 
     private TimeDealStatus parseTimeDealStatus(String status) {
