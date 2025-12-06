@@ -1,7 +1,10 @@
 package com.palja.order_service.application.service.impl;
 
+import com.palja.common.exception.BusinessException;
+import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.*;
+import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.service.*;
 import com.palja.order_service.application.service.calculator.OrderCalculator;
 import com.palja.order_service.application.service.validator.OrderValidator;
@@ -40,9 +43,9 @@ public class OrderServiceImpl implements OrderService {
 
         orderValidator.validateCreateOrderCommand(command);
 
-        UserRes user = getValidUser(command);
-        ProductRes product = getValidProduct(command);
-        TimeDealRes timeDeal = getValidTimeDeal(command);
+        CustomerUserRes user = getUserForOrderCreation(command.loginId());
+        ProductRes product = getProductForOrderCreation(command.productId(), command.quantity());
+        TimeDealRes timeDeal = getValidTimeDealForOrderCreation(command);
 
         BigDecimal amountBeforeCoupon = calculateAmountBeforeCoupon(product, timeDeal, command.quantity());
 
@@ -68,6 +71,64 @@ public class OrderServiceImpl implements OrderService {
                 order.getOrderId(), order.getOrderAmount().getFinalAmount());
 
         return OrderCreateRes.from(order);
+    }
+
+    /**
+     * 주문 단건 조회
+     * 권한별로 접근 제어
+     * - MANAGER: 모든 주문 조회 가능
+     * - CUSTOMER: 본인 주문만 조회 가능
+     * - COMPANY_USER: 자신이 판매한 상품의 주문만 조회 가능
+     */
+    public OrderDetailRes getOrder(UUID orderId, String loginId, UserRole userRole) {
+        log.info("주문 조회 시작 - orderId: {}, loginId: {}, userRole: {}", orderId, loginId, userRole);
+
+        Order order = orderRepository.findOrderByIdWithItemAndDelivery(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        validateOrderAccess(order, loginId, userRole);
+
+        log.info("주문 조회 성공 - orderId: {}", orderId);
+        return OrderDetailRes.from(order);
+    }
+
+    // 권한별로 주문 접근 권한 검증
+    private void validateOrderAccess(Order order, String loginId, UserRole userRole) {
+        switch (userRole) {
+            case MANAGER -> {
+                // MANAGER는 모든 주문 조회 가능
+                log.debug("MANAGER 권한으로 주문 조회");
+            }
+            case CUSTOMER -> {
+                // CUSTOMER는 본인 주문만 조회 가능
+                Long currentUserId = getUserIdForCustomer(loginId);
+                orderValidator.validateOrderForRead(order.getUserId(), userRole, currentUserId, null, null);
+            }
+            case COMPANY_USER -> {
+                // COMPANY_USER는 자신이 판매한 상품의 주문만 조회 가능
+                UUID companyUserId = getCompanyUserIdForCompany(loginId);
+                UUID productCompanyUserId = getProductCompanyUserId(order.getOrderItem().getProductId());
+                orderValidator.validateOrderForRead(order.getUserId(), userRole, null, companyUserId, productCompanyUserId);
+            }
+            default -> throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+        }
+    }
+    // CUSTOMER용 userId 조회
+    private Long getUserIdForCustomer(String loginId) {
+        CustomerUserRes customerUser = userService.getCustomerUserByLoginId(loginId);
+        return customerUser.getUserId();
+    }
+
+    // COMPANY_USER용 companyUserId 조회
+    private UUID getCompanyUserIdForCompany(String loginId) {
+        CompanyUserRes companyUser = userService.getCompanyUserByLoginId(loginId);
+        return companyUser.getCompanyUserId();
+    }
+
+    // 상품의 판매자(companyUserId) 조회
+    private UUID getProductCompanyUserId(UUID productId) {
+        ProductRes product = productService.getProduct(productId);
+        return product.getCompanyUserId();
     }
 
     // ===== 도메인 객체 생성 =====
@@ -102,25 +163,25 @@ public class OrderServiceImpl implements OrderService {
 
     // ====== private ======
     // 사용자 검증 및 정보 조회
-    private UserRes getValidUser(CreateOrderCommand command) {
-        UserRes user = userService.getUserByLoginId(command.loginId());
-        orderValidator.validateUserOrderable(user);
+    private CustomerUserRes getUserForOrderCreation(String loginId) {
+        CustomerUserRes user = userService.getCustomerUserByLoginId(loginId);
+        orderValidator.validateUserForOrderCreation(user);
         return user;
     }
 
     // 상품 검증 및 정보 조회
-    private ProductRes getValidProduct(CreateOrderCommand command) {
-        ProductRes product = productService.getProduct(command.productId(), command.quantity());
-        orderValidator.validateProductStock(product, command.quantity());
+    private ProductRes getProductForOrderCreation(UUID productId, int quantity) {
+        ProductRes product = productService.getProduct(productId);
+        orderValidator.validateProductForOrderCreation(product, quantity);
         return product;
     }
 
     // 타임딜 검증 및 정보 조회 (타임딜 주문인 경우)
-    private TimeDealRes getValidTimeDeal(CreateOrderCommand command) {
+    private TimeDealRes getValidTimeDealForOrderCreation(CreateOrderCommand command) {
         if (command.timeDealId() == null) return null;
 
         TimeDealRes timeDeal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
-        orderValidator.validateTimeDeal(timeDeal, command.quantity());
+        orderValidator.validateCouponForOrderCreation(timeDeal, command.quantity());
         return timeDeal;
     }
 
@@ -136,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         CouponRes coupon = couponService.getCoupon(couponId);
-        orderValidator.validateCoupon(coupon, amountBeforeCoupon);
+        orderValidator.validateCouponForUsage(coupon, amountBeforeCoupon);
 
         BigDecimal discountAmount = orderCalculator.calculateCouponDiscount(coupon, amountBeforeCoupon);
 
@@ -148,7 +209,7 @@ public class OrderServiceImpl implements OrderService {
     // 주문 엔티티 생성 (CouponResult 사용)
     private Order createOrder(
             CreateOrderCommand command,
-            UserRes user,
+            CustomerUserRes user,
             ProductRes product,
             TimeDealRes timeDeal,
             CouponResult couponResult,
