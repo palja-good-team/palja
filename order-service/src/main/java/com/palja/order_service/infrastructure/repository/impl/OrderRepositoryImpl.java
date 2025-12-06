@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Repository
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -18,5 +21,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Transactional
     public Order save(Order order) {
         return jpaOrderRepository.save(order);
+    }
+
+    @Override
+    public Optional<Order> findOrderByIdWithItemAndDelivery(UUID orderId) {
+        return jpaOrderRepository.findOrderByIdWithItemAndDelivery(orderId);
     }
 }
