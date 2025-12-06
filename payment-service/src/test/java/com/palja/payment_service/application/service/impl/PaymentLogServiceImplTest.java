@@ -23,13 +23,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentLogServiceImplTest {
@@ -144,5 +145,21 @@ class PaymentLogServiceImplTest {
         assertThatThrownBy(() -> paymentLogService.searchLogs(command, pageRequest))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_PAYMENT_STATUS);
+    }
+
+    @Test
+    @DisplayName("1년 지난 결제 로그 삭제 성공")
+    void deleteOldLogs_success(){
+        paymentLogService.deleteOldLogs();
+
+        verify(paymentLogRepository).deleteLogsOlder(any(LocalDateTime.class));
+    }
+
+    @Test
+    @DisplayName("1년 이상 된 결제 로그가 없을 경우에도 정상 처리")
+    void deleteOldLogs_success_noLogsToDelete() {
+        paymentLogService.deleteOldLogs();
+
+        verify(paymentLogRepository).deleteLogsOlder(any(LocalDateTime.class));
     }
 }

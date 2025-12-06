@@ -15,4 +15,8 @@ public interface PaymentLogRepository {
     List<PaymentLog> findByPaymentId(UUID paymentId);
 
     Page<PaymentLog> findLogs(UUID paymentId, UUID orderId, PaymentStatus status, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest);
+
+    List<PaymentLog> findLogsOlder(LocalDateTime cutoffDate);
+
+    void deleteLogsOlder(LocalDateTime cutoffDate);
 }

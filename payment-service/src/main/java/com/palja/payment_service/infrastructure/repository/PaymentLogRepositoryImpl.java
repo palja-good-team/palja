@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -42,5 +41,15 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
         return paymentLogQueryDSLRepository.findLogs(
                 paymentId, orderId, status, startDate, endDate, pageRequest
         );
+    }
+
+    @Override
+    public List<PaymentLog> findLogsOlder(LocalDateTime cutoffDate) {
+        return paymentLogJpaRepository.findLogsOlder(cutoffDate);
+    }
+
+    @Override
+    public void deleteLogsOlder(LocalDateTime cutoffDate) {
+        paymentLogJpaRepository.deleteLogsOlder(cutoffDate);
     }
 }
