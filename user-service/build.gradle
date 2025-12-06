@@ -59,6 +59,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     implementation 'io.github.openfeign.querydsl:querydsl-jpa:6.11'
     annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.11:jpa'
+    testImplementation 'org.mockito:mockito-core:5.20.0'
 }
 
 dependencyManagement {
@@ -67,6 +68,6 @@ dependencyManagement {
 	}
 }
 
-//tasks.named('test') {
-//	useJUnitPlatform()
-//}
+tasks.named('test') {
+	useJUnitPlatform()
+}
