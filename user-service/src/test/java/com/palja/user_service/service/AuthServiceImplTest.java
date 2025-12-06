@@ -34,7 +34,6 @@ public class AuthServiceImplTest {
 
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
-
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 
