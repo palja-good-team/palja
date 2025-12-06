@@ -28,7 +28,7 @@ public class PaymentLogController {
     ) {
         List<PaymentLogDetailRes> res = paymentLogService.getLogsByPaymentId(paymentId);
         return ResponseEntity.ok(
-                ApiResponse.success(res, "결제 로그 단건 조회에 성공했습니다.")
+                ApiResponse.success(res, "PaymentId에 해당되는 결제 로그 목록 조회에 성공했습니다.")
         );
     }
 
@@ -56,7 +56,7 @@ public class PaymentLogController {
         PageResponse<PaymentLogDetailRes> detail = PageResponse.from(pageResult);
 
         return ResponseEntity
-                .ok(ApiResponse.success(detail, "결제 로그 목록 조회에 성공했습니다."));
+                .ok(ApiResponse.success(detail, "검색 결과에 따른 결제 로그 목록 조회에 성공했습니다."));
     }
 
     /*

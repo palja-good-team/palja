@@ -3,6 +3,7 @@ package com.palja.user_service.presentation.controller.impl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,10 +43,8 @@ public class ManagerControllerImpl implements ManagerController {
 	@RequiredRole({UserRole.MASTER})
 	@PostMapping
 	public ResponseEntity<ApiResponse<CreateUserRes>> create(@Valid @RequestBody CreateManagerReq requestDto) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		CreateManagerCommand command = CreateManagerReq.of(requestDto);
-		CreateUserRes responseDto = managerService.createManager(currentUserLoginId, command);
+		CreateUserRes responseDto = managerService.createManager(command);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(responseDto, "관리자가 생성되었습니다."));
 	}
@@ -107,10 +106,8 @@ public class ManagerControllerImpl implements ManagerController {
 	public ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateByLoginId(
 		@PathVariable String loginId, @Valid @RequestBody UpdateManagerReq requestDto
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateManagerCommand command = UpdateManagerReq.of(requestDto);
-		UpdateManagerDetailRes responseDto = managerService.updateManagerByLoginId(currentUserLoginId, loginId, command);
+		UpdateManagerDetailRes responseDto = managerService.updateManagerByLoginId(loginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
 	}
@@ -125,6 +122,15 @@ public class ManagerControllerImpl implements ManagerController {
 		UpdateManagerDetailRes responseDto = managerService.updateMe(currentUserLoginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MASTER})
+	@DeleteMapping("/{loginId}")
+	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
+		managerService.deleteManagerByLoginId(loginId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("관리자가 삭제되었습니다."));
 	}
 
 }

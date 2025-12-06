@@ -2,6 +2,7 @@ package com.palja.user_service.presentation.controller;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
@@ -30,5 +31,6 @@ public interface ManagerController {
 
 	ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateMe(UpdateManagerReq requestDto);
 
+	ResponseEntity<ApiResponse<Void>> deleteByLoginId(String loginId);
 
 }

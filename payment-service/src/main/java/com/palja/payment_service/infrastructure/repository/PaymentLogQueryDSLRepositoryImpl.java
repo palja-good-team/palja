@@ -36,7 +36,7 @@ public class PaymentLogQueryDSLRepositoryImpl {
             builder.and(paymentLog.payment.id.eq(paymentId));
         }
         if (orderId != null) {
-            builder.and(paymentLog.payment.orderId.eq(orderId));
+            builder.and(paymentLog.orderId.eq(orderId));
         }
         if (status != null) {
             builder.and(paymentLog.status.eq(status));

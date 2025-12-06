@@ -1,4 +1,18 @@
 package com.palja.order_service.application.command;
 
-public record CreateOrderCommand() {
+import lombok.Builder;
+
+import java.util.UUID;
+
+// 주문 생성 Command
+// Presentation -> Application 전달
+@Builder
+public record CreateOrderCommand(
+        String loginId,
+        UUID productId,
+        int quantity,
+        UUID timeDealId,
+        UUID couponId,
+        DeliveryCommand delivery
+) {
 }

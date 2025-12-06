@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
@@ -32,8 +33,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public CreateUserRes createManager(String currentUserLoginId, CreateManagerCommand command) {
-		validateUserExistsByLoginId(currentUserLoginId);
+	public CreateUserRes createManager(CreateManagerCommand command) {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
@@ -85,9 +85,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
-	public UpdateManagerDetailRes updateManagerByLoginId(String currentUserLoginId, String loginId, UpdateManagerCommand command) {
-		validateUserExistsByLoginId(currentUserLoginId);
-
+	public UpdateManagerDetailRes updateManagerByLoginId(String loginId, UpdateManagerCommand command) {
 		User user = getUserByLoginId(loginId);
 		user.update(command.address());
 
@@ -101,6 +99,14 @@ public class ManagerServiceImpl implements ManagerService {
 		user.update(command.address());
 
 		return UpdateManagerDetailRes.from(user);
+	}
+
+	@Override
+	@Transactional
+	public void deleteManagerByLoginId(String loginId) {
+		User user = getUserByLoginId(loginId);
+		validateNotMaster(user);
+		user.softDelete();
 	}
 
 	private User getUserByLoginId(String loginId) {
@@ -136,6 +142,12 @@ public class ManagerServiceImpl implements ManagerService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
+		}
+	}
+
+	private void validateNotMaster(User user) {
+		if (user.getRole().equals(UserRole.MASTER)) {
+			throw new BusinessException(CommonErrorCode.FORBIDDEN);
 		}
 	}
 

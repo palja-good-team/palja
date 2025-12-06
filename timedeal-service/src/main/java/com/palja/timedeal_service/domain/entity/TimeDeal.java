@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.domain.entity;
 
+import com.palja.common.entity.BaseEntity;
 import com.palja.common.exception.BusinessException;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Amount;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Builder
-public class TimeDeal {
+public class TimeDeal extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -79,6 +80,36 @@ public class TimeDeal {
         timeDeal.timeDealStock = TimeDealStock.create(timeDeal, quantity);
 
         return timeDeal;
+    }
+
+    public void changeTitle(String newTitle) {
+        if (newTitle == null || newTitle.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.TITLE_REQUIRED);
+        }
+        this.title = newTitle;
+    }
+
+    public void changeDescription(String newDescription) {
+        if (newDescription == null || newDescription.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
+        }
+        this.description = newDescription;
+    }
+
+    public void changeStartAt(LocalDateTime newStartAt) {
+        this.period = this.period.updateStartAt(newStartAt);
+    }
+
+    public void changeEndAt(LocalDateTime newEndAt) {
+        this.period = this.period.updateEndAt(newEndAt);
+    }
+
+    public void changeTimeDealPrice(long newTimeDealPrice) {
+        this.amount = this.amount.updateTimeDealPrice(newTimeDealPrice);
+    }
+
+    public void changeTotalQuantity(long newTotalQuantity) {
+        this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
 
     private static void validate(

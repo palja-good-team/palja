@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.application.dto;
 
+import com.palja.timedeal_service.domain.entity.TimeDeal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +27,7 @@ public class TimeDealDetailRes {
     private long remainingQuantity;
     private String timeDealStatus;
 
-    public static TimeDealDetailRes from(com.palja.timedeal_service.domain.entity.TimeDeal timeDeal) {
+    public static TimeDealDetailRes from(TimeDeal timeDeal) {
         return TimeDealDetailRes.builder()
                 .timeDealId(timeDeal.getTimeDealId())
                 .productId(timeDeal.getProductId())
