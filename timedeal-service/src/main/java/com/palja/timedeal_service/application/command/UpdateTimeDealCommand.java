@@ -17,4 +17,4 @@ public record UpdateTimeDealCommand(
         Long totalQuantity,
         String loginId,
         UserRole role
-) { }
+) {}

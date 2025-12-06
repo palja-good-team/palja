@@ -94,16 +94,12 @@ public class TimeDeal extends BaseEntity {
     }
 
     public void changeTitle(String newTitle) {
-        if (newTitle == null || newTitle.isBlank()) {
-            throw new BusinessException(TimeDealErrorCode.TITLE_REQUIRED);
-        }
+        validateTitle(title);
         this.title = newTitle;
     }
 
     public void changeDescription(String newDescription) {
-        if (newDescription == null || newDescription.isBlank()) {
-            throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
-        }
+        validateDescription(description);
         this.description = newDescription;
     }
 
@@ -123,6 +119,15 @@ public class TimeDeal extends BaseEntity {
         this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
 
+    public void changeStatus(TimeDealStatus newStatus, String reason) {
+        validateTimeDealStatusChange(newStatus, reason);
+
+        TimeDealStatusHistory history = TimeDealStatusHistory.create(this, this.timeDealStatus, newStatus, reason);
+
+        this.statusHistories.add(history);
+        this.timeDealStatus = newStatus;
+    }
+
     private static void validate(
             UUID productId,
             UUID companyUserId,
@@ -137,12 +142,37 @@ public class TimeDeal extends BaseEntity {
             throw new BusinessException(TimeDealErrorCode.COMPANY_USER_ID_REQUIRED);
         }
 
+        validateTitle(title);
+        validateDescription(description);
+    }
+
+    private static void validateTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new BusinessException(TimeDealErrorCode.TITLE_REQUIRED);
         }
+    }
 
+    private static void validateDescription(String description) {
         if (description == null || description.isBlank()) {
             throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
+        }
+    }
+
+    private void validateTimeDealStatusChange(TimeDealStatus newStatus, String reason) {
+        if (newStatus == null) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REQUIRED);
+        }
+
+        if (this.timeDealStatus == newStatus) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_ALREADY_APPLIED);
+        }
+
+        if (!this.timeDealStatus.canTransitTo(newStatus)) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_INVALID_STATUS_TRANSITION);
+        }
+
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REASON_REQUIRED);
         }
     }
 }

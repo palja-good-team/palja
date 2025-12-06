@@ -34,4 +34,18 @@ public class TimeDealStatusHistory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "time_deal_id", nullable = false)
     private TimeDeal timeDeal;
+
+    public static TimeDealStatusHistory create(
+            TimeDeal timeDeal,
+            TimeDealStatus previousStatus,
+            TimeDealStatus newStatus,
+            String reason
+    ) {
+        return TimeDealStatusHistory.builder()
+                .timeDeal(timeDeal)
+                .previousStatus(previousStatus)
+                .newStatus(newStatus)
+                .reason(reason)
+                .build();
+    }
 }
