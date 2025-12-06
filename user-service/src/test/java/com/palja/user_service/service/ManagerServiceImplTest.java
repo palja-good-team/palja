@@ -366,7 +366,7 @@ public class ManagerServiceImplTest {
 		@DisplayName("성공")
 		void updateManagerByLoginId_success() {
 			// given
-			given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(manager1));
+			given(userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class))).willReturn(Optional.of(manager1));
 
 			// when
 			UpdateManagerDetailRes responseDto = managerService.updateManagerByLoginId(manager1.getLoginId(), command);
@@ -374,7 +374,7 @@ public class ManagerServiceImplTest {
 			// then
 			assertThat(responseDto.getLoginId()).isEqualTo("loginId1");
 			assertThat(responseDto.getAddress()).isEqualTo("address");
-			then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
+			then(userRepository).should(times(1)).findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class));
 		}
 
 		@Nested
@@ -385,7 +385,7 @@ public class ManagerServiceImplTest {
 			@DisplayName("존재하지 않는 회원")
 			void updateManagerByLoginId_notFoundUser_failure() {
 				// given
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
+				given(userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class))).willReturn(Optional.empty());
 
 				// when & then
 				assertThatThrownBy(() -> managerService.updateManagerByLoginId(manager1.getLoginId(), command))
