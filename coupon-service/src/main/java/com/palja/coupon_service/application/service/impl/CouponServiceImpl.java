@@ -58,7 +58,7 @@ public class CouponServiceImpl implements CouponService {
 
         coupon.validateIssuePeriod();
 
-        if (couponUserRepository.existsByCouponIdAndUserId(coupon.getId(), userId))
+        if (couponUserRepository.existsByCouponIdAndUserIdAndDeletedAtIsNull(coupon.getId(), userId))
             throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_ISSUE);
     }
 }

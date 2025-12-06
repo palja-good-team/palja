@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface JpaCouponUserRepository extends JpaRepository<CouponUser, UUID> {
 
-    boolean existsByCouponIdAndUserId(UUID couponId, String userId);
+    boolean existsByCouponIdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId);
 }

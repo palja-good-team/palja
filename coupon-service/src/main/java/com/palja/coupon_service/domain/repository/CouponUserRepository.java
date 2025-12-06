@@ -8,5 +8,5 @@ public interface CouponUserRepository {
 
     CouponUser save(CouponUser couponUser);
 
-    boolean existsByCouponIdAndUserId(UUID couponId, String userId);
+    boolean existsByCouponIdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId);
 }
