@@ -264,15 +264,21 @@ public class AuthServiceImplTest {
 			then(tokenRepository).should(times(1)).remove(anyString());
 		}
 
-		@Test
+		@Nested
 		@DisplayName("실패")
-		void logout_notFoundUser_failure() {
-			// given
-			given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
+		class Failure {
 
-			// when & then
-			assertThatThrownBy(() -> authService.logout(accessToken, refreshToken))
-				.isInstanceOf(BusinessException.class).hasMessage("로그인 정보가 잘못되었습니다.");
+			@Test
+			@DisplayName("존재하지 않는 로그인 회원")
+			void logout_notFoundLoginUser_failure() {
+				// given
+				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
+
+				// when & then
+				assertThatThrownBy(() -> authService.logout(accessToken, refreshToken))
+					.isInstanceOf(BusinessException.class).hasMessage("로그인 정보가 잘못되었습니다.");
+			}
+
 		}
 
 	}
