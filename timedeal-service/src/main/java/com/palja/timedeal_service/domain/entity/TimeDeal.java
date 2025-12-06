@@ -11,6 +11,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -56,6 +58,15 @@ public class TimeDeal extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private TimeDealStock timeDealStock;
+
+    @OneToMany(
+            mappedBy = "timeDeal",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @Builder.Default
+    private List<TimeDealStatusHistory> statusHistories = new ArrayList<>();
 
     public static TimeDeal create(
             UUID productId,
