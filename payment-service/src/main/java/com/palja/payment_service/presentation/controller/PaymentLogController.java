@@ -1,0 +1,61 @@
+package com.palja.payment_service.presentation.controller;
+
+import com.palja.common.response.ApiResponse;
+import com.palja.common.response.PageResponse;
+import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
+import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.service.PaymentLogService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
+public class PaymentLogController {
+
+    private final PaymentLogService paymentLogService;
+
+    @GetMapping("/payments/{paymentId}/logs")
+    public ResponseEntity<ApiResponse<List<PaymentLogDetailRes>>> getPaymentLogsByPaymentId(
+            @PathVariable UUID paymentId
+    ) {
+        List<PaymentLogDetailRes> res = paymentLogService.getLogsByPaymentId(paymentId);
+        return ResponseEntity.ok(
+                ApiResponse.success(res, "PaymentId에 해당되는 결제 로그 목록 조회에 성공했습니다.")
+        );
+    }
+
+    @GetMapping("/payment-logs")
+    public ResponseEntity<ApiResponse<PageResponse<PaymentLogDetailRes>>> getPaymentLogs(
+            @RequestParam(required = false) UUID paymentId,
+            @RequestParam(required = false) UUID orderId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        FindPaymentLogListByConditionCommand command = new FindPaymentLogListByConditionCommand(
+                paymentId,
+                orderId,
+                status,
+                startDate,
+                endDate
+        );
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        var pageResult = paymentLogService.searchLogs(command, pageRequest);
+
+        PageResponse<PaymentLogDetailRes> detail = PageResponse.from(pageResult);
+
+        return ResponseEntity
+                .ok(ApiResponse.success(detail, "검색 결과에 따른 결제 로그 목록 조회에 성공했습니다."));
+    }
+}
