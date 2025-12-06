@@ -40,10 +40,7 @@ public class TimeDealController {
     ) {
         log.info("POST api/v1/time-deals 타임딜 생성 요청");
 
-        String loginId = CurrentUser.getLoginId();
-        UserRole role = CurrentUser.getRole();
-
-        CreateTimeDealCommand command = req.toCommand(loginId, role);
+        CreateTimeDealCommand command = req.toCommand(CurrentUser.getLoginId(), CurrentUser.getRole());
 
         TimeDealDetailRes res = timeDealService.createTimeDeal(command);
 
@@ -69,10 +66,7 @@ public class TimeDealController {
     ) {
         log.info("PUT /api/v1/time-deals/{} 타임딜 수정 요청", timeDealId);
 
-        String loginId = CurrentUser.getLoginId();
-        UserRole role = CurrentUser.getRole();
-
-        UpdateTimeDealCommand command = req.toCommand(timeDealId, loginId, role);
+        UpdateTimeDealCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
 
         TimeDealDetailRes res = timeDealService.updateTimeDeal(command);
 
@@ -88,10 +82,7 @@ public class TimeDealController {
     ) {
         log.info("PUT api/v1/time-deals/{}/status 타임딜 상태 변경 요청", timeDealId);
 
-        String loginId = CurrentUser.getLoginId();
-        UserRole role = CurrentUser.getRole();
-
-        ChangeTimeDealStatusCommand command = req.toCommand(timeDealId, loginId, role);
+        ChangeTimeDealStatusCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
 
         TimeDealDetailRes res = timeDealService.changeTimeDealStatus(command);
 
