@@ -4,9 +4,13 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
+import com.palja.coupon_service.application.command.UseCouponCommand;
 import com.palja.coupon_service.application.dto.CouponUserDetailRes;
 import com.palja.coupon_service.application.dto.CouponUserRes;
+import com.palja.coupon_service.application.dto.UsedCouponUserRes;
 import com.palja.coupon_service.application.service.CouponService;
+import com.palja.coupon_service.presentation.dto.request.UseCouponReq;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +38,18 @@ public class CouponController {
         CouponUserRes response = couponService.issueCoupon(command);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "쿠폰이 발급되었습니다."));
+    }
+
+    @PostMapping("/{couponUserId}/use")
+    public ResponseEntity<ApiResponse<UsedCouponUserRes>> useCoupon(@PathVariable UUID couponUserId,
+                                                                    @Valid @RequestBody UseCouponReq useCouponReq) {
+        log.info("POST /api/v1/coupons/{}/use - 쿠폰 사용 요청 userId={} orderId={}", couponUserId, CurrentUser.getLoginId(), useCouponReq.getOrderId());
+
+        UseCouponCommand command = UseCouponReq.of(couponUserId, CurrentUser.getLoginId(), useCouponReq);
+
+        UsedCouponUserRes response = couponService.useCoupon(command);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "쿠폰이 사용되었습니다."));
     }
 
     @GetMapping("/me")
