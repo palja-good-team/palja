@@ -4,6 +4,7 @@ import com.palja.order_service.application.dto.PaymentCancelRes;
 import com.palja.order_service.application.dto.PaymentRes;
 import com.palja.order_service.application.service.PaymentService;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentCancelDTO;
+import com.palja.order_service.infrastructure.external.dto.response.PaymentCreateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,10 +27,10 @@ public class PaymentAdapter implements PaymentService {
 
         // TODO: payment-service 연동 시 FeignClient 호출 사용
         // CreatePaymentDTO request = new CreatePaymentDTO(orderId, userId, amount, paymentMethod);
-        // PaymentDTO response = paymentClient.createPayment(request).data();
+        // PaymentCreateDTO response = paymentClient.createPayment(request).data();
         // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
         // 임시 더미 데이터
-        PaymentDTO dummy = PaymentDTO.dummy(orderId, userId, amount);
+        PaymentCreateDTO dummy = PaymentCreateDTO.dummy(orderId, userId, amount);
 
         return PaymentRes.of(dummy.getPaymentId(), dummy.getAmount());
     }
