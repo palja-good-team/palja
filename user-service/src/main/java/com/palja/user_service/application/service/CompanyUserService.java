@@ -23,9 +23,9 @@ public interface CompanyUserService {
 		String currentUserLoginId, String loginId, String email, String name, String status, Pageable pageable
 	);
 
-	ReadCompanyUserDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId);
+	ReadCompanyUserDetailRes getCompanyUserByLoginId(String currentUserLoginId, String loginId);
 
-	ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId);
+	ReadCompanyUserDetailRes getCompanyUserByCompanyUserId(String currentUserLoginId, UUID companyUserId);
 
 	ReadCompanyUserDetailRes getMe(String currentUserLoginId);
 
@@ -33,7 +33,7 @@ public interface CompanyUserService {
 
 	UpdateCompanyUserDetailRes updateMe(String currentUserLoginId, UpdateCompanyUserCommand command);
 
-	void deleteCompanyByLoginId(String currentUserLoginId, String loginId);
+	void deleteCompanyUserByLoginId(String currentUserLoginId, String loginId);
 
 	void deleteMe(String accessToken, String currentUserLoginId);
 

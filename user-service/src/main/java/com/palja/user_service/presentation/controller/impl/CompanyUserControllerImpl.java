@@ -97,7 +97,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByLoginId(@PathVariable String loginId) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
-		ReadCompanyUserDetailRes responseDto = companyUserService.getCustomerByLoginId(currentUserLoginId, loginId);
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByLoginId(currentUserLoginId, loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
@@ -108,7 +108,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(@PathVariable UUID companyUserId) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
-		ReadCompanyUserDetailRes responseDto = companyUserService.getCustomerByCompanyUserId(currentUserLoginId, companyUserId);
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByCompanyUserId(currentUserLoginId, companyUserId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
@@ -156,7 +156,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
-		companyUserService.deleteCompanyByLoginId(currentUserLoginId, loginId);
+		companyUserService.deleteCompanyUserByLoginId(currentUserLoginId, loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자가 삭제되었습니다."));
 	}

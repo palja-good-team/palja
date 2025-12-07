@@ -91,14 +91,14 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
-	public ReadCompanyUserDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId) {
+	public ReadCompanyUserDetailRes getCompanyUserByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
 		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(loginId));
 	}
 
 	@Override
-	public ReadCompanyUserDetailRes getCustomerByCompanyUserId(String currentUserLoginId, UUID companyUserId) {
+	public ReadCompanyUserDetailRes getCompanyUserByCompanyUserId(String currentUserLoginId, UUID companyUserId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
 		return ReadCompanyUserDetailRes.from(getCompanyUserByCompanyUserId(companyUserId));
@@ -133,7 +133,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	@Override
 	@Transactional
-	public void deleteCompanyByLoginId(String currentUserLoginId, String loginId) {
+	public void deleteCompanyUserByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
