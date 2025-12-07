@@ -19,15 +19,14 @@ public class ProductRes {
     private int stockQuantity;
 
     public static ProductRes of(
+            UUID companyUserId,
             UUID productId,
             String productName,
             BigDecimal price,
             int stockQuantity
     ) {
-        // TODO: 상품 도메인 조회 시 companyUserId 반환하도록 수정되면
-        //       랜덤 UUID 대신 실제 companyUserId 값을 설정.
         return ProductRes.builder()
-                .companyUserId(UUID.randomUUID())
+                .companyUserId(companyUserId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)

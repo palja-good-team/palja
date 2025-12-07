@@ -3,12 +3,13 @@ package com.palja.order_service.infrastructure.external.dto.response;
 import com.palja.common.vo.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompanyUserDTO {
@@ -31,8 +32,8 @@ public class CompanyUserDTO {
     // TODO: 사용자 서비스 연동 전까지 사용하는 더미 데이터. user-service 연결 후 삭제.
     public static CompanyUserDTO dummy(String loginId) {
         return new CompanyUserDTO(
-                8L,
-                UUID.randomUUID(),
+                100L,
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 loginId,
                 "company",
                 "업체",

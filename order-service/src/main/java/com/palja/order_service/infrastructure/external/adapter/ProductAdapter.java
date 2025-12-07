@@ -34,6 +34,7 @@ public class ProductAdapter implements ProductService {
 
     private ProductRes toProductRes(ProductDTO dto) {
         return ProductRes.of(
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 dto.getProductId(),
                 dto.getName(),
                 dto.getPrice(),
