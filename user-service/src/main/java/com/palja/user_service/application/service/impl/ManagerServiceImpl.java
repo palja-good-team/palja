@@ -1,5 +1,6 @@
 package com.palja.user_service.application.service.impl;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class ManagerServiceImpl implements ManagerService {
 		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
 	) {
 		validateUserExistsByLoginId(currentUserLoginId);
-
+		Page<User> users = userRepository.searchAllManagers(loginId, email, name, pageable);
 		return PageResponse.from(
 			userRepository.searchAllManagers(loginId, email, name, pageable)
 				.map(ReadManagerSummaryRes::from)
