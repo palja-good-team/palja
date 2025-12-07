@@ -43,10 +43,10 @@ public class OrderController {
     // 주문 상세 조회
     @GetMapping("/{orderId}")
     @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<OrderDetailRes>> getOrder(
+    public ResponseEntity<ApiResponse<OrderDetailRes>> getOrderDetail(
             @PathVariable UUID orderId
     ) {
-        OrderDetailRes response = orderService.getOrder(orderId, CurrentUser.getLoginId(), CurrentUser.getRole());
+        OrderDetailRes response = orderService.getOrderDetail(orderId, CurrentUser.getLoginId(), CurrentUser.getRole());
         return ResponseEntity.ok(ApiResponse.success(response, "주문이 조회되었습니다."));
     }
 

@@ -41,7 +41,7 @@ public class UserAdapter implements UserService {
 
     @Override
     public ManagerUserRes getManagerUserByLoginId(String loginId) {
-        log.debug("매니저 사용자 조회 요청: loginId={}", loginId);
+        log.debug("MANAGER 사용자 조회 요청: loginId={}", loginId);
 
         // TODO: user-service 연동 시 FeignClient 호출
         // ManagerUserDTO dto = userClient.getManagerUserByLoginId(loginId).getData();

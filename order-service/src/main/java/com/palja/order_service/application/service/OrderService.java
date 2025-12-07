@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface OrderService {
     OrderCreateRes createOrder(CreateOrderCommand command);
 
-    OrderDetailRes getOrder(UUID orderId, String loginId, UserRole userRole);
+    OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole);
 
     OrderCancelRes cancelOrder(CancelOrderCommand command);
 }
