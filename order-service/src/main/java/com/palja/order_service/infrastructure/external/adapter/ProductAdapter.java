@@ -43,14 +43,14 @@ public class ProductAdapter implements ProductService {
     }
 
     @Override
-    public void deductStock(UUID productId, int quantity) {
+    public void deductProductStock(UUID productId, int quantity) {
         log.debug("재고 차감 요청: productId={}, quantity={}", productId, quantity);
         // TODO: 상품 재고 차감 API 호출 구현
         log.error("재고 차감 실패: productId={}, quantity={}", productId, quantity);
     }
 
     @Override
-    public void restoreStock(UUID productId, int quantity) {
+    public void restoreProductStock(UUID productId, int quantity) {
         log.debug("재고 복구 요청: productId={}, quantity={}", productId, quantity);
         // TODO: 상품 재고 차감 API 호출 구현
         log.error("재고 복구 실패: productId={}, quantity={}", productId, quantity);
