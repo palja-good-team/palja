@@ -24,4 +24,6 @@ public interface ProductService {
     UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand);
 
     UpdateStockRes updateStock(UUID productId, Integer stock);
+
+    SaleProductRes saleProduct(UUID productId, Integer quantity);
 }

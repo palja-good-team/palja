@@ -3,8 +3,8 @@ package com.palja.product_service.application.service.impl;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.dto.res.CreateProductRes;
-import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
+import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
@@ -76,7 +76,7 @@ class ProductServiceImplTest {
         //then
         assertThat(result.getName()).isEqualTo(expected.getName());
         assertThat(result.getDescription()).isEqualTo(expected.getDescription());
-        assertThat(result.getPrice()).isEqualTo(expected.getPrice());
+        assertThat(result.getPrice()).isEqualTo(expected.getPrice().toString());
         assertThat(result.getCategory()).isEqualTo(expected.getCategory().name());
         assertThat(result.getCompanyName()).isEqualTo(expected.getCompanyName());
     }

@@ -87,4 +87,13 @@ public class ProductController {
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
     }
+
+    @PutMapping("/order/sale/{productId}")
+    public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
+                                                                   @RequestParam Integer quantity) {
+
+        SaleProductRes res = service.saleProduct(productId, quantity);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "판매 재고 차감 성공"), HttpStatus.OK);
+    }
 }

@@ -9,6 +9,7 @@ import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
@@ -30,6 +31,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final DslProductRepository dslProductRepository;
+    private final RedisRepository redisRepository;
 
     @Override
     @Transactional
@@ -150,19 +152,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional
-    public UpdateStockRes updateStock(UUID productId, Integer stock) {
+    public SaleProductRes saleProduct(UUID productId, Integer quantity) {
 
+        String hashKey;
+        String stringKey = productId.toString();
+        String substring = stringKey.substring(0, 8);
+        int hash = substring.hashCode();
+        if(hash % 2 == 0)
+            hashKey = "productStock0";
+        else hashKey = "productStock1";
+
+        //찾아오는 이유는 레디스에 저장되어있지 않은 상품이라면 해당 상품의 재고가 필요.
+        //재고만 찾아오게 리팩터링 필요.
         Product product = repository.findProduct(productId);
-        /*
-            String loginId = CurrentUser.getLoginId();
-            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
-            UUID companyUserId = userClient.요청(loginId);
-            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
-         */
+        Integer stock = product.getProductStock().getQuantity();
 
-        Product updateProduct = product.updateStock(stock);
+        boolean finish = redisRepository.decreaseStockBySale(hashKey, stringKey, stock, quantity);
 
-        return UpdateStockRes.fromEntity(updateProduct);
+        if (!finish) {
+            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
+        }
+
+        return new SaleProductRes(productId, Boolean.TRUE);
     }
 }
