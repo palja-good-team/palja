@@ -11,7 +11,7 @@ public interface CouponUserRepository {
 
     CouponUser save(CouponUser couponUser);
 
-    boolean existsByCouponIdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId);
+    boolean existsByCoupon_IdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId);
 
     Page<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId, Pageable pageable);
 

@@ -22,8 +22,8 @@ public class CouponUserRepositoryAdaptor implements CouponUserRepository {
     }
 
     @Override
-    public boolean existsByCouponIdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId) {
-        return jpaCouponUserRepository.existsByCouponIdAndUserIdAndDeletedAtIsNull(couponId, userId);
+    public boolean existsByCoupon_IdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId) {
+        return jpaCouponUserRepository.existsByCoupon_IdAndUserIdAndDeletedAtIsNull(couponId, userId);
     }
 
     @Override
