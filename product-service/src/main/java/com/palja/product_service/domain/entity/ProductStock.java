@@ -43,4 +43,9 @@ public class ProductStock extends BaseEntity {
             throw new BusinessException(ProductErrorCode.INVALID_PRODUCT_STOCK);
         return this;
     }
+
+    protected ProductStock updateQuantity(Integer quantity) {
+        this.quantity = quantity;
+        return this;
+    }
 }

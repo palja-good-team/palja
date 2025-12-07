@@ -1,10 +1,9 @@
 package com.palja.product_service.application.service.impl;
 
-import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -99,8 +98,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductInfoForOrderRes findProductForOrder(UUID productId) {
+        return Optional.ofNullable(
+                        dslProductRepository.findProductForOrder(productId))
+                .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND)
+                );
+    }
+
+    @Override
     @Transactional
-    public UpdateProductRes updateProduct(UUID productId, UpdateProductCommand updateCommand) {
+    public UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand) {
 
         Product product = repository.findProduct(productId);
 
@@ -116,11 +124,28 @@ public class ProductServiceImpl implements ProductService {
                 updateCommand.name()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
-        Product updateProduct = product.updateProduct(updateCommand.name(),
+        Product updateProduct = product.updateInfo(updateCommand.name(),
                 updateCommand.description(),
                 updateCommand.price(),
                 updateCommand.category());
 
-        return UpdateProductRes.fromEntity(updateProduct);
+        return UpdateProductInfoRes.fromEntity(updateProduct);
+    }
+
+    @Override
+    @Transactional
+    public UpdateStockRes updateStock(UUID productId, Integer stock) {
+
+        Product product = repository.findProduct(productId);
+        /*
+            String loginId = CurrentUser.getLoginId();
+            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
+            UUID companyUserId = userClient.요청(loginId);
+            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
+         */
+
+        Product updateProduct = product.updateStock(stock);
+
+        return UpdateStockRes.fromEntity(updateProduct);
     }
 }
