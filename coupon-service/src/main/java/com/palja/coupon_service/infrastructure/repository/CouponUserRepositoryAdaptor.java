@@ -1,8 +1,11 @@
 package com.palja.coupon_service.infrastructure.repository;
 
+import com.palja.coupon_service.application.dto.CouponUserRes;
 import com.palja.coupon_service.domain.entity.CouponUser;
 import com.palja.coupon_service.domain.repository.CouponUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -21,5 +24,10 @@ public class CouponUserRepositoryAdaptor implements CouponUserRepository {
     @Override
     public boolean existsByCouponIdAndUserIdAndDeletedAtIsNull(UUID couponId, String userId) {
         return jpaCouponUserRepository.existsByCouponIdAndUserIdAndDeletedAtIsNull(couponId, userId);
+    }
+
+    @Override
+    public Page<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId, Pageable pageable) {
+        return jpaCouponUserRepository.findAllByUserIdAndDeletedAtIsNull(userId, pageable);
     }
 }

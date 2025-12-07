@@ -11,6 +11,8 @@ import com.palja.coupon_service.domain.repository.CouponUserRepository;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,19 +38,20 @@ public class CouponServiceImpl implements CouponService {
 
         coupon.increaseIssuedQuantity();
 
-        CouponUser couponUser = CouponUser.issue(coupon.getId(), command.userId(), calculateExpireAt(coupon));
+        CouponUser couponUser = CouponUser.issue(coupon, command.userId());
 
         CouponUser issuedCoupon = couponUserRepository.save(couponUser);
 
-        log.info("쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCouponId());
+        log.info("쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
         return CouponUserRes.from(couponUser);
     }
 
-    // 쿠폰 사용 만료일 계산
-    private LocalDateTime calculateExpireAt(Coupon coupon) {
-        LocalDateTime now = LocalDateTime.now();
-
-        return now.plusDays(coupon.getUsageDays());
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CouponUserRes> getCouponList(String userId, Pageable pageable) {
+        log.info("쿠폰 발급 시작 userId={}", userId);
+        return couponUserRepository.findAllByUserIdAndDeletedAtIsNull(userId, pageable)
+                .map(CouponUserRes::from);
     }
 
     // 쿠폰 발급 검증
