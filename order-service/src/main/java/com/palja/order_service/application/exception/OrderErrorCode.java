@@ -25,6 +25,9 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_PRODUCT_PRICE(HttpStatus.BAD_REQUEST, "상품 가격이 유효하지 않습니다."),
     INVALID_USER_ID(HttpStatus.BAD_REQUEST, "주문자 정보가 유효하지 않습니다."),
     MISSING_REQUIRED_FIELD(HttpStatus.BAD_REQUEST, "필수 입력 항목이 누락되었습니다."),
+    ORDER_CANNOT_BE_CANCELLED(HttpStatus.BAD_REQUEST, "취소할 수 없는 주문 상태입니다."),
+    ORDER_DELIVERY_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "이미 배송이 시작되어 취소할 수 없습니다."),
+    REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리에 실패했습니다."),
 
     // ===== 타임딜 관련 =====
     TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜을 찾을 수 없습니다."),
