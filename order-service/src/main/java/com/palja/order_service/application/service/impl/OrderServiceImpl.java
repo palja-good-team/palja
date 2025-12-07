@@ -2,6 +2,7 @@ package com.palja.order_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
@@ -86,26 +87,23 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findOrderByIdWithItemAndDelivery(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        validateOrderAccess(order, loginId, userRole);
+        validateOrderReadAccess(order, loginId, userRole);
 
         log.info("주문 조회 성공 - orderId: {}", orderId);
         return OrderDetailRes.from(order);
     }
 
     // 권한별로 주문 접근 권한 검증
-    private void validateOrderAccess(Order order, String loginId, UserRole userRole) {
+    private void validateOrderReadAccess(Order order, String loginId, UserRole userRole) {
         switch (userRole) {
             case MANAGER -> {
-                // MANAGER는 모든 주문 조회 가능
                 log.debug("MANAGER 권한으로 주문 조회");
             }
             case CUSTOMER -> {
-                // CUSTOMER는 본인 주문만 조회 가능
                 Long currentUserId = getUserIdForCustomer(loginId);
                 orderValidator.validateOrderForRead(order.getUserId(), userRole, currentUserId, null, null);
             }
             case COMPANY_USER -> {
-                // COMPANY_USER는 자신이 판매한 상품의 주문만 조회 가능
                 UUID currentCompanyUserId = getCompanyUserIdForCompany(loginId);
                 UUID productCompanyUserId = getProductCompanyUserId(order.getOrderItem().getProductId());
                 orderValidator.validateOrderForRead(order.getUserId(), userRole, null, currentCompanyUserId, productCompanyUserId);
@@ -155,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 일반 상품 재고 차감
-        productService.deductStock(command.productId(), command.quantity());
+        productService.deductProductStock(command.productId(), command.quantity());
 
         log.info("상품 재고 차감 완료: productId={}, quantity={}",
                 command.productId(), command.quantity());
@@ -258,5 +256,151 @@ public class OrderServiceImpl implements OrderService {
             UUID couponId,
             String couponName
     ) {
+    }
+
+    // 주문 취소
+    @Transactional
+    public OrderCancelRes cancelOrder(CancelOrderCommand command) {
+        log.info("주문 취소 시작 - orderId: {}, loginId: {}", command.orderId(), command.CurrentUserLoginId());
+
+        Order order = orderRepository.findOrderByIdWithItemAndDelivery(command.orderId())
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        validateOrderCancelAccess(order, command.CurrentUserLoginId(), command.CurrentUserRole());
+
+        order.cancel(command.cancelReason(), command.CurrentUserLoginId());
+
+        // 환불 처리
+        processRefund(order);
+        restoreStock(order);
+        restoreCoupon(order);
+
+        orderRepository.save(order);
+        log.info("주문 취소 완료 - orderId: {}", command.orderId());
+
+        return OrderCancelRes.from(order);
+    }
+
+    /**
+     * 취소 권한 검증
+     * - CUSTOMER: 본인 주문만 취소 가능
+     * - COMPANY_USER: 자신이 판매한 상품의 주문만 취소 가능 (재고 부족, 품절 등)
+     * - MANAGER: 모든 주문 취소 가능
+     */
+    private void validateOrderCancelAccess(Order order, String loginId, UserRole userRole) {
+        switch (userRole) {
+            case MANAGER -> {
+                log.debug("MANAGER 권한으로 주문 취소 - orderId: {}", order.getOrderId());
+            }
+            case CUSTOMER -> {
+                CustomerUserRes user = userService.getCustomerUserByLoginId(loginId);
+                if (!user.getUserId().equals(order.getUserId())) {
+                    log.warn("주문 취소 권한 없음 - 고객 불일치: userId={}, orderUserId={}",
+                            user.getUserId(), order.getUserId());
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+                log.debug("CUSTOMER 권한으로 본인 주문 취소 - orderId: {}", order.getOrderId());
+            }
+            case COMPANY_USER -> {
+                CompanyUserRes user = userService.getCompanyUserByLoginId(loginId);
+                ProductRes product = productService.getProduct(order.getOrderItem().getProductId());
+
+                if (!user.getCompanyUserId().equals(product.getCompanyUserId())) {
+                    log.warn("주문 취소 권한 없음 - 판매자 불일치: companyUserId={}, productCompanyUserId={}",
+                            user.getCompanyUserId(), product.getCompanyUserId());
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+                log.debug("COMPANY_USER 권한으로 판매 상품 주문 취소 - orderId: {}, companyUserId: {}",
+                        order.getOrderId(), user.getCompanyUserId());
+            }
+            default -> {
+                log.error("유효하지 않은 사용자 권한: {}", userRole);
+                throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+            }
+        }
+    }
+
+    /**
+     * 환불 처리 (동기)
+     * 결제 서비스를 직접 호출하여 환불 처리
+     * 실패 시 예외 발생 → 전체 트랜잭션 롤백
+     */
+    private void processRefund(Order order) {
+        if (order.getPaymentId() == null) {
+            log.info("결제 정보가 없는 주문 - 환불 불필요: orderId={}", order.getOrderId());
+            return;
+        }
+
+        try {
+            log.info("환불 처리 시작 - paymentId: {}, amount: {}",
+                    order.getPaymentId(), order.getOrderAmount().getFinalAmount());
+
+            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId());
+
+            log.info("환불 처리 완료 - paymentId: {}, amount: {}",
+                    order.getPaymentId(), order.getOrderAmount().getFinalAmount());
+        } catch (Exception e) {
+            log.error("환불 처리 실패 - orderId: {}, paymentId: {}, amount: {}",
+                    order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), e);
+            throw new BusinessException(OrderErrorCode.REFUND_FAILED);
+        }
+    }
+
+    /**
+     * 재고 복구
+     * - 타임딜 상품: 타임딜 서비스에 재고 복구 요청
+     * - 일반 상품: 상품 서비스에 재고 복구 요청
+     */
+    private void restoreStock(Order order) {
+        try {
+            if (order.isTimeDealOrder()) {
+                // 타임딜 재고 복구
+                UUID timeDealId = order.getOrderItem().getTimeDealId();
+                int quantity = order.getOrderItem().getQuantity();
+
+                log.info("타임딜 재고 복구 시작 - timeDealId: {}, quantity: {}", timeDealId, quantity);
+                timeDealService.restoreTimeDealStock(timeDealId, quantity);
+                log.info("타임딜 재고 복구 완료 - timeDealId: {}, quantity: {}", timeDealId, quantity);
+            } else {
+                // 일반 상품 재고 복구
+                UUID productId = order.getOrderItem().getProductId();
+                int quantity = order.getOrderItem().getQuantity();
+
+                log.info("상품 재고 복구 시작 - productId: {}, quantity: {}", productId, quantity);
+                productService.restoreProductStock(productId, quantity);
+                log.info("상품 재고 복구 완료 - productId: {}, quantity: {}", productId, quantity);
+            }
+        } catch (Exception e) {
+            log.error("재고 복구 실패 - orderId: {}, timeDealOrder: {}",
+                    order.getOrderId(), order.isTimeDealOrder(), e);
+            // 재고 복구 실패 시에도 주문 취소는 진행
+            // 별도 배치 작업으로 재고 정합성 맞추기 필요
+        }
+    }
+
+    /**
+     * 쿠폰 복구
+     * 쿠폰을 사용했다면 쿠폰 서비스에 복구 요청
+     */
+    private void restoreCoupon(Order order) {
+        if (order.getCouponId() == null) {
+            log.debug("쿠폰 사용 없음 - 복구 불필요: orderId={}", order.getOrderId());
+            return;
+        }
+
+        try {
+            log.info("쿠폰 복구 시작 - couponId: {}, userId: {}",
+                    order.getCouponId(), order.getUserId());
+
+            couponService.cancelCoupon(order.getCouponId(), order.getOrderId());
+
+            log.info("쿠폰 복구 완료 - couponId: {}, userId: {}",
+                    order.getCouponId(), order.getUserId());
+        } catch (Exception e) {
+            log.error("쿠폰 복구 실패 - orderId: {}, couponId: {}, userId: {}",
+                    order.getOrderId(), order.getCouponId(), order.getUserId(), e);
+            // 쿠폰 복구 실패 시에도 주문 취소는 진행
+            // 고객센터에서 수동으로 쿠폰 재발급 필요
+        }
     }
 }
