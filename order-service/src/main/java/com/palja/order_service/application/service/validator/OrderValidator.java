@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 // 주문 관련 검증을 담당하는 컴포넌트
 @Slf4j
@@ -82,34 +83,35 @@ public class OrderValidator {
     }
 
     // ===== 사용자 검증 =====
-    // 사용자 주문 가능 여부 검증
-    public void validateUserOrderable(UserRes user) {
+    // 주문 생성 시 사용자 검증
+    public void validateUserForOrderCreation(CustomerUserRes user) {
         validateUserStatus(user);
-        validateUserRoleForOrder(user);
+        validateUserRoleForOrderCreation(user);
     }
 
-    private void validateUserStatus(UserRes user) {
+    private void validateUserStatus(CustomerUserRes user) {
         if (!"ACTIVE".equals(user.getStatus())) {
             throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
         }
     }
 
-    private void validateUserRoleForOrder(UserRes user) {
+    private void validateUserRoleForOrderCreation(CustomerUserRes user) {
         if (UserRole.COMPANY_USER.equals(user.getRole())) {
             throw new BusinessException(OrderErrorCode.USER_NOT_ALLOWED);
         }
     }
 
     // ===== 상품 검증 =====
-    public void validateProductStock(ProductRes product, int requestedQuantity) {
+    // 주문 생성 시 상품 검증
+    public void validateProductForOrderCreation(ProductRes product, int requestedQuantity) {
         if (product.getStockQuantity() < requestedQuantity) {
             throw new BusinessException(OrderErrorCode.INSUFFICIENT_STOCK);
         }
     }
 
     // ===== 타임딜 검증 =====
-    // 상품 재고 검증
-    public void validateTimeDeal(TimeDealRes timeDeal, int requestedQuantity) {
+    // 주문 생성 시 타임딜 검증
+    public void validateTimeDealForOrderCreation(TimeDealRes timeDeal, int requestedQuantity) {
         validateTimeDealPeriod(timeDeal);
         validateTimeDealStatus(timeDeal);
         validateTimeDealStock(timeDeal, requestedQuantity);
@@ -143,9 +145,10 @@ public class OrderValidator {
     }
 
     // ===== 쿠폰 검증 =====
-    public void validateCoupon(CouponRes coupon, BigDecimal orderAmount) {
+    // 쿠폰 사용 가능 여부 검증 (상태, 타입, 기간, 최소 주문 금액)
+    public void validateCouponForUsage(CouponRes coupon, BigDecimal orderAmount) {
         validateCouponStatus(coupon);
-        validateCouponDiscountType(coupon);   // ← 추가
+        validateCouponDiscountType(coupon);
         validateCouponIssuePeriod(coupon);
         validateCouponMinOrderAmount(coupon, orderAmount);
     }
@@ -194,6 +197,34 @@ public class OrderValidator {
 
         if (orderAmount == null || orderAmount.compareTo(coupon.getMinOrderAmount()) < 0) {
             throw new BusinessException(OrderErrorCode.COUPON_MIN_AMOUNT_NOT_MET);
+        }
+    }
+
+    // ===== 주문 조회 권한 검증 =====
+    /**
+     * 주문 조회 시 권한 검증
+     * - MANAGER: 모든 주문 조회 가능
+     * - CUSTOMER: 본인 주문만 조회 가능
+     * - COMPANY_USER: 자신이 판매한 상품의 주문만 조회 가능
+     */
+    public void validateOrderForRead(Long orderUserId, UserRole userRole, Long currentUserId,
+                                     UUID currentCompanyUserId, UUID productCompanyUserId) {
+        switch (userRole) {
+            case MANAGER -> {
+                // 모든 주문 조회 가능
+            }
+            case CUSTOMER -> {
+                if (currentUserId == null || !currentUserId.equals(orderUserId)) {
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+            }
+            case COMPANY_USER -> {
+                if (currentCompanyUserId == null || productCompanyUserId == null
+                        || !currentCompanyUserId.equals(productCompanyUserId)) {
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+            }
+            default -> throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
     }
 }

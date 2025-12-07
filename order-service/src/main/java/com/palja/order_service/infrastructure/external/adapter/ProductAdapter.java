@@ -20,7 +20,7 @@ public class ProductAdapter implements ProductService {
      //private final ProductClient productClient;
 
     @Override
-    public ProductRes getProduct(UUID productId, int quantity) {
+    public ProductRes getProduct(UUID productId) {
         log.debug("상품 정보 조회: productId={}", productId);
 
         // TODO: 실제 상품 API 호출 (Feign)
@@ -34,6 +34,7 @@ public class ProductAdapter implements ProductService {
 
     private ProductRes toProductRes(ProductDTO dto) {
         return ProductRes.of(
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 dto.getProductId(),
                 dto.getName(),
                 dto.getPrice(),

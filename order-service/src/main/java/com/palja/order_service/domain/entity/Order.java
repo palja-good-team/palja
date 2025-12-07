@@ -7,6 +7,7 @@ import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.domain.vo.Recipient;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
+@Where(clause = "deleted_at IS NULL")
 public class Order extends BaseEntity {
 
     @Id
@@ -145,11 +147,10 @@ public class Order extends BaseEntity {
         order.delivery = OrderDelivery.create(order, recipient);
     }
 
-
     // 주문 취소
     public void cancel(String cancelReason, String canceledBy) {
         // 1. 주문 상태 검증
-        if (!this.status.isCancelableCandidate()) {
+        if (!this.status.isOrderCancellable()) {
             throw new IllegalStateException(
                     String.format("취소할 수 없는 주문 상태입니다: %s", this.status.getDescription())
             );
@@ -241,5 +242,19 @@ public class Order extends BaseEntity {
         if (paymentId == null) {
             throw new IllegalArgumentException("결제 ID는 필수입니다.");
         }
+    }
+
+    public OrderItem requireOrderItem() {
+        if (this.orderItem == null) {
+            throw new IllegalStateException("주문 상품 정보가 없습니다.");
+        }
+        return this.orderItem;
+    }
+
+    public OrderDelivery requireDelivery() {
+        if (this.delivery == null) {
+            throw new IllegalStateException("배송 정보가 없습니다.");
+        }
+        return this.delivery;
     }
 }

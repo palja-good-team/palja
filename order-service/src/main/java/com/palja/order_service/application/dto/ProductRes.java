@@ -12,18 +12,21 @@ import java.util.UUID;
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductRes {
+    private UUID companyUserId;
     private UUID productId;
     private String productName;
     private BigDecimal price;
     private int stockQuantity;
 
     public static ProductRes of(
+            UUID companyUserId,
             UUID productId,
             String productName,
             BigDecimal price,
             int stockQuantity
     ) {
         return ProductRes.builder()
+                .companyUserId(companyUserId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)
