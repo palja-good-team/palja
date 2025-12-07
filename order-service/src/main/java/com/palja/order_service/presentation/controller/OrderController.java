@@ -4,9 +4,11 @@ import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.dto.OrderCancelRes;
 import com.palja.order_service.application.dto.OrderCreateRes;
 import com.palja.order_service.application.dto.OrderDetailRes;
 import com.palja.order_service.application.service.OrderService;
+import com.palja.order_service.presentation.dto.request.CancelOrderReq;
 import com.palja.order_service.presentation.dto.request.CreateOrderReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +48,16 @@ public class OrderController {
     ) {
         OrderDetailRes response = orderService.getOrder(orderId, CurrentUser.getLoginId(), CurrentUser.getRole());
         return ResponseEntity.ok(ApiResponse.success(response, "주문이 조회되었습니다."));
+    }
+
+    // 주문 취소
+    @PostMapping("/{orderId}/cancel")
+    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
+    public ResponseEntity<ApiResponse<OrderCancelRes>> cancelOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody CancelOrderReq request
+    ) {
+        OrderCancelRes response = orderService.cancelOrder(request.toCommand(orderId, CurrentUser.getLoginId(), CurrentUser.getRole()));
+        return ResponseEntity.ok(ApiResponse.success(response,"주문이 취소되었습니다."));
     }
 }
