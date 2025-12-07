@@ -1,9 +1,13 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.dto.response.UserRes;
 import com.palja.payment_service.application.service.PaymentLogService;
+import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.vo.PaymentStatus;
@@ -23,10 +27,18 @@ import java.util.UUID;
 public class PaymentLogServiceImpl implements PaymentLogService {
 
     private final PaymentLogRepository paymentLogRepository;
+    private final PaymentValidator paymentValidator;
+    private final UserService userService;
 
     @Override
     @Transactional(readOnly = true)
     public List<PaymentLogDetailRes> getLogsByPaymentId(UUID paymentId) {
+
+        String loginId = CurrentUser.getLoginId();
+        UserRes user = userService.getUserByLoginId(loginId);
+
+        paymentValidator.validateGetPaymentLogs(paymentId, user);
+
         List<PaymentLog> logs = paymentLogRepository.findByPaymentId(paymentId);
         if (logs.isEmpty()) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_LOG_NOT_FOUND);
@@ -40,6 +52,8 @@ public class PaymentLogServiceImpl implements PaymentLogService {
     @Transactional(readOnly = true)
     public Page<PaymentLogDetailRes> searchLogs(FindPaymentLogListByConditionCommand command,
                                                 PageRequest pageRequest) {
+
+        paymentValidator.validateSearchPaymentLogs(command.startDate(), command.endDate());
 
         PaymentStatus status = null;
         if (command.status() != null) {
@@ -66,6 +80,9 @@ public class PaymentLogServiceImpl implements PaymentLogService {
     @Transactional
     public void deleteOldLogs(){
         LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+
+        paymentValidator.validateDeleteOldLogs(oneYearAgo);
+
         paymentLogRepository.deleteLogsOlder(oneYearAgo);
     }
 }

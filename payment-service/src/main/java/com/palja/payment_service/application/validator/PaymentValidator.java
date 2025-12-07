@@ -27,7 +27,7 @@ public class PaymentValidator {
     public void validateCreatePayment(CreatePaymentCommand command, OrderRes order, UserRes user) {
         validateCreatePaymentCommand(command);
         validateOrderForPayment(order, command, user);
-        validateUserForPayment(user, command);
+        validateUserForPayment(user);
     }
 
     private void validateCreatePaymentCommand(CreatePaymentCommand command) {
@@ -98,10 +98,9 @@ public class PaymentValidator {
         }
     }
 
-    private void validateUserForPayment(UserRes user, CreatePaymentCommand command) {
+    private void validateUserForPayment(UserRes user) {
         validateUserExists(user);
         validateUserStatus(user);
-        validateUserRoleForPayment(user);
     }
 
     private void validateUserExists(UserRes user) {
@@ -112,12 +111,6 @@ public class PaymentValidator {
 
     private void validateUserStatus(UserRes user) {
         if (!"ACTIVE".equals(user.getStatus())) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
-        }
-    }
-
-    private void validateUserRoleForPayment(UserRes user) {
-        if (UserRole.COMPANY_USER.equals(user.getRole())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
     }
@@ -188,6 +181,7 @@ public class PaymentValidator {
         if (user == null) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
+
         if (!UserRole.MASTER.equals(user.getRole()) && !UserRole.MANAGER.equals(user.getRole())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
@@ -220,17 +214,7 @@ public class PaymentValidator {
             return;
         }
 
-        if (UserRole.CUSTOMER.equals(user.getRole())) {
-            validateCustomerOwnership(user, payment);
-            return;
-        }
-
-        if (UserRole.COMPANY_USER.equals(user.getRole())) {
-            validateCompanyUserAccess(user, payment);
-            return;
-        }
-
-        throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        validateCustomerOwnership(user, payment);
     }
 
     private void validateCustomerOwnership(UserRes user, Payment payment) {
@@ -239,9 +223,31 @@ public class PaymentValidator {
         }
     }
 
-    private void validateCompanyUserAccess(UserRes user, Payment payment){
-        /*
-        TODO: 회사 loginId를 가져와서 검증
-         */
+    // ===== PaymentLog 관련 검증=====
+    public void validateSearchPaymentLogs(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+    }
+
+    public void validateGetPaymentLogs(UUID paymentId, UserRes user) {
+        if (paymentId == null) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        if (user == null ||
+                (!UserRole.MASTER.equals(user.getRole()) && !UserRole.MANAGER.equals(user.getRole()))) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+    }
+
+    public void validateDeleteOldLogs(LocalDateTime cutoffDate) {
+        if (cutoffDate == null) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+
+        if (cutoffDate.isAfter(LocalDateTime.now())) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
     }
 }
