@@ -322,7 +322,6 @@ public class CustomerServiceImplTest {
 
 	}
 
-
 	@Nested
 	@DisplayName("일반 사용자 조회 - me")
 	class GetMeTest {
@@ -467,7 +466,7 @@ public class CustomerServiceImplTest {
 			// given
 			given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
 			given(userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class))).willReturn(Optional.of(customer1));
-			AuditorContext.set(customer1.getLoginId(), UserRole.MANAGER);
+			AuditorContext.set(currentUserLoginId, UserRole.MANAGER);
 
 			// when
 			customerService.deleteCustomerByLoginId(currentUserLoginId, customer1.getLoginId());
@@ -519,7 +518,7 @@ public class CustomerServiceImplTest {
 		void deleteMe_success() {
 			// given
 			given(userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class))).willReturn(Optional.of(customer1));
-			AuditorContext.set(customer1.getLoginId(), UserRole.MANAGER);
+			AuditorContext.set(currentUserLoginId, UserRole.CUSTOMER);
 			given(jwtUtil.substringToken(anyString())).willReturn("substringAccessToken");
 			given(jwtUtil.hashingTokenToSHA256(anyString())).willReturn("hashKey");
 

@@ -447,7 +447,7 @@ public class ManagerServiceImplTest {
 		void deleteManagerByLoginId_success() {
 			// given
 			given(userRepository.findByLoginIdAndRoleAndDeletedAtIsNull(anyString(), any(UserRole.class))).willReturn(Optional.of(manager1));
-			AuditorContext.set(manager1.getLoginId(), UserRole.MANAGER);
+			AuditorContext.set(currentUserLoginId, UserRole.MASTER);
 
 			// when
 			managerService.deleteManagerByLoginId(manager1.getLoginId());
