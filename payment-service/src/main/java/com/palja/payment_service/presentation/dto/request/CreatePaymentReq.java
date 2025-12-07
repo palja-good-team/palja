@@ -12,16 +12,15 @@ import java.util.UUID;
 public class CreatePaymentReq {
 
     private UUID orderId;
-    private Long userId;
     private BigDecimal amount;
     private String paymentMethod;
     private String currency;
     private String paymentKey;
 
-    public CreatePaymentCommand toCommand() {
+    public CreatePaymentCommand toCommand(String loginId) {
         return CreatePaymentCommand.builder()
                 .orderId(orderId)
-                .userId(userId)
+                .loginId(loginId)
                 .amount(amount)
                 .currency(currency)
                 .paymentMethod(paymentMethod)

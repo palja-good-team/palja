@@ -8,7 +8,6 @@ import com.palja.payment_service.application.command.FindPaymentListByConditionC
 import com.palja.payment_service.application.dto.response.OrderRes;
 import com.palja.payment_service.application.dto.response.UserRes;
 import com.palja.payment_service.domain.entity.Payment;
-import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +26,12 @@ public class PaymentValidator {
     // ===== 결제 생성 검증 =====
     public void validateCreatePayment(CreatePaymentCommand command, OrderRes order, UserRes user) {
         validateCreatePaymentCommand(command);
-        validateOrderForPayment(order, command);
+        validateOrderForPayment(order, command, user);
         validateUserForPayment(user, command);
     }
 
     private void validateCreatePaymentCommand(CreatePaymentCommand command) {
         validateOrderId(command.orderId());
-        validateUserId(command.userId());
         validateAmount(command.amount());
         validateCurrency(command.currency());
         validatePaymentMethod(command.paymentMethod());
@@ -72,11 +70,11 @@ public class PaymentValidator {
         }
     }
 
-    private void validateOrderForPayment(OrderRes order, CreatePaymentCommand command) {
+    private void validateOrderForPayment(OrderRes order, CreatePaymentCommand command, UserRes user) {
         validateOrderExists(order);
         validateOrderStatusForPayment(order);
         validateOrderAmount(order, command.amount());
-        validateOrderUserId(order, command.userId());
+        validateOrderUserId(order, user);
     }
 
     private void validateOrderExists(OrderRes order) {
@@ -100,8 +98,8 @@ public class PaymentValidator {
         }
     }
 
-    private void validateOrderUserId(OrderRes order, Long userId) {
-        if (!order.getUserId().equals(userId)) {
+    private void validateOrderUserId(OrderRes order, UserRes user) {
+        if (!order.getUserId().equals(user.getUserId())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
     }
@@ -110,7 +108,6 @@ public class PaymentValidator {
         validateUserExists(user);
         validateUserStatus(user);
         validateUserRoleForPayment(user);
-        validateUserOwnership(user, command.userId());
     }
 
     private void validateUserExists(UserRes user) {
@@ -131,17 +128,11 @@ public class PaymentValidator {
         }
     }
 
-    private void validateUserOwnership(UserRes user, Long userId) {
-        if (!user.getUserId().equals(userId)) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
-        }
-    }
-
     // ===== 결제 취소 검증 =====
     public void validateCancelPayment(Payment payment, CancelPaymentCommand command, UserRes user) {
         validatePaymentStatusForCancel(payment);
         validateCancelAmount(payment, command.cancelAmount());
-        validateUserForCancel(user, payment, command.userId());
+        validateUserForCancel(user, payment);
     }
 
     private void validatePaymentStatusForCancel(Payment payment) {
@@ -169,16 +160,13 @@ public class PaymentValidator {
         }
     }
 
-    private void validateUserForCancel(UserRes user, Payment payment, Long userId) {
+    private void validateUserForCancel(UserRes user, Payment payment) {
         validateUserExists(user);
-        validateUserOwnershipForCancel(user, payment, userId);
+        validateUserOwnershipForCancel(user, payment);
     }
 
-    private void validateUserOwnershipForCancel(UserRes user, Payment payment, Long userId) {
-        if (!payment.getUserId().equals(userId)) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
-        }
-        if (!user.getUserId().equals(userId)) {
+    private void validateUserOwnershipForCancel(UserRes user, Payment payment) {
+        if (!payment.getUserId().equals(user.getUserId())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
     }
@@ -244,9 +232,7 @@ public class PaymentValidator {
         }
 
         if (UserRole.COMPANY_USER.equals(user.getRole())) {
-            // 업체 판매자는 본인 회사 주문 결제완료만 조회 가능
-            // 이 부분은 order-service에서 회사 정보를 가져와서 검증해야 함
-            // 일단 기본 검증만 수행
+            validateCompanyUserAccess(user, payment);
             return;
         }
 
@@ -257,5 +243,11 @@ public class PaymentValidator {
         if (!user.getUserId().equals(payment.getUserId())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
+    }
+
+    private void validateCompanyUserAccess(UserRes user, Payment payment){
+        /*
+        TODO: 회사 loginId를 가져와서 검증
+         */
     }
 }
