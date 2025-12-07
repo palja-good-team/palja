@@ -35,14 +35,12 @@ public class PaymentAdapter implements PaymentService {
         return PaymentRes.of(dummy.getPaymentId(), dummy.getAmount());
     }
 
-    public PaymentCancelRes cancelPayment(UUID orderId, UUID paymentId) {
+    public void cancelPayment(UUID orderId, UUID paymentId) {
         log.info("결제 취소 요청 시작: paymentId={}", paymentId);
         // TODO: payment-service 연동 시 FeignClient 호출 사용
         //CancelPaymentDTO request = new CancelPaymentDTO("주문 취소");
         //PaymentCancelDTO response = paymentClient.cancelPayment(paymentId, request).data();
         // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
         PaymentCancelDTO dummy = PaymentCancelDTO.dummy(orderId, paymentId);
-
-        return PaymentCancelRes.of(dummy.getPaymentId(), dummy.getAmount(), dummy.getStatus());
     }
 }

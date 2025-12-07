@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface PaymentService {
 
     PaymentRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentMethod);
+
+    void cancelPayment(UUID orderId, UUID paymentId);
 }
