@@ -28,6 +28,10 @@ public enum TimeDealErrorCode implements ErrorCode {
     // 재고 관련
     INVALID_TOTAL_QUANTITY(HttpStatus.BAD_REQUEST, "타임딜 재고는 0보다 커야 합니다."),
     INVALID_STOCK_QUANTITY(HttpStatus.BAD_REQUEST, "타임딜 재고는 상품의 실제 재고를 초과할 수 없습니다."),
+    INVALID_TOTAL_QUANTITY_UPDATE(HttpStatus.BAD_REQUEST, "이미 판매된 수량보다 적은 총 수량으로 변경할 수 없습니다."),
+    INVALID_REMAINING_QUANTITY(HttpStatus.BAD_REQUEST, "남은 수량이 총 수량 범위를 벗어났습니다."),
+    TIME_DEAL_INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "잘못된 차감 수량이 요청되었습니다."),
+    TIME_DEAL_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "요청 수량만큼 재고가 남아있지 않습니다."),
 
     // 수정 관련
     TIME_DEAL_NOT_EDITABLE(HttpStatus.BAD_REQUEST, "타임딜을 수정할 수 없는 상태입니다."),
@@ -39,7 +43,9 @@ public enum TimeDealErrorCode implements ErrorCode {
 
     // 외부 관련
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
-    COMPANY_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "업체 판매자를 찾을 수 없습니다.");
+    COMPANY_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "업체 판매자를 찾을 수 없습니다."),
+    TIME_DEAL_NOT_OPEN(HttpStatus.BAD_REQUEST, "OPEN 상태의 타임딜만 재고 차감이 가능합니다."),
+    TIME_DEAL_NOT_IN_PERIOD(HttpStatus.BAD_REQUEST, "현재 시간에 재고 차감을 수행할 수 없는 타임딜입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

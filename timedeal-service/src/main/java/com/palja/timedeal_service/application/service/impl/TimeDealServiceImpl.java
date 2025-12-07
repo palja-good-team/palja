@@ -5,6 +5,7 @@ import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
+import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
@@ -103,10 +104,28 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
 
-        timeDeal.changeStatus(newStatus, command.reason());
+        if (newStatus == TimeDealStatus.OPEN) {
+            timeDeal.openNow(command.reason());
+        }
+        else if (newStatus == TimeDealStatus.CLOSED) {
+            timeDeal.closeNow(command.reason());
+        }
+        else {
+            timeDeal.changeStatus(newStatus, command.reason());
+        }
 
         log.info("타임딜 상태 수정 완료");
         return TimeDealDetailRes.from(timeDeal);
+    }
+
+    @Override
+    @Transactional
+    public void decreaseRemainingQuantity(DecreaseRemainingQuantityCommand command) {
+        log.info("타임딜 남은 수량 차감 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+
+        timeDeal.decreaseRemainingQuantity(command.deltaQuantity());
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {

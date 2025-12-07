@@ -6,16 +6,17 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
+import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.presentation.dto.request.ChangeTimeDealStatusReq;
 import com.palja.timedeal_service.presentation.dto.request.CreateTimeDealReq;
+import com.palja.timedeal_service.presentation.dto.request.DecreaseRemainingQuantityReq;
 import com.palja.timedeal_service.presentation.dto.request.UpdateTimeDealReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -87,5 +88,20 @@ public class TimeDealController {
 
         log.info("타임딜 상태 변경 성공: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상태 변경에 성공했습니다."));
+    }
+
+    @PutMapping("/{timeDealId}/stock/decrease")
+    public ResponseEntity<Void> decreaseRemainingQuantity(
+            @PathVariable UUID timeDealId,
+            @RequestBody @Valid DecreaseRemainingQuantityReq req
+    ) {
+        log.info("PUT api/v1/time-deals/{}/stock/decrease 타임딜 남은 재고 차감 요청", timeDealId);
+
+        DecreaseRemainingQuantityCommand command = req.toCommand(timeDealId);
+
+        timeDealService.decreaseRemainingQuantity(command);
+
+        log.info("타임딜 남은 재고 차감 성공");
+        return ResponseEntity.noContent().build();
     }
 }
