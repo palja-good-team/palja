@@ -1,6 +1,5 @@
 package com.palja.coupon_service.application.command;
 
-import com.palja.coupon_service.domain.vo.DiscountType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -15,6 +14,7 @@ public record CreateCouponCommand(
         Integer maxDiscountAmount,
         Integer minOrderAmount,
         LocalDateTime issueStartAt,
-        LocalDateTime issueEndAt
+        LocalDateTime issueEndAt,
+        Integer usageDays
 ) {
 }

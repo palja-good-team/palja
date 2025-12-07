@@ -40,7 +40,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
                 DiscountPolicy.of(DiscountType.valueOf(command.discountType().toUpperCase()), command.discountValue()),
                 command.totalQuantity(),
                 AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
-                IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
+                IssuePeriod.of(command.issueStartAt(), command.issueEndAt()),
+                command.usageDays()
         );
 
         Coupon savedCoupon = couponRepository.save(coupon);
@@ -57,7 +58,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
         Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
 
-        validateCouponNameDuplicate(command.couponName());
+        if (command.couponName() != null && !coupon.getName().equals(command.couponName()))
+            validateCouponNameDuplicate(command.couponName());
 
         coupon.update(
                 command.couponName(),
@@ -66,7 +68,8 @@ public class CouponManagerServiceImpl implements CouponManagerService {
                 command.maxDiscountAmount(),
                 command.minOrderAmount(),
                 command.issueStartAt(),
-                command.issueEndAt()
+                command.issueEndAt(),
+                command.usageDays()
         );
 
         log.info("쿠폰 수정 완료 - couponId={}", command.couponId());

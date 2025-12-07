@@ -62,6 +62,7 @@ class CouponManagerServiceImplTest {
                     .minOrderAmount(10000)
                     .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                     .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
+                    .usageDays(7)
                     .build();
 
             Coupon savedCoupon = Coupon.create(
@@ -70,7 +71,8 @@ class CouponManagerServiceImplTest {
                     DiscountPolicy.of(DiscountType.valueOf(command.discountType()), command.discountValue()),
                     command.totalQuantity(),
                     AmountPolicy.of(command.maxDiscountAmount(), command.minOrderAmount()),
-                    IssuePeriod.of(command.issueStartAt(), command.issueEndAt())
+                    IssuePeriod.of(command.issueStartAt(), command.issueEndAt()),
+                    command.usageDays()
             );
 
             given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
@@ -108,6 +110,7 @@ class CouponManagerServiceImplTest {
                     .minOrderAmount(10000)
                     .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                     .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
+                    .usageDays(7)
                     .build();
 
             assertThatThrownBy(() -> couponManagerService.createCoupon(command))
@@ -129,6 +132,7 @@ class CouponManagerServiceImplTest {
                     .minOrderAmount(10000)
                     .issueStartAt(LocalDateTime.of(2025, 12, 1, 0, 0))
                     .issueEndAt(LocalDateTime.of(2025, 12, 31, 23, 59))
+                    .usageDays(7)
                     .build();
 
             assertThatThrownBy(() -> couponManagerService.createCoupon(command))
@@ -218,7 +222,8 @@ class CouponManagerServiceImplTest {
                     command.maxDiscountAmount(),
                     command.minOrderAmount(),
                     command.issueStartAt(),
-                    command.issueEndAt()
+                    command.issueEndAt(),
+                    command.usageDays()
             );
         }
 

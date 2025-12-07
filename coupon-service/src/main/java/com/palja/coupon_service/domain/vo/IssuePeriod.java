@@ -39,6 +39,16 @@ public class IssuePeriod {
         return IssuePeriod.of(updateIssueStartAt, updateIssueEndAt);
     }
 
+    public void validateIssuePeriod(LocalDateTime now) {
+        if (issueStartAt == null && issueEndAt == null) return;
+
+        if (issueStartAt != null && now.isBefore(issueStartAt))
+            throw new BusinessException(CouponErrorCode.COUPON_NOT_STARTED);
+
+        if (issueEndAt != null && now.isAfter(issueEndAt))
+            throw new BusinessException(CouponErrorCode.COUPON_EXPIRED);
+    }
+
     private void validate(LocalDateTime issueStartAt, LocalDateTime issueEndAt) {
         if (issueStartAt == null || issueEndAt == null) return;
 
