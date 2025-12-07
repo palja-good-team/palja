@@ -175,4 +175,11 @@ public class ProductServiceImpl implements ProductService {
 
         return new SaleProductRes(productId, Boolean.TRUE);
     }
+
+    @Override
+    @Transactional
+    public RestoreStockRes stockRestore(UUID productId, Integer quantity) {
+        repository.restoreStock(productId, quantity);
+        return new RestoreStockRes(productId, Boolean.TRUE);
+    }
 }

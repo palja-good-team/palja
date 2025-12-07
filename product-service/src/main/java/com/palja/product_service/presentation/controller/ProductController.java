@@ -96,4 +96,13 @@ public class ProductController {
 
         return new ResponseEntity<>(ApiResponse.success(res, "판매 재고 차감 성공"), HttpStatus.OK);
     }
+
+    @PutMapping("/order/cancel/{productId}")
+    public ResponseEntity<ApiResponse<RestoreStockRes>> restoreStockByCancel(@PathVariable UUID productId,
+                                                                             @RequestParam Integer quantity) {
+
+        RestoreStockRes res = service.stockRestore(productId, quantity);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "취소 수량 복구 성공"), HttpStatus.OK);
+    }
 }
