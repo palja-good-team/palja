@@ -4,6 +4,7 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
+import com.palja.coupon_service.application.dto.CouponUserDetailRes;
 import com.palja.coupon_service.application.dto.CouponUserRes;
 import com.palja.coupon_service.application.service.CouponService;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,14 @@ public class CouponController {
         PageResponse<CouponUserRes> response = PageResponse.from(couponUserResPage);
 
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 쿠폰 목록 조회"));
+    }
+
+    @GetMapping("/me/{couponUserId}")
+    public ResponseEntity<ApiResponse<CouponUserDetailRes>> getCouponDetail(@PathVariable UUID couponUserId) {
+        log.info("GET /api/v1/coupons/me/{} - 쿠폰 상세 조회 요청", couponUserId);
+
+        CouponUserDetailRes response = couponService.getCouponDetail(couponUserId, CurrentUser.getLoginId());
+
+        return ResponseEntity.ok(ApiResponse.success(response, "사용자 쿠폰 상세 조회"));
     }
 }

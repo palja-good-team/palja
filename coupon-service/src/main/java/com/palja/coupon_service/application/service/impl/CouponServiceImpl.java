@@ -2,6 +2,7 @@ package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
+import com.palja.coupon_service.application.dto.CouponUserDetailRes;
 import com.palja.coupon_service.application.dto.CouponUserRes;
 import com.palja.coupon_service.application.service.CouponService;
 import com.palja.coupon_service.domain.entity.Coupon;
@@ -16,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -49,9 +50,20 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional(readOnly = true)
     public Page<CouponUserRes> getCouponList(String userId, Pageable pageable) {
-        log.info("쿠폰 발급 시작 userId={}", userId);
+        log.info("쿠폰 목록 조회 시작 userId={}", userId);
         return couponUserRepository.findAllByUserIdAndDeletedAtIsNull(userId, pageable)
                 .map(CouponUserRes::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CouponUserDetailRes getCouponDetail(UUID couponUserId, String userId) {
+        log.info("쿠폰 상세 조회 시작 couponId={} userId={}", couponUserId, userId);
+
+        CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId)
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
+
+        return CouponUserDetailRes.from(couponUser);
     }
 
     // 쿠폰 발급 검증
