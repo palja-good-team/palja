@@ -15,13 +15,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderAdapter implements OrderService {
 
-    private final OrderClient orderClient;
+    // TODO: 주문 서비스 연동 시 orderClient 주입
+    //private final OrderClient orderClient;
 
     @Override
     public OrderRes getOrderByOrderId(UUID orderId){
         log.debug("주문 조회 요청: orderId={}", orderId);
 
-        OrderDTO res = orderClient.getOrderByOrderId(orderId).data();
+        // TODO: order-service 연동 시 FeignClient 호출 사용
+        //OrderDTO res = orderClient.getOrderByOrderId(orderId).data();
+
+        //임시 더미 데이터
+        OrderDTO res = OrderDTO.dummy(orderId);
         return toOrderRes(res);
     }
 

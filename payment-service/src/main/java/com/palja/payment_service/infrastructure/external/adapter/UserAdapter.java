@@ -17,41 +17,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserAdapter implements UserService {
 
+    // TODO: 유저 서비스 연동 시 userClient 주입 및 구현 추가
     private final UserClient userClient;
 
     @Override
-    public UserRes getUserByLoginId(String loginId){
+    public UserRes getUserByLoginId(String loginId) {
         log.debug("사용자 조회 요청: loginId={}", loginId);
+        /*
+         TODO: 권한에 따라 다른 엔드포인트 연결하기 (MANAGER, CUSTOMER, COMPANY_USER)
+                user-service 연동 시 FeignClient 호출 사용
+         */
+        // CustomerUserDTO response = userClient.getCustomerUserByLoginId(loginId).data();
+        // ManagerUserDTO response = userClient.getManagerUserByLoginId(loginId).data();
+        // CompanyUserDTO response = userClient.getCompanyUserByLoginId(loginId).data();
 
-        try {
-            CustomerUserDTO customer = userClient.getCustomerUserByLoginId(loginId).data();
-            if (customer != null) {
-                return toUserRes(customer);
-            }
-        } catch (Exception e) {
-            log.debug("Customer 조회 실패, Manager 조회 시도: {}", e.getMessage());
-        }
-
-        try {
-            ManagerUserDTO manager = userClient.getManagerUserByLoginId(loginId).data();
-            if (manager != null) {
-                return toUserRes(manager);
-            }
-        } catch (Exception e) {
-            log.debug("Manager 조회 실패, CompanyUser 조회 시도: {}", e.getMessage());
-        }
-
-        try {
-            CompanyUserDTO companyUser = userClient.getCompanyUserByLoginId(loginId).data();
-            if (companyUser != null) {
-                return toUserRes(companyUser);
-            }
-        } catch (Exception e) {
-            log.error("모든 사용자 타입 조회 실패: loginId={}", loginId, e);
-            throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
-        }
-
-        throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
+        CustomerUserDTO response = CustomerUserDTO.dummy(loginId);
+        return toUserRes(response);
     }
 
     private UserRes toUserRes(CustomerUserDTO dto) {
