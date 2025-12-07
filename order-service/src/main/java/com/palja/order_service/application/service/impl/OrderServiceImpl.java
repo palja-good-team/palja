@@ -106,9 +106,9 @@ public class OrderServiceImpl implements OrderService {
             }
             case COMPANY_USER -> {
                 // COMPANY_USER는 자신이 판매한 상품의 주문만 조회 가능
-                UUID companyUserId = getCompanyUserIdForCompany(loginId);
+                UUID currentCompanyUserId = getCompanyUserIdForCompany(loginId);
                 UUID productCompanyUserId = getProductCompanyUserId(order.getOrderItem().getProductId());
-                orderValidator.validateOrderForRead(order.getUserId(), userRole, null, companyUserId, productCompanyUserId);
+                orderValidator.validateOrderForRead(order.getUserId(), userRole, null, currentCompanyUserId, productCompanyUserId);
             }
             default -> throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
@@ -181,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
         if (command.timeDealId() == null) return null;
 
         TimeDealRes timeDeal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
-        orderValidator.validateCouponForOrderCreation(timeDeal, command.quantity());
+        orderValidator.validateTimeDealForOrderCreation(timeDeal, command.quantity());
         return timeDeal;
     }
 

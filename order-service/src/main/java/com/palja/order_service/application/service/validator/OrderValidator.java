@@ -83,7 +83,7 @@ public class OrderValidator {
     }
 
     // ===== 사용자 검증 =====
-    // 사용자 주문 가능 여부 검증
+    // 주문 생성 시 사용자 검증
     public void validateUserForOrderCreation(CustomerUserRes user) {
         validateUserStatus(user);
         validateUserRoleForOrderCreation(user);
@@ -102,6 +102,7 @@ public class OrderValidator {
     }
 
     // ===== 상품 검증 =====
+    // 주문 생성 시 상품 검증
     public void validateProductForOrderCreation(ProductRes product, int requestedQuantity) {
         if (product.getStockQuantity() < requestedQuantity) {
             throw new BusinessException(OrderErrorCode.INSUFFICIENT_STOCK);
@@ -109,7 +110,8 @@ public class OrderValidator {
     }
 
     // ===== 타임딜 검증 =====
-    public void validateCouponForOrderCreation(TimeDealRes timeDeal, int requestedQuantity) {
+    // 주문 생성 시 타임딜 검증
+    public void validateTimeDealForOrderCreation(TimeDealRes timeDeal, int requestedQuantity) {
         validateTimeDealPeriod(timeDeal);
         validateTimeDealStatus(timeDeal);
         validateTimeDealStock(timeDeal, requestedQuantity);
@@ -143,9 +145,10 @@ public class OrderValidator {
     }
 
     // ===== 쿠폰 검증 =====
+    // 쿠폰 사용 가능 여부 검증 (상태, 타입, 기간, 최소 주문 금액)
     public void validateCouponForUsage(CouponRes coupon, BigDecimal orderAmount) {
         validateCouponStatus(coupon);
-        validateCouponDiscountType(coupon);   // ← 추가
+        validateCouponDiscountType(coupon);
         validateCouponIssuePeriod(coupon);
         validateCouponMinOrderAmount(coupon, orderAmount);
     }
@@ -197,6 +200,13 @@ public class OrderValidator {
         }
     }
 
+    // ===== 주문 조회 권한 검증 =====
+    /**
+     * 주문 조회 시 권한 검증
+     * - MANAGER: 모든 주문 조회 가능
+     * - CUSTOMER: 본인 주문만 조회 가능
+     * - COMPANY_USER: 자신이 판매한 상품의 주문만 조회 가능
+     */
     public void validateOrderForRead(Long orderUserId, UserRole userRole, Long currentUserId,
                                      UUID currentCompanyUserId, UUID productCompanyUserId) {
         switch (userRole) {
