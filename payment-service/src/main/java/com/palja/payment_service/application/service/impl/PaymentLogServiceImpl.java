@@ -53,7 +53,10 @@ public class PaymentLogServiceImpl implements PaymentLogService {
     public Page<PaymentLogDetailRes> searchLogs(FindPaymentLogListByConditionCommand command,
                                                 PageRequest pageRequest) {
 
-        paymentValidator.validateSearchPaymentLogs(command.startDate(), command.endDate());
+        String loginId = CurrentUser.getLoginId();
+        UserRes user = userService.getUserByLoginId(loginId);
+
+        paymentValidator.validateSearchPaymentLogs(command.startDate(), command.endDate(), user);
 
         PaymentStatus status = null;
         if (command.status() != null) {

@@ -240,6 +240,19 @@ public class PaymentValidator {
         }
     }
 
+    public void validateSearchPaymentLogs(LocalDateTime startDate,
+                                          LocalDateTime endDate,
+                                          UserRes user) {
+
+        validateSearchPaymentLogs(startDate, endDate);
+
+        if (user == null ||
+                (!UserRole.MASTER.equals(user.getRole()) &&
+                        !UserRole.MANAGER.equals(user.getRole()))) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+    }
+
     public void validateGetPaymentLogs(UUID paymentId, UserRes user) {
         if (paymentId == null) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
