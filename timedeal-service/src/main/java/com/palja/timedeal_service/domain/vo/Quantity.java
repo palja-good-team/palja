@@ -31,7 +31,11 @@ public class Quantity {
         return new Quantity(totalQuantity);
     }
 
-    private static void validate(long totalQuantity) {
+    public Quantity updateTotalQuantity(long newTotalQuantity) {
+        return new Quantity(newTotalQuantity);
+    }
+
+    private void validate(long totalQuantity) {
         if (totalQuantity <= 0) {
             throw new BusinessException(TimeDealErrorCode.INVALID_TOTAL_QUANTITY);
         }

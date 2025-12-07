@@ -34,6 +34,9 @@ public class TimeDealStock extends BaseEntity {
                 .build();
 
         return timeDealStock;
+    }
 
+    public void changeTotalQuantity(long newTotalQuantity) {
+        this.quantity = this.quantity.updateTotalQuantity(newTotalQuantity);
     }
 }

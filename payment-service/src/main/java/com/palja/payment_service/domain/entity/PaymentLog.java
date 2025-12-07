@@ -28,6 +28,9 @@ public class PaymentLog extends BaseEntity {
     @JoinColumn(name = "payment_id", nullable = false)
     private Payment payment;
 
+    @Column(name = "order_id", nullable = false)
+    private UUID orderId;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -51,11 +54,12 @@ public class PaymentLog extends BaseEntity {
     private LocalDateTime processedAt;
 
     @Builder
-    public PaymentLog(Payment payment, Long userId, BigDecimal amount,
+    public PaymentLog(Payment payment, UUID orderId, Long userId, BigDecimal amount,
                       PaymentStatus status, String paymentKey,
                       String pgResponseCode, String pgResponseMessage,
                       LocalDateTime processedAt) {
         this.payment = payment;
+        this.orderId = orderId;
         this.userId = userId;
         this.amount = amount;
         this.status = status;
@@ -68,6 +72,7 @@ public class PaymentLog extends BaseEntity {
     public static PaymentLog createRequestLog(Payment payment) {
         return PaymentLog.builder()
                 .payment(payment)
+                .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
                 .status(payment.getStatus())
@@ -84,6 +89,7 @@ public class PaymentLog extends BaseEntity {
                                              String pgResponseMessage) {
         return PaymentLog.builder()
                 .payment(payment)
+                .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
                 .status(payment.getStatus())

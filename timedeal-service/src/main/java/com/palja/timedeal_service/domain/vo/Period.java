@@ -32,7 +32,15 @@ public class Period {
         return new Period(startAt, endAt);
     }
 
-    private static void validate(LocalDateTime startAt, LocalDateTime endAt) {
+    public Period updateStartAt(LocalDateTime newStartAt) {
+        return new Period(newStartAt, this.endAt);
+    }
+
+    public Period updateEndAt(LocalDateTime newEndAt) {
+        return new Period(this.startAt, newEndAt);
+    }
+
+    private void validate(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt == null || endAt == null) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
         }
