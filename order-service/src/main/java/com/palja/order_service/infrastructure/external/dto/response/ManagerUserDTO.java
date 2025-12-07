@@ -30,7 +30,7 @@ public class ManagerUserDTO {
                 loginId,
                 loginId,
                 loginId + "@example.com",
-                UserRole.CUSTOMER,
+                UserRole.MANAGER,
                 "ACTIVE",
                 LocalDateTime.now(),
                 loginId,
