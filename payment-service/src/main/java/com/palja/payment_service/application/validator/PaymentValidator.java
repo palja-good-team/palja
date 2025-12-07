@@ -153,9 +153,19 @@ public class PaymentValidator {
     }
 
     private void validateUserOwnershipForCancel(UserRes user, Payment payment) {
-        if (!payment.getUserId().equals(user.getUserId())) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        if (UserRole.MASTER.equals(user.getRole()) || UserRole.MANAGER.equals(user.getRole())) {
+            return;
         }
+
+        if (UserRole.CUSTOMER.equals(user.getRole())) {
+            if (!payment.getUserId().equals(user.getUserId())) {
+                throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            }
+            return;
+        }
+
+        throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+
     }
 
     // ===== 결제 삭제 검증 =====
