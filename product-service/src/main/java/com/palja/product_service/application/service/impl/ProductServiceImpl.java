@@ -154,20 +154,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public SaleProductRes saleProduct(UUID productId, Integer quantity) {
 
-        String hashKey;
-        String stringKey = productId.toString();
-        String substring = stringKey.substring(0, 8);
-        int hash = substring.hashCode();
-        if(hash % 2 == 0)
-            hashKey = "productStock0";
-        else hashKey = "productStock1";
+        String hashKey = createRedisHashKey(productId);
 
         //찾아오는 이유는 레디스에 저장되어있지 않은 상품이라면 해당 상품의 재고가 필요.
         //재고만 찾아오게 리팩터링 필요.
         Product product = repository.findProduct(productId);
         Integer stock = product.getProductStock().getQuantity();
 
-        boolean finish = redisRepository.decreaseStockBySale(hashKey, stringKey, stock, quantity);
+        boolean finish = redisRepository.decreaseStockBySale(hashKey, productId.toString(), stock, quantity);
 
         if (!finish) {
             throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
@@ -179,7 +173,26 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public RestoreStockRes stockRestore(UUID productId, Integer quantity) {
+
         repository.restoreStock(productId, quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean finish = redisRepository.restoreStock(hashKey, productId.toString(), quantity);
+        if (!finish) {
+            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
+        }
+
         return new RestoreStockRes(productId, Boolean.TRUE);
+    }
+
+    private String createRedisHashKey(UUID productId) {
+
+        //상품 아이디의 앞 7자리를 해시해, 짝수냐 아니냐로 키를 나눔
+        //레디스의 한 컬렉션에 많은 데이터가 저장되면 좋지 않다고 함
+        String substring = productId.toString().substring(0, 8);
+        int hash = substring.hashCode();
+        if(hash % 2 == 0)
+            return "productStock0";
+        else return "productStock1";
     }
 }

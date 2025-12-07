@@ -58,7 +58,48 @@ public class RedisRepositoryImpl implements RedisRepository {
         } catch (Exception e) {
             if(Objects.nonNull(transaction))
                 transaction.rollback();
-            throw new BusinessException(ProductErrorCode.INVALID_STOCK);
+            return false;
+        } finally {
+            lock.unlock();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean restoreStock(String hashKey, String productId, Integer quantity) {
+
+        RLock lock = redissonClient.getLock(productId);
+
+        RTransaction transaction = null;
+
+        try {
+            //락을 10초동안 얻지 못한다면 실패 반환
+            if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
+                return false;
+            }
+
+            transaction = redissonClient.createTransaction(
+                    TransactionOptions.defaults().timeout(10, TimeUnit.SECONDS)
+            );
+
+            RMap<String, Integer> map = redissonClient.getMap(hashKey);
+
+            //레디스에 저장된 상품이 아니라면 실패
+            Integer remainStock = map.get(productId);
+            if (Objects.isNull(remainStock)) {
+                return false;
+            }
+
+            //레디스에 복구될 재고를 넣는다
+            map.fastPut(productId, remainStock + quantity);
+
+            //예외 없이 모든 작업이 끝난다면 커밋해 레디스에 적용시킨다
+            transaction.commit();
+
+        } catch (Exception e) {
+            if(Objects.nonNull(transaction))
+                transaction.rollback();
+            return false;
         } finally {
             lock.unlock();
         }
