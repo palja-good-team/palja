@@ -1,0 +1,24 @@
+springdoc:
+  swagger-ui:
+    use-root-path: true
+    urls:
+      - name: payment-service
+        url: /v3/api-docs/payment-service
+
+      - name: review-service
+        url: /v3/api-docs/review-service
+
+      - name: user-service
+        url: /v3/api-docs/user-service
+
+      - name: product-service
+        url: /v3/api-docs/product-service
+
+      - name: order-service
+        url: /v3/api-docs/order-service
+
+      - name: coupon-service
+        url: /v3/api-docs/coupon-service
+
+      - name: timedeal-service
+        url: /v3/api-docs/timedeal-service
