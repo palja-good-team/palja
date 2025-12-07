@@ -1,7 +1,9 @@
 package com.palja.order_service.infrastructure.external;
 
 import com.palja.common.response.ApiResponse;
+import com.palja.order_service.infrastructure.external.dto.request.CancelCouponDTO;
 import com.palja.order_service.infrastructure.external.dto.request.UseCouponDTO;
+import com.palja.order_service.infrastructure.external.dto.response.CouponCancelDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CouponUseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -22,4 +24,8 @@ public interface CouponClient {
     // 쿠폰 사용
     @PostMapping("/{couponId}/use")
     ApiResponse<CouponUseDTO> useCoupon(@PathVariable UUID couponId, @RequestBody UseCouponDTO request);
+
+    // 쿠폰 취소
+    @PostMapping("/{couponId}/cancel")
+    ApiResponse<CouponCancelDTO> cancelCoupon(@PathVariable UUID couponId, @RequestBody CancelCouponDTO request);
 }
