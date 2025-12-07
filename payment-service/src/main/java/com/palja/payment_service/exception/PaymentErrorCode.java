@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
 
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
+    INVALID_PAYMENT_INFO(HttpStatus.BAD_REQUEST, "결제 정보가 일치하지 않습니다."),
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 상태입니다."),
     PAYMENT_CANNOT_BE_DELETED(HttpStatus.BAD_REQUEST, "PENDING 상태인 결제만 삭제할 수 있습니다."),
     PAYMENT_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 로그를 찾을 수 없습니다."),
