@@ -43,12 +43,6 @@ public class PaymentValidator {
         }
     }
 
-    private void validateUserId(Long userId) {
-        if  (userId == null) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-    }
-
     private void validateAmount(BigDecimal amount) {
         if (amount == null) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
