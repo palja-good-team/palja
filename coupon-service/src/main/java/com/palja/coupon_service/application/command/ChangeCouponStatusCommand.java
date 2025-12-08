@@ -7,6 +7,7 @@ import java.util.UUID;
 @Builder
 public record ChangeCouponStatusCommand(
         UUID couponId,
+        String userId,
         String status
 ) {
 }

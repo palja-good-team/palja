@@ -52,7 +52,7 @@ dependencies {
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation 'com.palja:common-module:0.5.5'
+    implementation 'com.palja:common-module:0.7.1'
 }
 
 dependencyManagement {
