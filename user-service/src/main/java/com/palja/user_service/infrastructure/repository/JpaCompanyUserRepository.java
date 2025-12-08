@@ -20,4 +20,13 @@ public interface JpaCompanyUserRepository extends JpaRepository<CompanyUser, UUI
 	""")
 	Optional<CompanyUser> findByIdAndDeletedAtIsNull(@Param("companyUserId") UUID companyUserId);
 
+	@Query("""
+		SELECT cu
+		FROM CompanyUser cu
+		JOIN FETCH cu.user
+		WHERE cu.user.loginId = :loginId
+		AND cu.deletedAt IS NULL
+	""")
+	Optional<CompanyUser> findByLoginIdAndDeletedAtIsNull(@Param("loginId") String loginId);
+
 }

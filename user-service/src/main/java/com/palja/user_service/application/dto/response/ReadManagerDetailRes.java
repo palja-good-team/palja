@@ -1,6 +1,6 @@
 package com.palja.user_service.application.dto.response;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import com.palja.user_service.domain.entity.User;
 
@@ -19,9 +19,9 @@ public class ReadManagerDetailRes {
 	private String address;
 	private String role;
 	private String status;
-	private Instant createdAt;
+	private LocalDateTime createdAt;
 	private String createdBy;
-	private Instant updatedAt;
+	private LocalDateTime updatedAt;
 	private String updatedBy;
 
 	public static ReadManagerDetailRes from(User user) {

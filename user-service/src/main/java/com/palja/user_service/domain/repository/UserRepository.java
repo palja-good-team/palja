@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.vo.UserStatus;
 
 public interface UserRepository {
 
@@ -21,6 +22,8 @@ public interface UserRepository {
 	Page<User> searchAllManagers(String loginId, String email, String name, Pageable pageable);
 
 	Page<User> searchAllCustomers(String loginId, String email, String name, Pageable pageable);
+
+	Page<User> searchAllCompanyUsers(String loginId, String email, String name, UserStatus status, Pageable pageable);
 
 	Optional<User> findByLoginIdAndRoleAndDeletedAtIsNull(String loginId, UserRole role);
 
