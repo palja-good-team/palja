@@ -4,7 +4,10 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
-import com.palja.payment_service.application.dto.response.PaymentDetailRes;
+import com.palja.payment_service.application.dto.response.CancelPaymentRes;
+import com.palja.payment_service.application.dto.response.CreatePaymentRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.application.service.PaymentService;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
@@ -28,10 +31,10 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PaymentDetailRes>> createPayment(
+    public ResponseEntity<ApiResponse<CreatePaymentRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
     ) {
-        PaymentDetailRes detail = paymentService.createPayment(req.toCommand(CurrentUser.getLoginId()));
+        CreatePaymentRes detail = paymentService.createPayment(req.toCommand(CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -39,26 +42,26 @@ public class PaymentController {
     }
 
     @PostMapping("/{paymentId}/cancel")
-    public ResponseEntity<ApiResponse<PaymentDetailRes>> cancelPayment(
+    public ResponseEntity<ApiResponse<CancelPaymentRes>> cancelPayment(
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
     ){
-        PaymentDetailRes detail = paymentService.cancelPayment(req.toCommand(paymentId, CurrentUser.getLoginId()));
+        CancelPaymentRes detail = paymentService.cancelPayment(req.toCommand(paymentId, CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail,"결제가 취소되었습니다."));
     }
 
     @GetMapping("/{paymentId}")
-    public ResponseEntity<ApiResponse<PaymentDetailRes>> getPayment(@PathVariable UUID paymentId) {
-        PaymentDetailRes detail = paymentService.getPayment(paymentId);
+    public ResponseEntity<ApiResponse<ReadPaymentDetailRes>> getPayment(@PathVariable UUID paymentId) {
+        ReadPaymentDetailRes detail = paymentService.getPayment(paymentId);
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail, "결제 단건 조회에 성공했습니다."));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<PaymentDetailRes>>> getPayments(
+    public ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getPayments(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) UUID orderId,
@@ -78,7 +81,7 @@ public class PaymentController {
         PageRequest pageRequest = PageRequest.of(page, size);
         var pageResult = paymentService.searchPayments(command, pageRequest);
 
-        PageResponse<PaymentDetailRes> detail = PageResponse.from(pageResult);
+        PageResponse<ReadPaymentSummaryRes> detail = PageResponse.from(pageResult);
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail, "결제 목록 조회에 성공했습니다."));

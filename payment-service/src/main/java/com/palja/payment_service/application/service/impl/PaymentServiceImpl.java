@@ -7,10 +7,8 @@ import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
-import com.palja.payment_service.application.dto.response.OrderRes;
-import com.palja.payment_service.application.dto.response.PGPaymentRes;
-import com.palja.payment_service.application.dto.response.PaymentDetailRes;
-import com.palja.payment_service.application.dto.response.UserRes;
+import com.palja.payment_service.application.dto.response.*;
+import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.service.OrderService;
 import com.palja.payment_service.application.service.PGPaymentService;
 import com.palja.payment_service.application.service.PaymentService;
@@ -58,7 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
             2. PaymentFailedEvent(orderId, paymentId, userId, 사유, 에러코드 등)
                 Kafka에 order-service가 주문 상태를 그래도 CREATED로 유지, coupon-service 도 미사용으로 유지
      */
-    public PaymentDetailRes createPayment(CreatePaymentCommand command) {
+    public CreatePaymentRes createPayment(CreatePaymentCommand command) {
         log.info("결제 생성 시작: orderId={}, loginId={}", command.orderId(), command.loginId());
 
         OrderRes order = orderService.getOrderByOrderId(command.orderId());
@@ -110,12 +108,12 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         log.info("결제 생성 완료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
-        return PaymentDetailRes.from(payment);
+        return CreatePaymentRes.from(payment);
     }
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
-    public PaymentDetailRes cancelPayment(CancelPaymentCommand command) {
+    public CancelPaymentRes cancelPayment(CancelPaymentCommand command) {
         log.info("결제 취소 시작: paymentId={}, loginId={}", command.paymentId(), command.loginId());
 
         Payment payment = paymentRepository.findById(command.paymentId())
@@ -157,12 +155,12 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         log.info("결제 취소 완료: paymentId={}", payment.getId());
-        return PaymentDetailRes.from(payment);
+        return CancelPaymentRes.from(payment);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PaymentDetailRes getPayment(UUID paymentId){
+    public ReadPaymentDetailRes getPayment(UUID paymentId){
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
@@ -171,20 +169,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentValidator.validateGetPayment(payment, user);
 
-        return PaymentDetailRes.from(payment);
+        return ReadPaymentDetailRes.from(payment);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PaymentDetailRes> getPayments(PageRequest pageRequest) {
+    public Page<ReadPaymentSummaryRes> getPayments(PageRequest pageRequest) {
         Page<Payment> payments = paymentRepository.findAll(pageRequest);
-        return payments.map(PaymentDetailRes::from);
+        return payments.map(ReadPaymentSummaryRes::from);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command,
-                                                 PageRequest pageRequest) {
+    public Page<ReadPaymentSummaryRes> searchPayments(FindPaymentListByConditionCommand command,
+                                                      PageRequest pageRequest) {
 
         String loginId = CurrentUser.getLoginId();
         UserRes user = userService.getUserByLoginId(loginId);
@@ -214,7 +212,7 @@ public class PaymentServiceImpl implements PaymentService {
                 pageRequest
         );
 
-        return payments.map(PaymentDetailRes::from);
+        return payments.map(ReadPaymentSummaryRes::from);
     }
 
     @Override
