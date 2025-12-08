@@ -44,7 +44,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), product.companyUserId());
+        validateCompanyUser(command.role(), command.loginId(), product.companyUserId());
 
         timeDealValidator.validateStock(command.totalQuantity(), product.stock());
 
@@ -85,7 +85,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         updateTimeDealFields(timeDeal, command);
 
@@ -100,7 +100,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
 
@@ -167,7 +167,7 @@ public class TimeDealServiceImpl implements TimeDealService {
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 
-    private void ValidateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
+    private void validateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
         if (role.equals(UserRole.COMPANY_USER)) {
             timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
         }
