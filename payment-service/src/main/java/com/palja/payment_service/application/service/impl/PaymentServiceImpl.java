@@ -174,13 +174,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ReadPaymentSummaryRes> getPayments(PageRequest pageRequest) {
-        Page<Payment> payments = paymentRepository.findAll(pageRequest);
-        return payments.map(ReadPaymentSummaryRes::from);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Page<ReadPaymentSummaryRes> searchPayments(FindPaymentListByConditionCommand command,
                                                       PageRequest pageRequest) {
 
