@@ -2,8 +2,10 @@ package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
+import com.palja.coupon_service.application.command.UseCouponCommand;
 import com.palja.coupon_service.application.dto.CouponUserDetailRes;
 import com.palja.coupon_service.application.dto.CouponUserRes;
+import com.palja.coupon_service.application.dto.UsedCouponUserRes;
 import com.palja.coupon_service.application.service.CouponService;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.entity.CouponUser;
@@ -45,6 +47,22 @@ public class CouponServiceImpl implements CouponService {
 
         log.info("쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
         return CouponUserRes.from(couponUser);
+    }
+
+    @Override
+    @Transactional
+    public UsedCouponUserRes useCoupon(UseCouponCommand command) {
+        log.info("쿠폰 사용 시작 userId={} couponUserId={} orderId={}", command.userId(), command.couponUserId(), command.orderId());
+
+        CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(command.couponUserId(), command.userId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
+
+        couponUser.validateUsable();
+
+        couponUser.use(command.orderId(), command.discountAmount());
+
+        log.info("쿠폰 사용 성공 userId={} couponUserId={}", command.userId(), command.couponUserId());
+        return UsedCouponUserRes.from(couponUser);
     }
 
     @Override
