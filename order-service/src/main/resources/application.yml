@@ -10,3 +10,4 @@ spring:
       - datasource
       - zipkin
       - swagger
+      - eureka
