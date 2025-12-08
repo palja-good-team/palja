@@ -1,6 +1,7 @@
 package com.palja.user_service.domain.entity;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -42,13 +43,13 @@ public class CompanyUser {
 	private String companyNumber;
 
 	@Column(name = "deletedAt")
-	private Instant deletedAt;
+	private LocalDateTime deletedAt;
 
 	@Column(name = "deletedBy", length = 10)
 	private String deletedBy;
 
 	public void softDelete() {
-		this.deletedAt = Instant.now();
+		this.deletedAt = LocalDateTime.now();
 		this.deletedBy = AuditorContext.get().getLoginId();
 		user.softDelete();
 	}
