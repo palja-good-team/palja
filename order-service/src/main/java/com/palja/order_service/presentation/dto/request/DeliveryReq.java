@@ -4,10 +4,14 @@ import com.palja.order_service.application.command.DeliveryCommand;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 // 배송 정보 요청 DTO
-@Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DeliveryReq {
 
     @NotBlank(message = "수령인 이름은 필수입니다.")

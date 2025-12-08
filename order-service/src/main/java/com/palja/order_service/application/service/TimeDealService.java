@@ -6,9 +6,12 @@ import java.util.UUID;
 
 public interface TimeDealService {
 
+    // 타임딜 조회
     TimeDealRes getTimeDeal(UUID timeDealId, int quantity);
 
+    // 타임딜 재고 차감
     void deductTimeDealStock(UUID timeDealId, int quantity);
 
+    // 타임딜 재고 복구
     void restoreTimeDealStock(UUID timeDealId, int quantity);
 }

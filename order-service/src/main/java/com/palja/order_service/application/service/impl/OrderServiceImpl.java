@@ -2,11 +2,12 @@ package com.palja.order_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.service.*;
-import com.palja.order_service.application.service.calculator.OrderCalculator;
+import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -27,111 +29,371 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderDomainService orderDomainService;
+
     private final ProductService productService;
     private final TimeDealService timeDealService;
     private final CouponService couponService;
     private final UserService userService;
     private final PaymentService paymentService;
-    private final OrderDomainService orderDomainService;
 
     private final OrderValidator orderValidator;
-    private final OrderCalculator orderCalculator;
+    private final OrderPriceCalculator orderPriceCalculator;
 
+    // ====== Order Creation Workflow ======
+    /**
+     * 주문 생성
+     * - Command 검증
+     * - 데이터 수집 및 검증
+     * - 금액 계산
+     * - 주문 엔티티 생성
+     * - 외부 시스템 처리 (재고, 쿠폰, 결제)
+     * - 영속화
+     */
     @Transactional
     public OrderCreateRes createOrder(CreateOrderCommand command) {
-        log.info("주문 생성 시작: loginId={}, productId={}", command.loginId(), command.productId());
+        log.info("주문 생성 시작 - loginId: {}, productId: {}, quantity: {}",
+                command.loginId(), command.productId(), command.quantity());
 
         orderValidator.validateCreateOrderCommand(command);
 
-        CustomerUserRes user = getUserForOrderCreation(command.loginId());
-        ProductRes product = getProductForOrderCreation(command.productId(), command.quantity());
-        TimeDealRes timeDeal = getValidTimeDealForOrderCreation(command);
+        OrderCreationContext context = collectAndValidateOrderData(command);
 
-        BigDecimal amountBeforeCoupon = calculateAmountBeforeCoupon(product, timeDeal, command.quantity());
+        OrderAmountResult amountResult = calculateOrderAmounts(context);
 
-        CouponResult couponResult = calculateValidCoupon(command.couponId(), amountBeforeCoupon);
-
-        Recipient recipient = createRecipient(command);
-
-        BigDecimal deliveryFee = orderDomainService.calculateDeliveryFee(amountBeforeCoupon);
-
-        Order order = createOrder(command, user, product, timeDeal, couponResult, deliveryFee, recipient);
+        Order order = createOrderEntity(command, context, amountResult);
         orderRepository.save(order);
-        log.info("주문 임시 저장 완료(결제 전): orderId={}", order.getOrderId());
+        log.info("주문 엔티티 생성 및 임시 저장 완료 (결제 전) - orderId: {}", order.getOrderId());
 
-        // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        deductStock(command, timeDeal);
-        // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        processCouponUsage(command.couponId(), order.getOrderId());
-        // TODO: 추후 동기 -> 비동기 고려 및 변경 예정
-        processPayment(order, user.getUserId(), "CARD");
+        // 외부 시스템 처리 (동기)
+        processOrderCreationExternalEvents(order, context);
 
         orderRepository.save(order);
-        log.info("주문 생성 완료: orderId={}, finalAmount={}",
+        log.info("주문 생성 완료 - orderId: {}, finalAmount: {}",
                 order.getOrderId(), order.getOrderAmount().getFinalAmount());
 
         return OrderCreateRes.from(order);
     }
 
+    // 주문 생성에 필요한 데이터 수집 및 검증
+    private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
+        CustomerUserRes customer = userService.getCustomerUserByLoginId(command.loginId());
+        orderValidator.validateCustomerForOrder(customer);
+        log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
+
+        ProductRes product = productService.getProduct(command.productId());
+        orderValidator.validateProductForOrder(product, command.quantity());
+        log.debug("상품 검증 완료 - productId: {}, stock: {}",
+                command.productId(), product.getStockQuantity());
+
+        Optional<TimeDealRes> timeDeal = Optional.empty();
+        if (command.timeDealId() != null) {
+            TimeDealRes deal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
+            orderValidator.validateTimeDealForOrder(deal, command.quantity());
+            timeDeal = Optional.of(deal);
+            log.debug("타임딜 검증 완료 - timeDealId: {}", command.timeDealId());
+        }
+
+        // 4. 쿠폰 조회 및 검증 (선택적)
+        Optional<CouponRes> coupon = Optional.empty();
+        if (command.couponId() != null) {
+            CouponRes c = couponService.getCoupon(command.couponId());
+            orderValidator.validateCouponForOrder(c);
+            coupon = Optional.of(c);
+            log.debug("쿠폰 검증 완료 - couponId: {}", command.couponId());
+        }
+
+        return new OrderCreationContext(
+                customer,
+                product,
+                timeDeal,
+                coupon,
+                command.quantity()
+        );
+    }
+
+    // 주문 금액 계산
+    private OrderAmountResult calculateOrderAmounts(OrderCreationContext context) {
+        // 상품 총액 계산 (타임딜 가격 적용)
+        BigDecimal productTotal = orderPriceCalculator.calculateProductTotal(
+                context.product(),
+                context.timeDeal().orElse(null),
+                context.quantity()
+        );
+        orderValidator.validateAmountForCalculation(productTotal);
+
+        // 쿠폰 할인액 계산
+        BigDecimal couponDiscount = BigDecimal.ZERO;
+        if (context.coupon().isPresent()) {
+            CouponRes coupon = context.coupon().get();
+
+            // 쿠폰 최소 주문 금액 검증
+            orderValidator.validateCouponMinimumAmount(coupon, productTotal);
+
+            // 할인액 계산
+            couponDiscount = orderPriceCalculator.calculateCouponDiscount(coupon, productTotal);
+            log.debug("쿠폰 할인 계산 완료 - couponId: {}, discount: {}",
+                    coupon.getCouponId(), couponDiscount);
+        }
+
+        // 배송비 계산
+        BigDecimal deliveryFee = orderDomainService.calculateDeliveryFee(productTotal);
+
+        return new OrderAmountResult(productTotal, couponDiscount, deliveryFee);
+    }
+
+    // 주문 엔티티 생성
+    private Order createOrderEntity(
+            CreateOrderCommand command,
+            OrderCreationContext context,
+            OrderAmountResult amount) {
+
+        Recipient recipient = createRecipient(command);
+
+        return Order.create(
+                context.customer().getUserId(),
+                command.productId(),
+                context.product().getProductName(),
+                context.product().getPrice(),
+                context.quantity(),
+                context.timeDeal().map(TimeDealRes::getTimeDealId).orElse(null),
+                context.timeDeal().map(TimeDealRes::getTimeDealPrice).orElse(null),
+                context.coupon().map(CouponRes::getCouponId).orElse(null),
+                context.coupon().map(CouponRes::getName).orElse(null),
+                amount.couponDiscount(),
+                amount.deliveryFee(),
+                recipient
+        );
+    }
+
+    /**
+     * 외부 시스템 처리 (재고, 쿠폰, 결제)
+     * TODO: 추후 비동기 + Saga 패턴으로 개선 예정
+     */
+    private void processOrderCreationExternalEvents(Order order, OrderCreationContext context) {
+        reserveInventory(order, context.timeDeal());
+        applyCoupon(order.getCouponId(), order.getOrderId());
+        executePayment(order, context.customer().getUserId());
+    }
+
+    /**
+     * 재고 차감
+     * - 타임딜 주문: 타임딜 재고만 차감
+     * - 일반 주문: 상품 재고만 차감
+     */
+    private void reserveInventory(Order order, Optional<TimeDealRes> timeDeal) {
+        UUID productId = order.getOrderItem().getProductId();
+        int quantity = order.getOrderItem().getQuantity();
+
+        if (timeDeal.isPresent()) {
+            // 타임딜 재고만 차감
+            TimeDealRes deal = timeDeal.get();
+            timeDealService.deductTimeDealStock(deal.getTimeDealId(), quantity);
+            log.info("타임딜 재고 차감 완료 - timeDealId: {}, quantity: {}",
+                    deal.getTimeDealId(), quantity);
+        } else {
+            // 일반 상품 재고만 차감
+            productService.deductProductStock(productId, quantity);
+            log.info("상품 재고 차감 완료 - productId: {}, quantity: {}", productId, quantity);
+        }
+    }
+
+    // 쿠폰 사용
+    private void applyCoupon(UUID couponId, UUID orderId) {
+        if (couponId == null) {
+            return;
+        }
+
+        couponService.useCoupon(couponId, orderId);
+        log.info("쿠폰 사용 완료 - couponId: {}, orderId: {}", couponId, orderId);
+    }
+
+    // 결제 실행
+    private void executePayment(Order order, Long userId) {
+        PaymentRes payment = paymentService.createPayment(
+                order.getOrderId(),
+                userId,
+                order.getOrderAmount().getFinalAmount(),
+                "CARD" // TODO: 결제 수단을 Command로 받도록 개선
+        );
+
+        order.markAsPaid(payment.getPaymentId());
+        log.info("결제 완료 - paymentId: {}, amount: {}", payment.getPaymentId(), payment.getAmount());
+    }
+
+    // ====== Order Cancellation Workflow ======
+    /**
+     * 주문 취소
+     * - 주문 조회 및 권한 검증
+     * - 취소 가능 상태 검증 (도메인)
+     * - 주문 취소 처리 (도메인)
+     * - 보상 트랜잭션 (환불, 재고, 쿠폰)
+     */
+    @Transactional
+    public OrderCancelRes cancelOrder(CancelOrderCommand command) {
+        log.info("주문 취소 시작 - orderId: {}, requestedBy: {}",
+                command.orderId(), command.CurrentUserLoginId());
+
+        Order order = findOrderWithDetails(command.orderId());
+
+        // 권한 검증
+        OrderAuthContext authContext = createAuthContext(order, command.CurrentUserLoginId(), command.CurrentUserRole());
+        orderValidator.verifyCancellationPermission(
+                order,
+                command.CurrentUserRole(),
+                authContext.customerId(),
+                authContext.companyUserId(),
+                authContext.productSellerId()
+        );
+
+        // 도메인 로직: 취소 처리
+        order.cancel(command.cancelReason(), command.CurrentUserLoginId());
+
+        // 보상 트랜잭션
+        processOrderCancellationExternalEvents(order);
+
+        orderRepository.save(order);
+        log.info("주문 취소 완료 - orderId: {}", command.orderId());
+
+        return OrderCancelRes.from(order);
+    }
+
+    // 주문 취소 (보상 트랜잭션 실행)
+    private void processOrderCancellationExternalEvents(Order order) {
+        refundPayment(order);
+        restoreInventory(order);
+        restoreCoupon(order);
+    }
+
+    // 결제 환불
+    private void refundPayment(Order order) {
+        if (order.getPaymentId() == null) {
+            log.debug("환불할 결제 정보 없음 - orderId: {}", order.getOrderId());
+            return;
+        }
+
+        try {
+            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId());
+            log.info("결제 환불 완료 - paymentId: {}, amount: {}",
+                    order.getPaymentId(), order.getOrderAmount().getFinalAmount());
+        } catch (Exception e) {
+            log.error("결제 환불 실패 - orderId: {}, paymentId: {}",
+                    order.getOrderId(), order.getPaymentId(), e);
+            throw new BusinessException(OrderErrorCode.REFUND_FAILED);
+        }
+    }
+
+    /**
+     * 재고 복구
+     * - 타임딜 주문: 타임딜 재고만 복구
+     * - 일반 주문: 상품 재고만 복구
+     */
+    private void restoreInventory(Order order) {
+        UUID productId = order.getOrderItem().getProductId();
+        int quantity = order.getOrderItem().getQuantity();
+
+        try {
+            if (order.isTimeDealOrder()) {
+                // 타임딜 재고만 복구
+                UUID timeDealId = order.getOrderItem().getTimeDealId();
+                timeDealService.restoreTimeDealStock(timeDealId, quantity);
+                log.info("타임딜 재고 복구 완료 - timeDealId: {}, quantity: {}",
+                        timeDealId, quantity);
+            } else {
+                // 일반 상품 재고만 복구
+                productService.restoreProductStock(productId, quantity);
+                log.info("상품 재고 복구 완료 - productId: {}, quantity: {}",
+                        productId, quantity);
+            }
+        } catch (Exception e) {
+            log.error("재고 복구 실패 - orderId: {}, productId: {}, isTimeDeal: {}",
+                    order.getOrderId(), productId, order.isTimeDealOrder(), e);
+            // TODO: 재고 복구 실패 처리
+        }
+    }
+
+     // 쿠폰 복구
+    private void restoreCoupon(Order order) {
+        if (order.getCouponId() == null) {
+            return;
+        }
+
+        try {
+            couponService.cancelCoupon(order.getCouponId(), order.getOrderId());
+            log.info("쿠폰 복구 완료 - couponId: {}, orderId: {}",
+                    order.getCouponId(), order.getOrderId());
+        } catch (Exception e) {
+            log.error("쿠폰 복구 실패 - orderId: {}, couponId: {}",
+                    order.getOrderId(), order.getCouponId(), e);
+            // TODO: 쿠폰 복구 실패 정책 적용 (자동 재발급)
+        }
+    }
+
+    // ====== Order Read Workflow ======
     /**
      * 주문 단건 조회
-     * 권한별로 접근 제어
+     * 권한별 접근 제어
      * - MANAGER: 모든 주문 조회 가능
      * - CUSTOMER: 본인 주문만 조회 가능
      * - COMPANY_USER: 자신이 판매한 상품의 주문만 조회 가능
      */
-    public OrderDetailRes getOrder(UUID orderId, String loginId, UserRole userRole) {
-        log.info("주문 조회 시작 - orderId: {}, loginId: {}, userRole: {}", orderId, loginId, userRole);
+    public OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole) {
+        log.info("주문 조회 시작 - orderId: {}, loginId: {}, role: {}",
+                orderId, loginId, userRole);
 
-        Order order = orderRepository.findOrderByIdWithItemAndDelivery(orderId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        Order order = findOrderWithDetails(orderId);
 
-        validateOrderAccess(order, loginId, userRole);
+        OrderAuthContext authContext = createAuthContext(order, loginId, userRole);
+        orderValidator.verifyOrderReadPermission(
+                order,
+                userRole,
+                authContext.customerId(),
+                authContext.companyUserId(),
+                authContext.productSellerId()
+        );
 
-        log.info("주문 조회 성공 - orderId: {}", orderId);
+        log.info("주문 조회 완료 - orderId: {}", orderId);
         return OrderDetailRes.from(order);
     }
 
-    // 권한별로 주문 접근 권한 검증
-    private void validateOrderAccess(Order order, String loginId, UserRole userRole) {
+    // ===== Private: Authorization Context =====
+    // 권한 검증을 위한 컨텍스트 구성
+    private OrderAuthContext createAuthContext(Order order, String loginId, UserRole userRole) {
+        Long customerId = null;
+        UUID companyUserId = null;
+        UUID productSellerId = null;
+
         switch (userRole) {
-            case MANAGER -> {
-                // MANAGER는 모든 주문 조회 가능
-                log.debug("MANAGER 권한으로 주문 조회");
-            }
             case CUSTOMER -> {
-                // CUSTOMER는 본인 주문만 조회 가능
-                Long currentUserId = getUserIdForCustomer(loginId);
-                orderValidator.validateOrderForRead(order.getUserId(), userRole, currentUserId, null, null);
+                customerId = resolveCustomerId(loginId);
             }
             case COMPANY_USER -> {
-                // COMPANY_USER는 자신이 판매한 상품의 주문만 조회 가능
-                UUID currentCompanyUserId = getCompanyUserIdForCompany(loginId);
-                UUID productCompanyUserId = getProductCompanyUserId(order.getOrderItem().getProductId());
-                orderValidator.validateOrderForRead(order.getUserId(), userRole, null, currentCompanyUserId, productCompanyUserId);
+                companyUserId = resolveCompanyUserId(loginId);
+                productSellerId = resolveProductSellerId(order.getOrderItem().getProductId());
             }
-            default -> throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
-    }
-    // CUSTOMER용 userId 조회
-    private Long getUserIdForCustomer(String loginId) {
-        CustomerUserRes customerUser = userService.getCustomerUserByLoginId(loginId);
-        return customerUser.getUserId();
+
+        return new OrderAuthContext(customerId, companyUserId, productSellerId);
     }
 
-    // COMPANY_USER용 companyUserId 조회
-    private UUID getCompanyUserIdForCompany(String loginId) {
-        CompanyUserRes companyUser = userService.getCompanyUserByLoginId(loginId);
-        return companyUser.getCompanyUserId();
+    // ===== Private: Utility =====
+    private Order findOrderWithDetails(UUID orderId) {
+        return orderRepository.findOrderByIdWithItemAndDelivery(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
-    // 상품의 판매자(companyUserId) 조회
-    private UUID getProductCompanyUserId(UUID productId) {
-        ProductRes product = productService.getProduct(productId);
-        return product.getCompanyUserId();
+    private Long resolveCustomerId(String loginId) {
+        return userService.getCustomerUserByLoginId(loginId).getUserId();
     }
 
-    // ===== 도메인 객체 생성 =====
+    private UUID resolveCompanyUserId(String loginId) {
+        return userService.getCompanyUserByLoginId(loginId).getCompanyUserId();
+    }
+
+    private UUID resolveProductSellerId(UUID productId) {
+        return productService.getProduct(productId).getCompanyUserId();
+    }
+
     // 배송 정보 생성
     private Recipient createRecipient(CreateOrderCommand command) {
         return Recipient.create(
@@ -142,121 +404,27 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // ====== 외부 서비스 호출 ======
-    // 재고 차감
-    private void deductStock(CreateOrderCommand command, TimeDealRes timeDeal) {
-        // 타임딜 주문인 경우 타임딜 재고 차감
-        if (command.timeDealId() != null && timeDeal != null) {
-            timeDealService.deductTimeDealStock(
-                    command.timeDealId(), command.quantity());
-
-            log.info("타임딜 재고 차감 완료: timeDealId={}, quantity={}",
-                    command.timeDealId(), command.quantity());
-        }
-
-        // 일반 상품 재고 차감
-        productService.deductStock(command.productId(), command.quantity());
-
-        log.info("상품 재고 차감 완료: productId={}, quantity={}",
-                command.productId(), command.quantity());
-    }
-
-    // ====== private ======
-    // 사용자 검증 및 정보 조회
-    private CustomerUserRes getUserForOrderCreation(String loginId) {
-        CustomerUserRes user = userService.getCustomerUserByLoginId(loginId);
-        orderValidator.validateUserForOrderCreation(user);
-        return user;
-    }
-
-    // 상품 검증 및 정보 조회
-    private ProductRes getProductForOrderCreation(UUID productId, int quantity) {
-        ProductRes product = productService.getProduct(productId);
-        orderValidator.validateProductForOrderCreation(product, quantity);
-        return product;
-    }
-
-    // 타임딜 검증 및 정보 조회 (타임딜 주문인 경우)
-    private TimeDealRes getValidTimeDealForOrderCreation(CreateOrderCommand command) {
-        if (command.timeDealId() == null) return null;
-
-        TimeDealRes timeDeal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
-        orderValidator.validateTimeDealForOrderCreation(timeDeal, command.quantity());
-        return timeDeal;
-    }
-
-    // 쿠폰 사용 전 금액 계산 (상품 총액 - 타임딜 할인)
-    private BigDecimal calculateAmountBeforeCoupon(ProductRes product, TimeDealRes timeDeal, Integer quantity) {
-        return orderCalculator.calculateAmountBeforeCoupon(product, timeDeal, quantity);
-    }
-
-    // 쿠폰 검증 및 할인 계산
-    private CouponResult calculateValidCoupon(UUID couponId, BigDecimal amountBeforeCoupon) {
-        if (couponId == null) {
-            return new CouponResult(BigDecimal.ZERO, null, null);
-        }
-
-        CouponRes coupon = couponService.getCoupon(couponId);
-        orderValidator.validateCouponForUsage(coupon, amountBeforeCoupon);
-
-        BigDecimal discountAmount = orderCalculator.calculateCouponDiscount(coupon, amountBeforeCoupon);
-
-        log.info("쿠폰 할인 적용: couponId={}, discount={}", couponId, discountAmount);
-
-        return new CouponResult(discountAmount, couponId, coupon.getName());
-    }
-
-    // 주문 엔티티 생성 (CouponResult 사용)
-    private Order createOrder(
-            CreateOrderCommand command,
-            CustomerUserRes user,
+    // ===== Internal Context Objects =====
+    // 주문 생성 컨텍스트
+    private record OrderCreationContext(
+            CustomerUserRes customer,
             ProductRes product,
-            TimeDealRes timeDeal,
-            CouponResult couponResult,
-            BigDecimal deliveryFee,
-            Recipient recipient) {
+            Optional<TimeDealRes> timeDeal,
+            Optional<CouponRes> coupon,
+            int quantity
+    ) {}
 
-        return Order.create(
-                user.getUserId(),
-                command.productId(),
-                product.getProductName(),
-                product.getPrice(),
-                command.quantity(),
-                command.timeDealId(),
-                timeDeal != null ? timeDeal.getTimeDealPrice() : null,
-                couponResult.couponId(),
-                couponResult.couponName(),
-                couponResult.discountAmount(),
-                deliveryFee,
-                recipient
-        );
-    }
+    // 권한 검증 컨텍스트
+    private record OrderAuthContext(
+            Long customerId,
+            UUID companyUserId,
+            UUID productSellerId
+    ) {}
 
-    // 쿠폰 사용 처리
-    private void processCouponUsage(UUID couponId, UUID orderId) {
-        if (couponId != null) {
-            couponService.useCoupon(couponId, orderId);
-        }
-    }
-
-    // 결제 처리
-    private void processPayment(Order order, Long userId, String paymentMethod) {
-        PaymentRes payment = paymentService.createPayment(
-                order.getOrderId(),
-                userId,
-                order.getOrderAmount().getFinalAmount(),
-                paymentMethod
-        );
-
-        order.markAsPaid(payment.getPaymentId());
-        log.info("주문 결제 완료: paymentId={}, amount={}", payment.getPaymentId(), payment.getAmount());
-    }
-
-    // 쿠폰 처리 결과를 담는 내부 레코드
-    private record CouponResult(
-            BigDecimal discountAmount,
-            UUID couponId,
-            String couponName
-    ) {
-    }
+    // 주문 금액 계산 결과
+    private record OrderAmountResult(
+            BigDecimal productTotal,
+            BigDecimal couponDiscount,
+            BigDecimal deliveryFee
+    ) {}
 }
