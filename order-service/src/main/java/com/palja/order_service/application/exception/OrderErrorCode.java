@@ -28,6 +28,11 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_DELIVERY_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "이미 배송이 시작되어 취소할 수 없습니다."),
     REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리에 실패했습니다."),
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "주문 금액이 올바르지 않습니다."),
+    // 주문 상태 변경 관련
+    INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 주문 상태입니다."),
+    SAME_STATUS_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "동일한 상태로는 변경할 수 없습니다."),
+    FINAL_STATUS_CANNOT_CHANGE(HttpStatus.BAD_REQUEST, "이미 최종 상태이므로 변경할 수 없습니다."),
+    USE_SPECIFIC_API_FOR_FINAL_STATUS(HttpStatus.BAD_REQUEST, "해당 상태로는 전용 API를 사용해야 합니다."),
 
     // ===== 타임딜 관련 =====
     TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜을 찾을 수 없습니다."),

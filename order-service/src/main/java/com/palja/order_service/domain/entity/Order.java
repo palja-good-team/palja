@@ -257,4 +257,17 @@ public class Order extends BaseEntity {
         }
         return this.delivery;
     }
+
+    /**
+     * 관리자에 의한 주문 상태 변경
+     * - 일반 상태 전환 규칙 적용 안함
+     * - 최종 상태(CANCELED, COMPLETED)로는 변경 불가
+     * - 최종 상태에서 다른 상태로 변경 불가
+     */
+    public void changeStatusByManager(OrderStatus targetStatus) {
+        this.status.validateManagerTransition(targetStatus);
+
+        // 직접 상태 변경 (일반 전환 규칙 무시)
+        this.status = targetStatus;
+    }
 }
