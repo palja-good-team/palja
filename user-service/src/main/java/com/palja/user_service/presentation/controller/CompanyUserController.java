@@ -48,10 +48,10 @@ public interface CompanyUserController {
 		@Parameter(example = "company1") String loginId, UpdateCompanyUserReq requestDto
 	);
 
-	@Operation(summary = "업체 판매자 상태 수정", description = "현재 로그인한 업체 판매자 자신의 정보를 수정합니다.")
+	@Operation(summary = "업체 판매자 수정 - 본인", description = "현재 로그인한 업체 판매자 자신의 정보를 수정합니다.")
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(UpdateCompanyUserReq requestDto);
 
-	@Operation(summary = "업체 판매자 수정 - 본인", description = "업체 판매자의 상태를 변경합니다.")
+	@Operation(summary = "업체 판매자 상태 수정", description = "업체 판매자의 상태를 변경합니다.")
 	ResponseEntity<ApiResponse<Void>> updateStatus(
 		@Parameter(example = "company1") String loginId, UpdateCompanyUserStatusReq requestDto
 	);
