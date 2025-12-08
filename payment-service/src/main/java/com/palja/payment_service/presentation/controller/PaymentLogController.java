@@ -3,7 +3,7 @@ package com.palja.payment_service.presentation.controller;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
-import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentLogRes;
 import com.palja.payment_service.application.service.PaymentLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -23,17 +23,17 @@ public class PaymentLogController {
     private final PaymentLogService paymentLogService;
 
     @GetMapping("/payments/{paymentId}/logs")
-    public ResponseEntity<ApiResponse<List<PaymentLogDetailRes>>> getPaymentLogsByPaymentId(
+    public ResponseEntity<ApiResponse<List<ReadPaymentLogRes>>> getPaymentLogsByPaymentId(
             @PathVariable UUID paymentId
     ) {
-        List<PaymentLogDetailRes> res = paymentLogService.getLogsByPaymentId(paymentId);
+        List<ReadPaymentLogRes> res = paymentLogService.getLogsByPaymentId(paymentId);
         return ResponseEntity.ok(
                 ApiResponse.success(res, "PaymentId에 해당되는 결제 로그 목록 조회에 성공했습니다.")
         );
     }
 
     @GetMapping("/payment-logs")
-    public ResponseEntity<ApiResponse<PageResponse<PaymentLogDetailRes>>> getPaymentLogs(
+    public ResponseEntity<ApiResponse<PageResponse<ReadPaymentLogRes>>> getPaymentLogs(
             @RequestParam(required = false) UUID paymentId,
             @RequestParam(required = false) UUID orderId,
             @RequestParam(required = false) String status,
@@ -53,7 +53,7 @@ public class PaymentLogController {
         PageRequest pageRequest = PageRequest.of(page, size);
         var pageResult = paymentLogService.searchLogs(command, pageRequest);
 
-        PageResponse<PaymentLogDetailRes> detail = PageResponse.from(pageResult);
+        PageResponse<ReadPaymentLogRes> detail = PageResponse.from(pageResult);
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail, "검색 결과에 따른 결제 로그 목록 조회에 성공했습니다."));
