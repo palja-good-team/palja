@@ -32,4 +32,6 @@ public interface ProductService {
     DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Integer quantity);
 
     IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Integer quantity);
+
+    void deleteProduct(UUID productId);
 }

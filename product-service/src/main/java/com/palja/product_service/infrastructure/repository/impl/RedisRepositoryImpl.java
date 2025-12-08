@@ -94,6 +94,28 @@ public class RedisRepositoryImpl implements RedisRepository {
         return true;
     }
 
+    @Override
+    public boolean deleteProductStock(String hashKey, String productId) {
+
+        RLock lock = redissonClient.getLock(productId);
+
+        try {
+            //락을 10초동안 얻지 못한다면 실패 반환
+            if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
+                return false;
+            }
+
+            RMap<String, Integer> map = redissonClient.getMap(hashKey);
+            map.fastRemove(productId);
+
+        } catch (InterruptedException e) {
+            return false;
+        } finally {
+            lock.unlock();
+        }
+        return true;
+    }
+
     private void setTime(String setKey, String productId) {
 
         long score = LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC);

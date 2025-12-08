@@ -218,6 +218,20 @@ public class ProductServiceImpl implements ProductService {
         return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
     }
 
+    @Override
+    @Transactional
+    public void deleteProduct(UUID productId) {
+
+        /**
+         * TODO: 로그인 아이디를 받아와서, 그 아이디로 유저서비스에서 UUID를 가져와 비교해야함.
+         */
+        Product product = repository.findProduct(productId);
+        repository.deleteProduct(product);
+
+        boolean result = redisRepository.deleteProductStock(createRedisHashKey(productId), productId.toString());
+        validateRedisOperation(result);
+    }
+
     private String createRedisHashKey(UUID productId) {
 
         //상품 아이디의 앞 7자리를 해시해, 짝수냐 아니냐로 키를 나눔
