@@ -21,8 +21,6 @@ public interface CompanyUserController {
 
 	ResponseEntity<ApiResponse<CreateUserRes>> create(CreateCompanyUserReq requestDto);
 
-	ResponseEntity<ApiResponse<Void>> updateStatus(String loginId, UpdateCompanyUserStatusReq requestDto);
-
 	ResponseEntity<ApiResponse<PageResponse<ReadCompanyUserSummaryRes>>> getAll(
 		String loginId, String email, String name, String status, Pageable pageable
 	);
@@ -36,6 +34,8 @@ public interface CompanyUserController {
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateByLoginId(String loginId, UpdateCompanyUserReq requestDto);
 
 	ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(UpdateCompanyUserReq requestDto);
+
+	ResponseEntity<ApiResponse<Void>> updateStatus(String loginId, UpdateCompanyUserStatusReq requestDto);
 
 	ResponseEntity<ApiResponse<Void>> deleteByLoginId(String loginId);
 

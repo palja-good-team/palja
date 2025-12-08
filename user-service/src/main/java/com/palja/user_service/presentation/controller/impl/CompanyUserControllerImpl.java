@@ -60,20 +60,6 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 
 	@Override
 	@RequiredRole({UserRole.MANAGER})
-	@PutMapping("/{loginId}/status")
-	public ResponseEntity<ApiResponse<Void>> updateStatus(
-		@PathVariable("loginId") String loginId, @Valid @RequestBody UpdateCompanyUserStatusReq requestDto
-	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		UpdateCompanyUserStatusCommand command = UpdateCompanyUserStatusReq.of(requestDto);
-		companyUserService.updateCompanyUserStatus(currentUserLoginId, loginId, command);
-
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자의 상태가 수정되었습니다."));
-	}
-
-	@Override
-	@RequiredRole({UserRole.MANAGER})
 	@GetMapping
 	public ResponseEntity<ApiResponse<PageResponse<ReadCompanyUserSummaryRes>>> getAll(
 		@RequestParam(required = false) String loginId,
@@ -148,6 +134,20 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		UpdateCompanyUserDetailRes responseDto = companyUserService.updateMe(currentUserLoginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
+	}
+
+	@Override
+	@RequiredRole({UserRole.MANAGER})
+	@PutMapping("/{loginId}/status")
+	public ResponseEntity<ApiResponse<Void>> updateStatus(
+		@PathVariable("loginId") String loginId, @Valid @RequestBody UpdateCompanyUserStatusReq requestDto
+	) {
+		String currentUserLoginId = CurrentUser.getLoginId();
+
+		UpdateCompanyUserStatusCommand command = UpdateCompanyUserStatusReq.of(requestDto);
+		companyUserService.updateCompanyUserStatus(currentUserLoginId, loginId, command);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자의 상태가 수정되었습니다."));
 	}
 
 	@Override
