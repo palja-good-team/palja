@@ -4,7 +4,9 @@ import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,10 +15,13 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RedisRepositoryImpl implements RedisRepository {
 
     private final RedissonClient redissonClient;
+
+    @Value("${redis-key.time-suffix}")
+    private String timeSuffix;
 
     @Override
     public boolean decreaseStockBySale(String key, String productId, Integer stock, Integer quantity) {
@@ -50,7 +55,7 @@ public class RedisRepositoryImpl implements RedisRepository {
 
             //레디스에 새로운 재고를 넣고, DB 재고차감 스케줄링에 사용할 값을 넣는다.
             map.fastPut(productId, resultStock);
-            setTime(key+"Time", productId);
+            setTime(key+timeSuffix, productId);
 
             //예외 없이 모든 작업이 끝난다면 커밋해 레디스에 적용시킨다
             transaction.commit();

@@ -37,13 +37,6 @@ public class DslProductRepository {
                 .fetchOne();
     }
 
-//    public boolean stockBulkUpdate(Collection<StockScheduleDto> dtos) {
-//
-//        queryFactory.update(product)
-//                .set(product.productStock.quantity)
-//                .where(product.productStock.id.in(dtos))
-//    }
-
     public ProductInfoForOrderRes findProductForOrder(UUID productId) {
 
         return queryFactory.select(Projections.constructor(

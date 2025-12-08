@@ -3,3 +3,8 @@ spring:
     redis:
       host: "localhost"
       port: 6379
+
+redis-key:
+  map0: "productStock0"
+  map1: "productStock1"
+  time-suffix: "Time"

@@ -2,14 +2,14 @@ package com.palja.product_service.infrastructure.schedule;
 
 import com.palja.product_service.domain.dto.req.StockScheduleDto;
 import com.palja.product_service.domain.repository.ProductRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RMap;
 import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.IntegerCodec;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,22 +18,30 @@ import java.time.ZoneOffset;
 import java.util.*;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RedisStockScheduler {
 
     private final RedissonClient redissonClient;
     private final ProductRepository productRepository;
-    private final JdbcTemplate jdbcTemplate;
+
+    @Value("${redis-key.map0}")
+    private String map0Key;
+
+    @Value("${redis-key.map1}")
+    private String map1Key;
+
+    @Value("${redis-key.time-suffix}")
+    private String timeSuffix;
 
     @Scheduled(cron = "0 */5 * * * *")
     public void updateDbStock() {
 
         RMap<String, Integer> map0 = redissonClient.getMap(
-                "productStock0", new CompositeCodec(StringCodec.INSTANCE, IntegerCodec.INSTANCE));
+                map0Key, new CompositeCodec(StringCodec.INSTANCE, IntegerCodec.INSTANCE));
         RMap<String, Integer> map1 = redissonClient.getMap(
-                "productStock1", new CompositeCodec(StringCodec.INSTANCE, IntegerCodec.INSTANCE));
-        RScoredSortedSet<String> set0 = redissonClient.getScoredSortedSet("productStock0Time");
-        RScoredSortedSet<String> set1 = redissonClient.getScoredSortedSet("productStock1Time");
+                map1Key, new CompositeCodec(StringCodec.INSTANCE, IntegerCodec.INSTANCE));
+        RScoredSortedSet<String> set0 = redissonClient.getScoredSortedSet(map0Key+timeSuffix);
+        RScoredSortedSet<String> set1 = redissonClient.getScoredSortedSet(map1Key+timeSuffix);
         long now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 
         //2개의 Set에서 과거 ~ 현재 시간까지의 값들만 가져옴
@@ -48,14 +56,6 @@ public class RedisStockScheduler {
         Set<StockScheduleDto> set = new HashSet<>();
         idStock.forEach((k,v)-> set.add(new StockScheduleDto(UUID.fromString(k), v)));
 
-        /**
-         * 레디스에 있는 재고들을 DB에 적용시킴.
-         * 예외가 발생하면..?
-         */
         productRepository.stockBulkUpdateForSchedule(set);
-
-        //작업한 Set에서 데이터를 삭제
-        set0.removeAll(targetIds);
-        set1.removeAll(targetIds);
     }
 }

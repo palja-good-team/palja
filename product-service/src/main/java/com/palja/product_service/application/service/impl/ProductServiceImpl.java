@@ -14,6 +14,7 @@ import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,13 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final DslProductRepository dslProductRepository;
     private final RedisRepository redisRepository;
+
+    @Value("${redis-key.map0}")
+    private String map0Key;
+
+    @Value("${redis-key.map1}")
+    private String map1Key;
+
 
     @Override
     @Transactional
@@ -192,7 +200,7 @@ public class ProductServiceImpl implements ProductService {
         String substring = productId.toString().substring(0, 8);
         int hash = substring.hashCode();
         if(hash % 2 == 0)
-            return "productStock0";
-        else return "productStock1";
+            return map0Key;
+        else return map1Key;
     }
 }
