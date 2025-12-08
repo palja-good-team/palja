@@ -106,7 +106,10 @@ public class RedisRepositoryImpl implements RedisRepository {
             }
 
             RMap<String, Integer> map = redissonClient.getMap(hashKey);
+            RScoredSortedSet<String> set = redissonClient.getScoredSortedSet(hashKey+timeSuffix);
+
             map.fastRemove(productId);
+            set.remove(productId);
 
         } catch (InterruptedException e) {
             return false;

@@ -48,4 +48,8 @@ public class ProductStock extends BaseEntity {
         this.quantity = quantity;
         return this;
     }
+
+    protected void delete() {
+        super.softDelete();
+    }
 }

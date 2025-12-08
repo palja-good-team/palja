@@ -226,7 +226,7 @@ public class ProductServiceImpl implements ProductService {
          * TODO: 로그인 아이디를 받아와서, 그 아이디로 유저서비스에서 UUID를 가져와 비교해야함.
          */
         Product product = repository.findProduct(productId);
-        repository.deleteProduct(product);
+        product.delete();
 
         boolean result = redisRepository.deleteProductStock(createRedisHashKey(productId), productId.toString());
         validateRedisOperation(result);
