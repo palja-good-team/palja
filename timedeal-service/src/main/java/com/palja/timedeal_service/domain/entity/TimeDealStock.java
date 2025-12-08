@@ -1,6 +1,8 @@
 package com.palja.timedeal_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
+import com.palja.common.exception.BusinessException;
+import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Quantity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,5 +40,9 @@ public class TimeDealStock extends BaseEntity {
 
     public void changeTotalQuantity(long newTotalQuantity) {
         this.quantity = this.quantity.updateTotalQuantity(newTotalQuantity);
+    }
+
+    public void decreaseRemainingQuantity(long deltaQuantity) {
+        this.quantity = this.quantity.decreaseRemainingQuantity(deltaQuantity);
     }
 }

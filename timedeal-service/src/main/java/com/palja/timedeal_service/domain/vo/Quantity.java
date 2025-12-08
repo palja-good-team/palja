@@ -21,10 +21,18 @@ public class Quantity {
 
 
     private Quantity(long totalQuantity) {
-        validate(totalQuantity);
+        validateTotalQuantity(totalQuantity);
 
         this.totalQuantity = totalQuantity;
         this.remainingQuantity = totalQuantity;
+    }
+
+    private Quantity(long totalQuantity, long remainingQuantity) {
+        validateTotalQuantity(totalQuantity);
+        validateRemainingQuantity(totalQuantity, remainingQuantity);
+
+        this.totalQuantity = totalQuantity;
+        this.remainingQuantity = remainingQuantity;
     }
 
     public static Quantity of(long totalQuantity) {
@@ -32,12 +40,46 @@ public class Quantity {
     }
 
     public Quantity updateTotalQuantity(long newTotalQuantity) {
-        return new Quantity(newTotalQuantity);
+        long soldQuantity = this.totalQuantity - this.remainingQuantity;
+
+        if (newTotalQuantity < soldQuantity) {
+            throw new BusinessException(TimeDealErrorCode.INVALID_TOTAL_QUANTITY_UPDATE);
+        }
+
+        long newRemaining = newTotalQuantity - soldQuantity;
+
+        return new Quantity(newTotalQuantity, newRemaining);
     }
 
-    private void validate(long totalQuantity) {
+    public Quantity decreaseRemainingQuantity(long deltaQuantity) {
+        validateDecreaseRemainingQuantity(deltaQuantity);
+
+        return new Quantity(this.totalQuantity, this.remainingQuantity - deltaQuantity);
+    }
+
+    public boolean isSoldOut() {
+        return this.remainingQuantity == 0;
+    }
+
+    private void validateTotalQuantity(long totalQuantity) {
         if (totalQuantity <= 0) {
             throw new BusinessException(TimeDealErrorCode.INVALID_TOTAL_QUANTITY);
+        }
+    }
+
+    private void validateRemainingQuantity(long totalQuantity, long remainingQuantity) {
+        if (remainingQuantity < 0 || remainingQuantity > totalQuantity) {
+            throw new BusinessException(TimeDealErrorCode.INVALID_REMAINING_QUANTITY);
+        }
+    }
+
+    private void validateDecreaseRemainingQuantity(long deltaQuantity) {
+        if (deltaQuantity <= 0) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_INVALID_QUANTITY);
+        }
+
+        if (this.remainingQuantity < deltaQuantity) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_OUT_OF_STOCK);
         }
     }
 }

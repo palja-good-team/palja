@@ -5,6 +5,7 @@ import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
 import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
+import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
@@ -43,7 +44,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), product.companyUserId());
+        validateCompanyUser(command.role(), command.loginId(), product.companyUserId());
 
         timeDealValidator.validateStock(command.totalQuantity(), product.stock());
 
@@ -84,7 +85,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         updateTimeDealFields(timeDeal, command);
 
@@ -99,14 +100,32 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        ValidateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
 
-        timeDeal.changeStatus(newStatus, command.reason());
+        if (newStatus == TimeDealStatus.OPEN) {
+            timeDeal.openNow(command.reason());
+        }
+        else if (newStatus == TimeDealStatus.CLOSED) {
+            timeDeal.closeNow(command.reason());
+        }
+        else {
+            timeDeal.changeStatus(newStatus, command.reason());
+        }
 
         log.info("타임딜 상태 수정 완료");
         return TimeDealDetailRes.from(timeDeal);
+    }
+
+    @Override
+    @Transactional
+    public void decreaseRemainingQuantity(DecreaseRemainingQuantityCommand command) {
+        log.info("타임딜 남은 수량 차감 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+
+        timeDeal.decreaseRemainingQuantity(command.deltaQuantity());
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
@@ -148,7 +167,7 @@ public class TimeDealServiceImpl implements TimeDealService {
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 
-    private void ValidateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
+    private void validateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
         if (role.equals(UserRole.COMPANY_USER)) {
             timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
         }

@@ -40,13 +40,14 @@ public class Period {
         return new Period(this.startAt, newEndAt);
     }
 
+    public boolean isNowWithin(LocalDateTime now) {
+        return (now.isEqual(startAt) || now.isAfter(startAt))
+                && (now.isEqual(endAt) || now.isBefore(endAt));
+    }
+
     private void validate(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt == null || endAt == null) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
-        }
-
-        if(!startAt.isAfter(LocalDateTime.now())) {
-            throw new BusinessException(TimeDealErrorCode.PERIOD_START_TIME_INVALID);
         }
 
         if (endAt.isBefore(startAt)) {

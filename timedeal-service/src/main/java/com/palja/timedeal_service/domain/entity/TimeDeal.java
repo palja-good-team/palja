@@ -77,7 +77,7 @@ public class TimeDeal extends BaseEntity {
             Amount amount,
             Quantity quantity
     ) {
-        validate(productId, companyUserId, title, description);
+        validate(productId, companyUserId, title, description, period);
 
         TimeDeal timeDeal = TimeDeal.builder()
                 .productId(productId)
@@ -128,11 +128,40 @@ public class TimeDeal extends BaseEntity {
         this.timeDealStatus = newStatus;
     }
 
+    public void openNow(String reason) {
+        this.period = this.period.updateStartAt(LocalDateTime.now());
+
+        changeStatus(TimeDealStatus.OPEN, reason);
+    }
+
+    public void closeNow(String reason) {
+        this.period = this.period.updateEndAt(LocalDateTime.now());
+
+        changeStatus(TimeDealStatus.CLOSED, reason);
+    }
+
+    public void decreaseRemainingQuantity(long deltaQuantity) {
+        if (this.timeDealStatus != TimeDealStatus.OPEN) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_OPEN);
+        }
+
+        if (!period.isNowWithin(LocalDateTime.now())) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_IN_PERIOD);
+        }
+
+        this.timeDealStock.decreaseRemainingQuantity(deltaQuantity);
+
+        if (this.timeDealStock.getQuantity().isSoldOut()) {
+            this.timeDealStatus = TimeDealStatus.SOLD_OUT;
+        }
+    }
+
     private static void validate(
             UUID productId,
             UUID companyUserId,
             String title,
-            String description
+            String description,
+            Period period
     ) {
         if (productId == null) {
             throw new BusinessException(TimeDealErrorCode.PRODUCT_ID_REQUIRED);
@@ -144,6 +173,7 @@ public class TimeDeal extends BaseEntity {
 
         validateTitle(title);
         validateDescription(description);
+        validatePeriodForCreate(period);
     }
 
     private static void validateTitle(String title) {
@@ -155,6 +185,16 @@ public class TimeDeal extends BaseEntity {
     private static void validateDescription(String description) {
         if (description == null || description.isBlank()) {
             throw new BusinessException(TimeDealErrorCode.DESCRIPTION_REQUIRED);
+        }
+    }
+
+    private static void validatePeriodForCreate(Period period) {
+        if (period == null) {
+            throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
+        }
+
+        if (!period.getStartAt().isAfter(LocalDateTime.now())) {
+            throw new BusinessException(TimeDealErrorCode.PERIOD_START_TIME_INVALID);
         }
     }
 
