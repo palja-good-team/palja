@@ -11,14 +11,13 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CancelPaymentReq {
 
-    private Long userId;
     private BigDecimal cancelAmount;
     private String cancelReason;
 
-    public CancelPaymentCommand toCommand(UUID paymentId) {
+    public CancelPaymentCommand toCommand(UUID paymentId, String loginId) {
         return CancelPaymentCommand.builder()
                 .paymentId(paymentId)
-                .userId(userId)
+                .loginId(loginId)
                 .cancelAmount(cancelAmount)
                 .cancelReason(cancelReason)
                 .build();

@@ -1,12 +1,19 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
+import com.palja.payment_service.application.dto.response.OrderRes;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.PaymentDetailRes;
+import com.palja.payment_service.application.dto.response.UserRes;
+import com.palja.payment_service.application.service.OrderService;
 import com.palja.payment_service.application.service.PGPaymentService;
+import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
@@ -53,6 +60,15 @@ class PaymentServiceImplTest {
     @Mock
     private PGPaymentService pgPaymentService;
 
+    @Mock
+    private PaymentValidator paymentValidator;
+
+    @Mock
+    private OrderService orderService;
+
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
@@ -60,9 +76,11 @@ class PaymentServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        AuditorContext.set("testUser", UserRole.CUSTOMER);
+
         command = CreatePaymentCommand.builder()
                 .orderId(UUID.randomUUID())
-                .userId(1L)
+                .loginId("testUser")
                 .amount(new BigDecimal("10000"))
                 .currency("KRW")
                 .paymentMethod("CARD")
@@ -70,10 +88,30 @@ class PaymentServiceImplTest {
                 .build();
     }
 
-
     @Test
     @DisplayName("PG 승인 성공 시 결제 상태가 APPROVED가 되고 결제 로그 생성")
     void createPayment_success() {
+        OrderRes orderRes = OrderRes.of(
+                command.orderId(),
+                1L,
+                "CREATED",
+                command.amount()
+        );
+
+        UserRes userRes = UserRes.of(
+                1L,
+                command.loginId(),
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
+        given(orderService.getOrderByOrderId(command.orderId()))
+                .willReturn(orderRes);
+        given(userService.getUserByLoginId(command.loginId()))
+                .willReturn(userRes);
+
         PGPaymentRes pgRes = PGPaymentRes.builder()
                 .paymentKey("pg-payment-key")
                 .pgResponseCode("SUCCESS")
@@ -94,6 +132,10 @@ class PaymentServiceImplTest {
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.APPROVED.name());
         assertThat(result.getPaymentKey()).isEqualTo("pg-payment-key");
 
+        then(paymentValidator).should().validateCreatePayment(
+                eq(command), eq(orderRes), eq(userRes)
+        );
+
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         then(paymentRepository).should(times(2)).save(paymentCaptor.capture());
 
@@ -113,6 +155,27 @@ class PaymentServiceImplTest {
     @Test
     @DisplayName("PG 응답 실패 시 Payment 상태는 FAILED가 되고 결제 로그 생성")
     void createPayment_pgFailure() {
+        OrderRes orderRes = OrderRes.of(
+                command.orderId(),
+                1L,
+                "CREATED",
+                command.amount()
+        );
+
+        UserRes userRes = UserRes.of(
+                1L,
+                command.loginId(),
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
+        given(orderService.getOrderByOrderId(command.orderId()))
+                .willReturn(orderRes);
+        given(userService.getUserByLoginId(command.loginId()))
+                .willReturn(userRes);
+
         PGPaymentRes pgRes = PGPaymentRes.builder()
                 .paymentKey("pg-payment-key")
                 .pgResponseCode("ERROR")
@@ -126,10 +189,14 @@ class PaymentServiceImplTest {
 
         given(pgPaymentService.requestPayment(any(Payment.class)))
                 .willReturn(pgRes);
-        
+
         assertThatThrownBy(() -> paymentService.createPayment(command))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_FAILED);
+
+        then(paymentValidator).should().validateCreatePayment(
+                eq(command), eq(orderRes), eq(userRes)
+        );
 
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         then(paymentRepository).should(times(2)).save(paymentCaptor.capture());
@@ -148,10 +215,6 @@ class PaymentServiceImplTest {
         assertThat(logs.get(1).getPgResponseCode()).isEqualTo("ERROR");
     }
 
-    /*
-    TODO:  orderService에서 주문 시 주문금액과 결제 금액이 다를 때 결제 실패 Test Code(orderService Mock 설정 필요)
-     */
-
     @Test
     @DisplayName("결제 상태가 APPROVED인 결제건 전체 금액 취소 성공")
     void cancelPayment_success() {
@@ -165,8 +228,19 @@ class PaymentServiceImplTest {
         );
         payment.approve("paymentKey123");
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
+        given(userService.getUserByLoginId("testUser"))
+                .willReturn(userRes);
 
         PGPaymentRes pgRes = PGPaymentRes.builder()
                 .paymentKey("paymentKey123")
@@ -179,17 +253,21 @@ class PaymentServiceImplTest {
         given(pgPaymentService.cancelPayment(payment, new BigDecimal("10000"), "전체 환불"))
                 .willReturn(pgRes);
 
-        PaymentDetailRes result = paymentService.cancelPayment(
-                CancelPaymentCommand.builder()
-                        .paymentId(payment.getId())
-                        .userId(1L)
-                        .cancelAmount(new BigDecimal("10000"))
-                        .cancelReason("전체 환불")
-                        .build()
-        );
+        CancelPaymentCommand cancelCommand = CancelPaymentCommand.builder()
+                .paymentId(payment.getId())
+                .loginId("testUser")
+                .cancelAmount(new BigDecimal("10000"))
+                .cancelReason("전체 환불")
+                .build();
+
+        PaymentDetailRes result = paymentService.cancelPayment(cancelCommand);
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.CANCELED.name());
+
+        then(paymentValidator).should().validateCancelPayment(
+                eq(payment), eq(cancelCommand), eq(userRes)
+        );
 
         then(pgPaymentService).should()
                 .cancelPayment(payment, new BigDecimal("10000"), "전체 환불");
@@ -208,22 +286,37 @@ class PaymentServiceImplTest {
         );
         payment.approve("paymentKey123");
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
+        given(userService.getUserByLoginId("testUser"))
+                .willReturn(userRes);
 
         given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
                 .willThrow(new BusinessException(PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND));
 
-        assertThatThrownBy(() -> paymentService.cancelPayment(
-                CancelPaymentCommand.builder()
-                        .paymentId(payment.getId())
-                        .userId(1L)
-                        .cancelAmount(new BigDecimal("2000"))
-                        .cancelReason("부분 환불 요청")
-                        .build()
-        ))
+        CancelPaymentCommand cancelCommand = CancelPaymentCommand.builder()
+                .paymentId(payment.getId())
+                .loginId("testUser")
+                .cancelAmount(new BigDecimal("2000"))
+                .cancelReason("부분 환불 요청")
+                .build();
+
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelCommand))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND);
+
+        then(paymentValidator).should().validateCancelPayment(
+                eq(payment), eq(cancelCommand), eq(userRes)
+        );
     }
 
     @Test
@@ -239,22 +332,37 @@ class PaymentServiceImplTest {
         );
         payment.approve("paymentKey123");
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
+        given(userService.getUserByLoginId("testUser"))
+                .willReturn(userRes);
 
         given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
                 .willThrow(new BusinessException(PaymentErrorCode.PAYMENT_EXCEED_AMOUNT));
 
-        assertThatThrownBy(() -> paymentService.cancelPayment(
-                CancelPaymentCommand.builder()
-                        .paymentId(payment.getId())
-                        .userId(1L)
-                        .cancelAmount(new BigDecimal("12000"))
-                        .cancelReason("환불 요청")
-                        .build()
-        ))
+        CancelPaymentCommand cancelCommand = CancelPaymentCommand.builder()
+                .paymentId(payment.getId())
+                .loginId("testUser")
+                .cancelAmount(new BigDecimal("12000"))
+                .cancelReason("환불 요청")
+                .build();
+
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelCommand))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_EXCEED_AMOUNT);
+
+        then(paymentValidator).should().validateCancelPayment(
+                eq(payment), eq(cancelCommand), eq(userRes)
+        );
     }
 
     @Test
@@ -272,7 +380,17 @@ class PaymentServiceImplTest {
 
         UUID paymentId = payment.getId();
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(payment));
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
 
         PaymentDetailRes result = paymentService.getPayment(paymentId);
 
@@ -280,6 +398,8 @@ class PaymentServiceImplTest {
         assertThat(result.getPaymentId()).isEqualTo(paymentId);
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.APPROVED.name());
         assertThat(result.getAmount()).isEqualTo(new BigDecimal("10000"));
+
+        then(paymentValidator).should().validateGetPayment(eq(payment), eq(userRes));
     }
 
     @Test
@@ -304,6 +424,15 @@ class PaymentServiceImplTest {
         LocalDateTime endDate = LocalDateTime.now();
         PageRequest pageRequest = PageRequest.of(0, 10);
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         Payment payment1 = Payment.create(orderId, userId, new BigDecimal("10000"), "KRW", PaymentMethod.CARD, "paymentKey123");
         payment1.approve("paymentKey123");
 
@@ -312,6 +441,7 @@ class PaymentServiceImplTest {
 
         Page<Payment> paymentPage = new PageImpl<>(List.of(payment1, payment2), pageRequest, 2);
 
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
         given(paymentRepository.findPayments(
                 PaymentStatus.APPROVED,
                 userId,
@@ -321,25 +451,37 @@ class PaymentServiceImplTest {
                 pageRequest
         )).willReturn(paymentPage);
 
-        var result = paymentService.searchPayments(
-                new FindPaymentListByConditionCommand("APPROVED", userId, orderId, startDate, endDate),
-                pageRequest
-        );
+        FindPaymentListByConditionCommand searchCommand =
+                new FindPaymentListByConditionCommand(status, userId, orderId, startDate, endDate);
+
+        Page<PaymentDetailRes> result = paymentService.searchPayments(searchCommand, pageRequest);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getPaymentId()).isEqualTo(payment1.getId());
         assertThat(result.getContent().get(1).getPaymentId()).isEqualTo(payment2.getId());
+
+        then(paymentValidator).should().validateSearchPayments(eq(searchCommand), eq(userRes));
     }
 
     @Test
-    @DisplayName("검색 조건에 따른 결제 목록 조회 - 결과 없어서 실패")
+    @DisplayName("검색 조건에 따른 결제 목록 조회 - 결과 없을 때도 정상 동작")
     void getPayments_emptyResult() {
         Long userId = 999L;
         PageRequest pageRequest = PageRequest.of(0, 10);
 
+        UserRes userRes = UserRes.of(
+                999L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
         Page<Payment> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
 
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
         given(paymentRepository.findPayments(
                 null,
                 userId,
@@ -349,13 +491,15 @@ class PaymentServiceImplTest {
                 pageRequest
         )).willReturn(emptyPage);
 
-        var result = paymentService.searchPayments(
-                new FindPaymentListByConditionCommand(null, userId, null, null, null),
-                pageRequest
-        );
+        FindPaymentListByConditionCommand searchCommand =
+                new FindPaymentListByConditionCommand(null, userId, null, null, null);
+
+        Page<PaymentDetailRes> result = paymentService.searchPayments(searchCommand, pageRequest);
 
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getContent()).isEmpty();
+
+        then(paymentValidator).should().validateSearchPayments(eq(searchCommand), eq(userRes));
     }
 
     @Test
@@ -371,13 +515,24 @@ class PaymentServiceImplTest {
         );
         payment.approve("paymentKey123");
 
+        UserRes userRes = UserRes.of(
+                1L,
+                "testUser",
+                "testUser",
+                "test@example.com",
+                UserRole.MANAGER,
+                "ACTIVE"
+        );
+
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
 
         assertThatThrownBy(() -> paymentService.deletePayment(payment.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.PAYMENT_CANNOT_BE_DELETED);
 
+        then(paymentValidator).should().validateDeletePayment(eq(payment), eq(userRes));
         then(paymentRepository).should(never()).deleteById(payment.getId());
     }
 }

@@ -8,7 +8,7 @@ import java.util.UUID;
 @Builder
 public record CancelPaymentCommand(
         UUID paymentId,
-        Long userId,
+        String loginId,
         BigDecimal cancelAmount,
         String cancelReason
 ) {
