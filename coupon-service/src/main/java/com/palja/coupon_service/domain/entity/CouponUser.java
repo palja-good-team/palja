@@ -22,8 +22,9 @@ public class CouponUser extends BaseEntity {
     @Column(nullable = false)
     private String userId;
 
-    @Column(name = "coupon_id", nullable = false)
-    private UUID couponId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id", nullable = false)
+    private Coupon coupon;
 
     @Column(nullable = false)
     private LocalDateTime expireAt; // 쿠폰 만료일
@@ -36,11 +37,12 @@ public class CouponUser extends BaseEntity {
 
     private UUID orderId; // 사용한 주문 ID
     
-    private Long discount_amount; // 할인된 금액
+    private Long discountAmount; // 할인된 금액
 
-    public static CouponUser issue(UUID couponId, String userId, LocalDateTime expireAt) {
+    public static CouponUser issue(Coupon coupon, String userId) {
+        LocalDateTime expireAt = LocalDateTime.now().plusDays(coupon.getUsageDays());
         return CouponUser.builder()
-                .couponId(couponId)
+                .coupon(coupon)
                 .userId(userId)
                 .expireAt(expireAt)
                 .status(CouponUserStatus.ISSUED)
