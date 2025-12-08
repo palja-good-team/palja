@@ -257,4 +257,21 @@ public class Order extends BaseEntity {
         }
         return this.delivery;
     }
+
+    /**
+     * 관리자에 의한 단순 상태 변경
+     * - 주문 처리 단계 변경
+     * - 제외: CANCELED, COMPLETED (각 메서드 사용)
+     */
+    public void changeStatusByManager(OrderStatus targetStatus) {
+        if (targetStatus == OrderStatus.CANCELED) {
+            throw new IllegalStateException("관리자 상태 변경으로는 취소할 수 없습니다.");
+        }
+
+        if (targetStatus == OrderStatus.COMPLETED) {
+            throw new IllegalStateException("관리자 상태 변경으로는 확정할 수 없습니다.");
+        }
+
+        this.status = targetStatus;
+    }
 }
