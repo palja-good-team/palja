@@ -1,19 +1,26 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
 import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.dto.response.UserRes;
+import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,6 +45,12 @@ class PaymentLogServiceImplTest {
     @Mock
     private PaymentLogRepository paymentLogRepository;
 
+    @Spy
+    private PaymentValidator paymentValidator;
+
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private PaymentLogServiceImpl paymentLogService;
 
@@ -51,6 +64,12 @@ class PaymentLogServiceImplTest {
                 "paymentKey123"
         );
 
+        if (status == PaymentStatus.APPROVED) {
+            payment.approve("paymentKey123");
+        } else if (status == PaymentStatus.FAILED) {
+            payment.fail("실패");
+        }
+
         ReflectionTestUtils.setField(payment, "id", paymentId);
 
         return PaymentLog.createResultLog(
@@ -61,13 +80,34 @@ class PaymentLogServiceImplTest {
         );
     }
 
+    private void setCurrentUser(String loginId, UserRole role) {
+        AuditorContext.set(loginId, role);
+    }
+
+    @AfterEach
+    void tearDown() {
+        AuditorContext.clear();
+    }
+
     @Test
-    @DisplayName("paymentId 기준 전체 로그 반환 성공")
-    void getLogsByPaymentId_success() {
+    @DisplayName("paymentId 기준 전체 로그 반환 성공 - MASTER 권한")
+    void getLogsByPaymentId_success_master() {
         UUID paymentId = UUID.randomUUID();
         PaymentLog log1 = createLog(paymentId, PaymentStatus.APPROVED);
         PaymentLog log2 = createLog(paymentId, PaymentStatus.FAILED);
 
+        setCurrentUser("master", UserRole.MASTER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "master",
+                "master",
+                "master@example.com",
+                UserRole.MASTER,
+                "ACTIVE"
+        );
+
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findByPaymentId(paymentId))
                 .willReturn(List.of(log1, log2));
 
@@ -78,10 +118,45 @@ class PaymentLogServiceImplTest {
     }
 
     @Test
-    @DisplayName("해당 paymentId 로그가 없다면 결제 로그 단건 조회 실패")
+    @DisplayName("CUSTOMER 권한으로 결제 로그 조회 시 실패")
+    void getLogsByPaymentId_failure_customer() {
+        UUID paymentId = UUID.randomUUID();
+
+        setCurrentUser("customer", UserRole.CUSTOMER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "customer",
+                "customer",
+                "customer@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
+
+        assertThatThrownBy(() -> paymentLogService.getLogsByPaymentId(paymentId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_PAYMENT_STATUS);
+    }
+
+    @Test
+    @DisplayName("해당 paymentId 로그가 없다면 결제 로그 조회 실패")
     void getLogsByPaymentId_failure_notFound() {
         UUID paymentId = UUID.randomUUID();
 
+        setCurrentUser("master", UserRole.MASTER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "master",
+                "master",
+                "master@example.com",
+                UserRole.MASTER,
+                "ACTIVE"
+        );
+
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findByPaymentId(paymentId))
                 .willReturn(List.of());
 
@@ -91,18 +166,30 @@ class PaymentLogServiceImplTest {
     }
 
     @Test
-    @DisplayName("검색 조건에 맞는 결제 로그 목록 조회 성공")
-    void searchLogs_success() {
+    @DisplayName("검색 조건에 맞는 결제 로그 목록 조회 성공 - MANAGER 권한")
+    void searchLogs_success_manager() {
         UUID paymentId = UUID.randomUUID();
         PageRequest pageRequest = PageRequest.of(0, 10);
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();
+
+        setCurrentUser("manager", UserRole.MANAGER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "manager",
+                "manager",
+                "manager@example.com",
+                UserRole.MANAGER,
+                "ACTIVE"
+        );
 
         PaymentLog log1 = createLog(paymentId, PaymentStatus.APPROVED);
         PaymentLog log2 = createLog(paymentId, PaymentStatus.FAILED);
 
         Page<PaymentLog> page = new PageImpl<>(List.of(log1, log2), pageRequest, 2);
 
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findLogs(
                 eq(paymentId),
                 eq((UUID) null),
@@ -129,9 +216,54 @@ class PaymentLogServiceImplTest {
     }
 
     @Test
-    @DisplayName("검색 조건에 맞지 않으면 결제 로그 목록 조회 실패")
+    @DisplayName("CUSTOMER 권한으로 결제 로그 검색 시 실패")
+    void searchLogs_failure_customer() {
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        setCurrentUser("customer", UserRole.CUSTOMER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "customer",
+                "customer",
+                "customer@example.com",
+                UserRole.CUSTOMER,
+                "ACTIVE"
+        );
+
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
+
+        FindPaymentLogListByConditionCommand command =
+                new FindPaymentLogListByConditionCommand(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+
+        assertThatThrownBy(() -> paymentLogService.searchLogs(command, pageRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_PAYMENT_STATUS);
+    }
+
+    @Test
+    @DisplayName("검색 조건에 맞지 않으면 결제 로그 목록 조회 실패 - 잘못된 상태값")
     void searchLogs_failure_invalidStatus() {
         PageRequest pageRequest = PageRequest.of(0, 10);
+
+        setCurrentUser("master", UserRole.MASTER);
+
+        UserRes userRes = UserRes.of(
+                1L,
+                "master",
+                "master",
+                "master@example.com",
+                UserRole.MASTER,
+                "ACTIVE"
+        );
+
+        given(userService.getUserByLoginId(any())).willReturn(userRes);
 
         FindPaymentLogListByConditionCommand command =
                 new FindPaymentLogListByConditionCommand(
@@ -149,7 +281,7 @@ class PaymentLogServiceImplTest {
 
     @Test
     @DisplayName("1년 지난 결제 로그 삭제 성공")
-    void deleteOldLogs_success(){
+    void deleteOldLogs_success() {
         paymentLogService.deleteOldLogs();
 
         verify(paymentLogRepository).deleteLogsOlder(any(LocalDateTime.class));
