@@ -73,10 +73,10 @@ public class CouponUser extends BaseEntity {
         this.status = newStatus;
     }
 
-    public void delete() {
+    @Override
+    public void softDelete() {
         validateDeletable();
-
-        softDelete();
+        super.softDelete();
     }
 
     private void validateUsable() {

@@ -103,7 +103,7 @@ public class CouponServiceImpl implements CouponService {
         CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId)
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
 
-        couponUser.delete();
+        couponUser.softDelete();
 
         log.info("쿠폰 삭제 완료 - couponId={} status={}", couponUserId, userId);
         return CouponUserRes.from(couponUser);
