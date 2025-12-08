@@ -41,7 +41,6 @@ public interface AuthController {
 		LoginUserReq requestDto, HttpServletResponse response
 	);
 
-
 	@Operation(summary = "토큰 재발급", description = "리프레시 토큰을 통해 액세스 토큰을 재발급합니다.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "토큰이 재발급 되었습니다.",
