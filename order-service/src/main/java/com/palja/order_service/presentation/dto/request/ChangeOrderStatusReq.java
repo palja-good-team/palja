@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderStatusChangeReq {
+public class ChangeOrderStatusReq {
 
     @NotBlank(message = "변경할 상태는 필수입니다.")
     private String status;
