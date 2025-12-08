@@ -38,6 +38,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         log.info("주문 상태 변경 (관리자) - orderId: {}, targetStatus: {}, manager: {}",
                 command.orderId(), command.status(), command.managerLoginId());
 
+        orderValidator.validateManager(command.managerLoginId());
+
         Order order = orderService.findOrderWithDetails(command.orderId());
         OrderStatus currentStatus = order.getStatus();
         String previousStatus = currentStatus.name();

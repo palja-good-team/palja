@@ -6,6 +6,7 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
+import com.palja.order_service.application.service.UserService;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,8 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class OrderValidator {
+
+    private final UserService userService;
 
     // 검증 상수
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -403,19 +406,24 @@ public class OrderValidator {
     // CANCELED, COMPLETED로의 관리자 수동 변경 차단 (별도 API를 통해서만 처리)
     public void validateManagerTransition(OrderStatus currentStatus, OrderStatus targetStatus) {
 
-        // 1. 자기 자신으로 변경 불가
+        // 자신으로 변경 불가
         if (currentStatus == targetStatus) {
             throw new BusinessException(OrderErrorCode.SAME_STATUS_NOT_ALLOWED);
         }
 
-        // 2. 이미 최종 상태면 변경 불가
+        // 이미 최종 상태면 변경 불가
         if (currentStatus.isFinalState()) {
             throw new BusinessException(OrderErrorCode.FINAL_STATUS_CANNOT_CHANGE);
         }
 
-        // 3. 최종 상태(CANCELED, COMPLETED)로의 변경 불가
+        // 최종 상태(CANCELED, COMPLETED)로의 변경 불가
         if (targetStatus.isFinalState()) {
             throw new BusinessException(OrderErrorCode.USE_SPECIFIC_API_FOR_FINAL_STATUS);
         }
+    }
+
+    // 관리자 권한 검증 (유효한 관리자)
+    public void validateManager(String loginId) {
+        userService.getManagerUserByLoginId(loginId);
     }
 }
