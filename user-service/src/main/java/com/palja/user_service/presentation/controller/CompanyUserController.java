@@ -35,7 +35,7 @@ public interface CompanyUserController {
 	@Operation(summary = "업체 판매자 조회 - LoginID", description = "LoginID가 일치하는 업체 판매자의 상세 정보를 조회합니다.")
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByLoginId(@Parameter(example = "company1") String loginId);
 
-	@Operation(summary = "업체 판매자 조회 - UserID", description = "UserID가 일치하는 업체 판매자의 상세 정보를 조회합니다.")
+	@Operation(summary = "업체 판매자 조회 - CompanyUserID", description = "CompanyUserID가 일치하는 업체 판매자의 상세 정보를 조회합니다.")
 	ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(
 		@Parameter(example = "02d2d97b-4cfa-4438-9e8c-6f68709dfbff") UUID companyUserId
 	);
