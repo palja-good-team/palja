@@ -15,7 +15,9 @@ public enum ProductErrorCode implements ErrorCode {
     NAME_TOO_LONG(HttpStatus.BAD_REQUEST, "상품의 이름은 최대 30자까지 입니다."),
 
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
-    DUPLICATE_PRODUCT(HttpStatus.BAD_REQUEST, "중복된 상품을 등록할 수 없습니다.");
+    DUPLICATE_PRODUCT(HttpStatus.BAD_REQUEST, "중복된 상품을 등록할 수 없습니다."),
+
+    CONNECTION_ERROR_REDIS(HttpStatus.SERVICE_UNAVAILABLE, "요청이 많아 혼잡하니 다시 시도해주세요");
 
     private final HttpStatus httpStatus;
     private final String message;

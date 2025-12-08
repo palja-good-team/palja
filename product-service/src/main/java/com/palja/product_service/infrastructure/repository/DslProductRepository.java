@@ -42,6 +42,7 @@ public class DslProductRepository {
         return queryFactory.select(Projections.constructor(
                         ProductInfoForOrderRes.class,
                         product.id,
+                        product.companyUserId,
                         product.name,
                         product.price.amount,
                         product.productStock.quantity))

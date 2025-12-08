@@ -3,16 +3,12 @@ package com.palja.product_service.application.dto.res;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class ProductInfoForOrderRes {
+public class IncreaseStockForTimeDealRes {
 
     private UUID productId;
-    private UUID companyUserId;
-    private String productName;
-    private BigDecimal price;
-    private int stockQuantity;
+    private Boolean status;
 }

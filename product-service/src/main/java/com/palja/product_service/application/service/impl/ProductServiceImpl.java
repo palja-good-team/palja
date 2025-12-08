@@ -8,11 +8,14 @@ import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
+import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +33,14 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final DslProductRepository dslProductRepository;
+    private final RedisRepository redisRepository;
+
+    @Value("${redis-key.map0}")
+    private String map0Key;
+
+    @Value("${redis-key.map1}")
+    private String map1Key;
+
 
     @Override
     @Transactional
@@ -147,5 +158,80 @@ public class ProductServiceImpl implements ProductService {
         Product updateProduct = product.updateStock(stock);
 
         return UpdateStockRes.fromEntity(updateProduct);
+    }
+
+    @Override
+    public SaleProductRes saleProduct(UUID productId, Integer quantity) {
+
+        String hashKey = createRedisHashKey(productId);
+
+        //찾아오는 이유는 레디스에 저장되어있지 않은 상품이라면 해당 상품의 재고가 필요.
+        //재고만 찾아오게 리팩터링 필요.
+        Product product = repository.findProduct(productId);
+        Integer stock = product.getProductStock().getQuantity();
+
+        boolean result = redisRepository.decreaseStockBySale(hashKey, productId.toString(), stock, quantity);
+        validateRedisOperation(result);
+
+        return new SaleProductRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
+    public RestoreStockRes stockRestore(UUID productId, Integer quantity) {
+
+        ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), restoredStock.getQuantity());
+        validateRedisOperation(result);
+
+        return new RestoreStockRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
+    public DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Integer quantity) {
+
+        ProductStock decreasedStock = repository.findProduct(productId).decreaseStock(quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), decreasedStock.getQuantity());
+        validateRedisOperation(result);
+
+        return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
+    public IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Integer quantity) {
+
+        ProductStock increasedStock = repository.findProduct(productId).increaseStock(quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), increasedStock.getQuantity());
+        validateRedisOperation(result);
+
+        return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
+    }
+
+    private String createRedisHashKey(UUID productId) {
+
+        //상품 아이디의 앞 7자리를 해시해, 짝수냐 아니냐로 키를 나눔
+        //레디스의 한 컬렉션에 많은 데이터가 저장되면 좋지 않다고 함
+        String substring = productId.toString().substring(0, 8);
+        int hash = substring.hashCode();
+        if(hash % 2 == 0)
+            return map0Key;
+        else return map1Key;
+    }
+
+    private void validateRedisOperation(boolean redisResult) {
+        if (!redisResult) {
+            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
+        }
     }
 }

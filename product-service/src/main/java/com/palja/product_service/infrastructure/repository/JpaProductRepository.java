@@ -3,6 +3,7 @@ package com.palja.product_service.infrastructure.repository;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
