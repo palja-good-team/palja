@@ -1,5 +1,6 @@
 package com.palja.payment_service.presentation.controller;
 
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
@@ -30,7 +31,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentDetailRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
     ) {
-        PaymentDetailRes detail = paymentService.createPayment(req.toCommand());
+        PaymentDetailRes detail = paymentService.createPayment(req.toCommand(CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -42,7 +43,7 @@ public class PaymentController {
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
     ){
-        PaymentDetailRes detail = paymentService.cancelPayment(req.toCommand(paymentId));
+        PaymentDetailRes detail = paymentService.cancelPayment(req.toCommand(paymentId, CurrentUser.getLoginId()));
 
         return ResponseEntity
                 .ok(ApiResponse.success(detail,"결제가 취소되었습니다."));
