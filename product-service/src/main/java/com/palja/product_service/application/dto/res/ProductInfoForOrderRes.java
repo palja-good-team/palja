@@ -11,6 +11,7 @@ import java.util.UUID;
 public class ProductInfoForOrderRes {
 
     private UUID productId;
+    private UUID companyUserId;
     private String productName;
     private BigDecimal price;
     private int stockQuantity;
