@@ -8,6 +8,7 @@ import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
+import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
@@ -169,11 +170,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         Integer stock = product.getProductStock().getQuantity();
 
-        boolean finish = redisRepository.decreaseStockBySale(hashKey, productId.toString(), stock, quantity);
-
-        if (!finish) {
-            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
-        }
+        boolean result = redisRepository.decreaseStockBySale(hashKey, productId.toString(), stock, quantity);
+        validateRedisOperation(result);
 
         return new SaleProductRes(productId, Boolean.TRUE);
     }
@@ -182,15 +180,42 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public RestoreStockRes stockRestore(UUID productId, Integer quantity) {
 
-        repository.restoreStock(productId, quantity);
+        ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
 
         String hashKey = createRedisHashKey(productId);
-        boolean finish = redisRepository.restoreStock(hashKey, productId.toString(), quantity);
-        if (!finish) {
-            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
-        }
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), restoredStock.getQuantity());
+        validateRedisOperation(result);
 
         return new RestoreStockRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
+    public DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Integer quantity) {
+
+        ProductStock decreasedStock = repository.findProduct(productId).decreaseStock(quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), decreasedStock.getQuantity());
+        validateRedisOperation(result);
+
+        return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
+    public IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Integer quantity) {
+
+        ProductStock increasedStock = repository.findProduct(productId).increaseStock(quantity);
+
+        String hashKey = createRedisHashKey(productId);
+        boolean result = redisRepository.adjustStock(
+                hashKey, productId.toString(), increasedStock.getQuantity());
+        validateRedisOperation(result);
+
+        return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
     }
 
     private String createRedisHashKey(UUID productId) {
@@ -202,5 +227,11 @@ public class ProductServiceImpl implements ProductService {
         if(hash % 2 == 0)
             return map0Key;
         else return map1Key;
+    }
+
+    private void validateRedisOperation(boolean redisResult) {
+        if (!redisResult) {
+            throw new BusinessException(ProductErrorCode.CONNECTION_ERROR_REDIS);
+        }
     }
 }

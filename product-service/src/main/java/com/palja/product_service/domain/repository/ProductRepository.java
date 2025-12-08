@@ -21,6 +21,4 @@ public interface ProductRepository {
     List<Product> findProductsToCondition(FindListByConditionReq condition, Pageable pageable);
 
     void stockBulkUpdateForSchedule(Collection<StockScheduleDto> dtos);
-
-    void restoreStock(UUID productId, Integer quantity);
 }

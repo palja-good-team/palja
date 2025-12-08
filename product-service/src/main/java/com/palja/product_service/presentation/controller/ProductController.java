@@ -105,4 +105,22 @@ public class ProductController {
 
         return new ResponseEntity<>(ApiResponse.success(res, "취소 수량 복구 성공"), HttpStatus.OK);
     }
+
+    @PutMapping("/time-deal/decrease/{productId}")
+    public ResponseEntity<ApiResponse<DecreaseStockForTimeDealRes>> decreaseStockForTimeDeal(@PathVariable UUID productId,
+                                                                   @RequestParam Integer quantity) {
+
+        DecreaseStockForTimeDealRes res = service.decreaseStockForTimeDeal(productId, quantity);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 차감 성공"), HttpStatus.OK);
+    }
+
+    @PutMapping("/time-deal/increase/{productId}")
+    public ResponseEntity<ApiResponse<IncreaseStockForTimeDealRes>> increaseStockForTimeDeal(@PathVariable UUID productId,
+                                                                   @RequestParam Integer quantity) {
+
+        IncreaseStockForTimeDealRes res = service.increaseStockForTimeDeal(productId, quantity);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 증가 성공"), HttpStatus.OK);
+    }
 }
