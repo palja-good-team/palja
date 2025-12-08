@@ -9,7 +9,6 @@ import com.palja.payment_service.application.dto.response.CreatePaymentRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.application.service.PaymentService;
-import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
 import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
 import jakarta.validation.Valid;

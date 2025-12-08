@@ -20,8 +20,6 @@ public interface PaymentService {
 
     ReadPaymentDetailRes getPayment(UUID paymentId);
 
-    Page<ReadPaymentSummaryRes> getPayments(PageRequest pageRequest);
-
     Page<ReadPaymentSummaryRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest);
 
     void deletePayment(UUID paymentId);

@@ -1,7 +1,5 @@
 package com.palja.payment_service.application.command;
 
-import com.palja.payment_service.domain.vo.PaymentStatus;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
