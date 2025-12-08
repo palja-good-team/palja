@@ -1,8 +1,8 @@
 package com.palja.order_service.application.service;
 
-import com.palja.order_service.application.dto.CompanyUserRes;
-import com.palja.order_service.application.dto.CustomerUserRes;
-import com.palja.order_service.application.dto.ManagerUserRes;
+import com.palja.order_service.application.dto.response.CompanyUserRes;
+import com.palja.order_service.application.dto.response.CustomerUserRes;
+import com.palja.order_service.application.dto.response.ManagerUserRes;
 
 public interface UserService {
 

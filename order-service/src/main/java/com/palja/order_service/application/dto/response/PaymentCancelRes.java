@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto;
+package com.palja.order_service.application.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

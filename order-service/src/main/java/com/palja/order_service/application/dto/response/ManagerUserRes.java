@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto;
+package com.palja.order_service.application.dto.response;
 
 import com.palja.common.vo.UserRole;
 import lombok.AccessLevel;

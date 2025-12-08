@@ -1,6 +1,6 @@
 package com.palja.order_service.application.service;
 
-import com.palja.order_service.application.dto.ProductRes;
+import com.palja.order_service.application.dto.response.ProductRes;
 
 import java.util.UUID;
 

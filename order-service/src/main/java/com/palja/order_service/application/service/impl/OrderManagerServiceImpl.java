@@ -1,7 +1,7 @@
 package com.palja.order_service.application.service.impl;
 
 import com.palja.order_service.application.command.ChangeOrderStatusCommand;
-import com.palja.order_service.application.dto.OrderStatusChangeRes;
+import com.palja.order_service.application.dto.response.OrderStatusChangeRes;
 import com.palja.order_service.application.service.OrderManagerService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.validator.OrderValidator;

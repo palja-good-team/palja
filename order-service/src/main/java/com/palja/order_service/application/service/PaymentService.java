@@ -1,6 +1,6 @@
 package com.palja.order_service.application.service;
 
-import com.palja.order_service.application.dto.PaymentRes;
+import com.palja.order_service.application.dto.response.PaymentRes;
 
 import java.math.BigDecimal;
 import java.util.UUID;

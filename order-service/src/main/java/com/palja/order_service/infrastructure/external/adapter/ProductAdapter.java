@@ -1,6 +1,6 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.order_service.application.dto.ProductRes;
+import com.palja.order_service.application.dto.response.ProductRes;
 import com.palja.order_service.application.service.ProductService;
 import com.palja.order_service.infrastructure.external.dto.response.ProductDTO;
 import lombok.RequiredArgsConstructor;

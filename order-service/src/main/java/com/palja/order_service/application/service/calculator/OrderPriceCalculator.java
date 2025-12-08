@@ -1,9 +1,9 @@
 package com.palja.order_service.application.service.calculator;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.CouponRes;
-import com.palja.order_service.application.dto.ProductRes;
-import com.palja.order_service.application.dto.TimeDealRes;
+import com.palja.order_service.application.dto.response.CouponRes;
+import com.palja.order_service.application.dto.response.ProductRes;
+import com.palja.order_service.application.dto.response.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
