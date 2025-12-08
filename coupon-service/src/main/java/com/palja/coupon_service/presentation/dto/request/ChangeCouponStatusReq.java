@@ -17,4 +17,12 @@ public class ChangeCouponStatusReq {
                 .status(request.getStatus())
                 .build();
     }
+
+    public static ChangeCouponStatusCommand of(UUID couponId, String userId, ChangeCouponStatusReq request) {
+        return ChangeCouponStatusCommand.builder()
+                .couponId(couponId)
+                .userId(userId)
+                .status(request.getStatus())
+                .build();
+    }
 }

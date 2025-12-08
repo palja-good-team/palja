@@ -26,9 +26,9 @@ public class CouponDetailRes {
     private LocalDateTime issueEndAt;
     private Integer usageDays;
     private CouponStatus status;
-    private Instant createdAt;
+    private LocalDateTime createdAt;
     private String createdBy;
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
     private String updatedBy;
 
     public static CouponDetailRes from(Coupon coupon) {

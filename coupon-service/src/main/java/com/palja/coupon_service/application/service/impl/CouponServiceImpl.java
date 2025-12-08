@@ -1,6 +1,7 @@
 package com.palja.coupon_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
 import com.palja.coupon_service.application.command.UseCouponCommand;
 import com.palja.coupon_service.application.dto.CouponUserDetailRes;
@@ -11,6 +12,7 @@ import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.entity.CouponUser;
 import com.palja.coupon_service.domain.repository.CouponRepository;
 import com.palja.coupon_service.domain.repository.CouponUserRepository;
+import com.palja.coupon_service.domain.vo.CouponUserStatus;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,12 +59,54 @@ public class CouponServiceImpl implements CouponService {
         CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(command.couponUserId(), command.userId())
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
 
-        couponUser.validateUsable();
-
         couponUser.use(command.orderId(), command.discountAmount());
 
         log.info("쿠폰 사용 성공 userId={} couponUserId={}", command.userId(), command.couponUserId());
         return UsedCouponUserRes.from(couponUser);
+    }
+
+    @Override
+    @Transactional
+    public CouponUserRes cancelCoupon(UUID couponUserId, String userId) {
+        log.info("쿠폰 취소 시작 userId={} couponUserId={}", userId, couponUserId);
+
+        CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId)
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
+
+        couponUser.cancel();
+
+        log.info("쿠폰 취소 성공 userId={} couponUserId={}", userId, couponUserId);
+        return CouponUserRes.from(couponUser);
+    }
+
+    @Override
+    @Transactional
+    public CouponUserRes changeCouponStatus(ChangeCouponStatusCommand command) {
+        log.info("쿠폰 상태 변경 시작 - couponId={} status={}", command.couponId(), command.status());
+
+        CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(command.couponId(), command.userId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
+
+        CouponUserStatus oldStatus = couponUser.getStatus();
+
+        couponUser.changeStatus(CouponUserStatus.valueOf(command.status().toUpperCase()));
+
+        log.info("쿠폰 상태 변경 완료 - couponId={} status={} -> {}", command.couponId(), oldStatus, command.status());
+        return CouponUserRes.from(couponUser);
+    }
+
+    @Override
+    @Transactional
+    public CouponUserRes deleteCoupon(UUID couponUserId, String userId) {
+        log.info("쿠폰 삭제 시작 - couponId={} status={}", couponUserId, userId);
+
+        CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId)
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
+
+        couponUser.softDelete();
+
+        log.info("쿠폰 삭제 완료 - couponId={} status={}", couponUserId, userId);
+        return CouponUserRes.from(couponUser);
     }
 
     @Override

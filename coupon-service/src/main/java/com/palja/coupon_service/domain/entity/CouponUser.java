@@ -52,13 +52,34 @@ public class CouponUser extends BaseEntity {
     }
 
     public void use(UUID orderId, Long discountAmount) {
+        validateUsable();
+
         this.orderId = orderId;
         this.discountAmount = discountAmount;
         this.usedAt = LocalDateTime.now();
         this.status = CouponUserStatus.USED;
     }
 
-    public void validateUsable() {
+    public void cancel() {
+        this.orderId = null;
+        this.discountAmount = null;
+        this.usedAt = null;
+        this.status = CouponUserStatus.ISSUED;
+    }
+
+    public void changeStatus(CouponUserStatus newStatus) {
+        validateStatusTransition(newStatus);
+
+        this.status = newStatus;
+    }
+
+    @Override
+    public void softDelete() {
+        validateDeletable();
+        super.softDelete();
+    }
+
+    private void validateUsable() {
         // 상태 검증
         if (status != CouponUserStatus.ISSUED)
             throw new BusinessException(CouponErrorCode.COUPON_ALREADY_USED);
@@ -66,5 +87,18 @@ public class CouponUser extends BaseEntity {
         // 만료 검증
         if (LocalDateTime.now().isAfter(expireAt))
             throw new BusinessException(CouponErrorCode.USER_COUPON_EXPIRED);
+    }
+
+    // 쿠폰 상태 변경 검증
+    private void validateStatusTransition(CouponUserStatus newStatus) {
+        if (!this.status.canTransitionTo(newStatus)) {
+            throw new BusinessException(CouponErrorCode.INVALID_STATUS_TRANSITION);
+        }
+    }
+
+    // 쿠폰 삭제 검증
+    private void validateDeletable() {
+        if (status == CouponUserStatus.USED)
+            throw new BusinessException(CouponErrorCode.CANNOT_DELETE_USED_COUPON);
     }
 }
