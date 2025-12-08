@@ -3,6 +3,7 @@ package com.palja.order_service.infrastructure.external.adapter;
 import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponRes;
 import com.palja.order_service.application.service.CouponService;
+import com.palja.order_service.infrastructure.external.dto.response.CouponCancelDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CouponUseDTO;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +61,17 @@ public class CouponAdapter implements CouponService {
         CouponUseDTO response = CouponUseDTO.dummy(couponId, orderId);
 
         log.info("쿠폰 사용 완료: couponId={}, orderId={}", couponId, orderId);
+    }
+
+    @Override
+    public void cancelCoupon(UUID couponId, UUID orderId) {
+        log.debug("쿠폰 사용 취소: couponId={}", couponId);
+        // TODO: 쿠폰 사용 취소 API 호출 구현
+        //CancelCouponDTO request = new CancelCouponDTO(orderId);
+        //CouponCancelDTO response = couponClient.cancelCoupon(couponId, request).data();
+        // TODO: 실제 쿠폰 서비스 연동 시 위의 코드로 교체
+        CouponCancelDTO response = CouponCancelDTO.dummy(couponId, orderId);
+
+        log.info("쿠폰 사용 취소 완료: couponId={}", couponId);
     }
 }

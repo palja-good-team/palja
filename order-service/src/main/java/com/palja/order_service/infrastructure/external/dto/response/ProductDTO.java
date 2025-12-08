@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
-
+    // TODO: 상품 단건 조회 시 companyUserId 반환하도록 수정되면 companyUserId 값 추가.
     private UUID productId;
     private String name;
     private String description;

@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserRes {
+public class ManagerUserRes {
 
     private final Long userId;
     private final String loginId;
@@ -18,7 +18,7 @@ public class UserRes {
     private final UserRole role;
     private final String status;
 
-    public static UserRes of(
+    public static ManagerUserRes of(
             Long userId,
             String loginId,
             String name,
@@ -26,7 +26,7 @@ public class UserRes {
             UserRole role,
             String status
     ) {
-        return UserRes.builder()
+        return ManagerUserRes.builder()
                 .userId(userId)
                 .loginId(loginId)
                 .name(name)

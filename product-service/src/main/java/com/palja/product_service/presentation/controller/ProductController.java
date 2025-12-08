@@ -4,12 +4,12 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
-import com.palja.product_service.application.command.UpdateProductCommand;
+import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.presentation.dto.req.CreateProductReq;
 import com.palja.product_service.presentation.dto.req.FindProductListByConditionReq;
-import com.palja.product_service.presentation.dto.req.UpdateProductReq;
+import com.palja.product_service.presentation.dto.req.UpdateProductInfoReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,13 +61,30 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 
-    @PutMapping("/manager/{productId}")
-    public ResponseEntity<ApiResponse<UpdateProductRes>> updateProduct(@RequestBody @Valid UpdateProductReq req,
-                                                                       @PathVariable UUID productId) {
+    @GetMapping("/order/{productId}")
+    public ResponseEntity<ApiResponse<ProductInfoForOrderRes>> provideProductInfoToOrder(@PathVariable UUID productId) {
 
-        UpdateProductCommand command = req.toCommand();
-        UpdateProductRes res = service.updateProduct(productId, command);
+        ProductInfoForOrderRes res = service.findProductForOrder(productId);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
+    }
+
+    @PutMapping("/manager/{productId}")
+    public ResponseEntity<ApiResponse<UpdateProductInfoRes>> updateProductInfo(@RequestBody @Valid UpdateProductInfoReq req,
+                                                                               @PathVariable UUID productId) {
+
+        UpdateProductInfoCommand command = req.toCommand();
+        UpdateProductInfoRes res = service.updateProductInfo(productId, command);
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 수정 성공"), HttpStatus.OK);
+    }
+
+    @PutMapping("/manager/modifyStock/{productId}")
+    public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
+                                                                          @RequestParam Integer stock) {
+
+        UpdateStockRes res = service.updateStock(productId, stock);
+
+        return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
     }
 }

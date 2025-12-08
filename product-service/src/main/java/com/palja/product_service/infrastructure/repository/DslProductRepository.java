@@ -1,5 +1,6 @@
 package com.palja.product_service.infrastructure.repository;
 
+import com.palja.product_service.application.dto.res.ProductInfoForOrderRes;
 import com.palja.product_service.application.dto.res.ProductInfoForTimeDealRes;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
@@ -31,6 +32,19 @@ public class DslProductRepository {
                         product.companyUserId,
                         product.price.amount.longValue(),
                         product.productStock.quantity.longValue()))
+                .from(product)
+                .where(product.id.eq(productId).and(product.deletedAt.isNull()))
+                .fetchOne();
+    }
+
+    public ProductInfoForOrderRes findProductForOrder(UUID productId) {
+
+        return queryFactory.select(Projections.constructor(
+                        ProductInfoForOrderRes.class,
+                        product.id,
+                        product.name,
+                        product.price.amount,
+                        product.productStock.quantity))
                 .from(product)
                 .where(product.id.eq(productId).and(product.deletedAt.isNull()))
                 .fetchOne();

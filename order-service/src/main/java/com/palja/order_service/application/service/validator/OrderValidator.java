@@ -6,18 +6,35 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
+import com.palja.order_service.domain.entity.Order;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
-// 주문 관련 검증을 담당하는 컴포넌트
+// 주문 관련 검증을 담당 컴포넌트
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OrderValidator {
 
-    // ===== 주문 생성 검증 =====
+    // 검증 상수
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
+    );
+
+    private static final int MAX_RECIPIENT_NAME_LENGTH = 50;
+    private static final int MAX_RECIPIENT_EMAIL_LENGTH = 255;
+    private static final int MAX_RECIPIENT_ADDRESS_LENGTH = 200;
+    private static final int MAX_DELIVERY_MESSAGE_LENGTH = 255;
+    private static final int MAX_PERCENTAGE_DISCOUNT = 100;
+
+
+    // ===== Command Validation (입력 검증) =====
     // 주문 생성 커맨드 검증
     public void validateCreateOrderCommand(CreateOrderCommand command) {
         validateRequiredFields(command);
@@ -43,7 +60,7 @@ public class OrderValidator {
         }
     }
 
-    // 배송 정보 검증
+    // ===== Delivery Information Validation =====
     private void validateDeliveryInfo(DeliveryCommand delivery) {
         validateRecipientName(delivery.recipientName());
         validateRecipientEmail(delivery.recipientEmail());
@@ -55,13 +72,22 @@ public class OrderValidator {
         if (name == null || name.isBlank()) {
             throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
         }
-        if (name.length() > 50) {
+        if (name.length() > MAX_RECIPIENT_NAME_LENGTH) {
             throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
         }
     }
 
     private void validateRecipientEmail(String email) {
-        if (email != null && email.length() > 255) {
+        // 이메일은 선택 사항
+        if (email == null || email.isBlank()) {
+            return;
+        }
+
+        if (email.length() > MAX_RECIPIENT_EMAIL_LENGTH) {
+            throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
+        }
+
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
         }
     }
@@ -70,52 +96,101 @@ public class OrderValidator {
         if (address == null || address.isBlank()) {
             throw new BusinessException(OrderErrorCode.INVALID_ADDRESS);
         }
-        if (address.length() > 200) {
+        if (address.length() > MAX_RECIPIENT_ADDRESS_LENGTH) {
             throw new BusinessException(OrderErrorCode.INVALID_ADDRESS);
         }
     }
 
     private void validateDeliveryMessage(String message) {
-        if (message != null && message.length() > 255) {
+        if (message != null && message.length() > MAX_DELIVERY_MESSAGE_LENGTH) {
             throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
         }
     }
 
-    // ===== 사용자 검증 =====
-    // 사용자 주문 가능 여부 검증
-    public void validateUserOrderable(UserRes user) {
-        validateUserStatus(user);
-        validateUserRoleForOrder(user);
-    }
+    // ===== Customer Validation (고객 검증) =====
+    // 주문 가능한 고객인지 검증
+    public void validateCustomerForOrder(CustomerUserRes customer) {
+        log.debug("고객 검증 시작 - userId: {}, status: {}, role: {}",
+                customer.getUserId(), customer.getStatus(), customer.getRole());
 
-    private void validateUserStatus(UserRes user) {
-        if (!"ACTIVE".equals(user.getStatus())) {
+        validateCustomerNotNull(customer);
+        validateCustomerStatus(customer);
+        validateCustomerRole(customer);
+
+        log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
+    }
+    private void validateCustomerNotNull(CustomerUserRes customer) {
+        if (customer == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
+        }
+    }
+    private void validateCustomerStatus(CustomerUserRes customer) {
+        if (!"ACTIVE".equals(customer.getStatus())) {
             throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
         }
     }
 
-    private void validateUserRoleForOrder(UserRes user) {
-        if (UserRole.COMPANY_USER.equals(user.getRole())) {
+    private void validateCustomerRole(CustomerUserRes customer) {
+        if (UserRole.COMPANY_USER.equals(customer.getRole())) {
             throw new BusinessException(OrderErrorCode.USER_NOT_ALLOWED);
         }
     }
 
-    // ===== 상품 검증 =====
-    public void validateProductStock(ProductRes product, int requestedQuantity) {
+    // ===== Product Validation (상품 검증) =====
+    // 상품 주문 가능 여부 검증
+    public void validateProductForOrder(ProductRes product, int requestedQuantity) {
+        log.debug("상품 검증 시작 - productId: {}, price: {}, stock: {}, requested: {}",
+                product.getProductId(), product.getPrice(), product.getStockQuantity(), requestedQuantity);
+
+        validateProductNotNull(product);
+        validateProductPrice(product);
+        validateProductStock(product, requestedQuantity);
+
+        log.debug("상품 검증 완료 - productId: {}", product.getProductId());
+    }
+
+    private void validateProductNotNull(ProductRes product) {
+        if (product == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_PRODUCT);
+        }
+    }
+
+    private void validateProductPrice(ProductRes product) {
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_PRODUCT_PRICE);
+        }
+    }
+
+    private void validateProductStock(ProductRes product, int requestedQuantity) {
         if (product.getStockQuantity() < requestedQuantity) {
+            log.warn("상품 재고 부족 - productId: {}, available: {}, requested: {}",
+                    product.getProductId(), product.getStockQuantity(), requestedQuantity);
             throw new BusinessException(OrderErrorCode.INSUFFICIENT_STOCK);
         }
     }
 
-    // ===== 타임딜 검증 =====
-    // 상품 재고 검증
-    public void validateTimeDeal(TimeDealRes timeDeal, int requestedQuantity) {
+    // ===== TimeDeal Validation (타임딜 검증) =====
+    // 타임딜 주문 자격 검증
+    public void validateTimeDealForOrder(TimeDealRes timeDeal, int requestedQuantity) {
+        log.debug("타임딜 검증 시작 - timeDealId: {}, status: {}, stock: {}, requested: {}",
+                timeDeal.getTimeDealId(), timeDeal.getStatus(),
+                timeDeal.getTimeDealStockQuantity(), requestedQuantity);
+
+        validateTimeDealNotNull(timeDeal);
         validateTimeDealPeriod(timeDeal);
         validateTimeDealStatus(timeDeal);
+        validateTimeDealPrice(timeDeal);
         validateTimeDealStock(timeDeal, requestedQuantity);
+
+        log.debug("타임딜 검증 완료 - timeDealId: {}", timeDeal.getTimeDealId());
     }
 
-    // 타임딜 기간 검증
+    private void validateTimeDealNotNull(TimeDealRes timeDeal) {
+        if (timeDeal == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_TIME_DEAL);
+        }
+    }
+
     private void validateTimeDealPeriod(TimeDealRes timeDeal) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -128,37 +203,63 @@ public class OrderValidator {
         }
     }
 
-    // 타임딜 상태 검증
     private void validateTimeDealStatus(TimeDealRes timeDeal) {
         if (!"OPEN".equals(timeDeal.getStatus())) {
             throw new BusinessException(OrderErrorCode.INVALID_TIME_DEAL);
         }
     }
 
-    // 타임딜 재고 검증
+    private void validateTimeDealPrice(TimeDealRes timeDeal) {
+        if (timeDeal.getTimeDealPrice() == null
+                || timeDeal.getTimeDealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_TIME_DEAL);
+        }
+    }
+
     private void validateTimeDealStock(TimeDealRes timeDeal, int requestedQuantity) {
         if (timeDeal.getTimeDealStockQuantity() < requestedQuantity) {
             throw new BusinessException(OrderErrorCode.TIME_DEAL_INSUFFICIENT_STOCK);
         }
     }
 
-    // ===== 쿠폰 검증 =====
-    public void validateCoupon(CouponRes coupon, BigDecimal orderAmount) {
+    // ===== Coupon Validation (쿠폰 검증) =====
+    // 쿠폰 사용 자격 검증 (상태, 타입, 기간, 최소 주문 금액)
+    public void validateCouponForOrder(CouponRes coupon) {
+        log.debug("쿠폰 검증 시작 - couponId: {}, status: {}, type: {}, value: {}",
+                coupon.getCouponId(), coupon.getStatus(),
+                coupon.getDiscountType(), coupon.getDiscountValue());
+
+        validateCouponNotNull(coupon);
         validateCouponStatus(coupon);
-        validateCouponDiscountType(coupon);   // ← 추가
+        validateCouponDiscountInfo(coupon);
         validateCouponIssuePeriod(coupon);
-        validateCouponMinOrderAmount(coupon, orderAmount);
+
+        log.debug("쿠폰 검증 완료 - couponId: {}", coupon.getCouponId());
     }
 
-    // 쿠폰 상태 검증
+    // 쿠폰 최소 주문 금액 검증 (금액 계산 완료 후 호출)
+    public void validateCouponMinimumAmount(CouponRes coupon, BigDecimal orderAmount) {
+        if (coupon.getMinOrderAmount() == null) {
+            return;
+        }
+
+        if (orderAmount == null || orderAmount.compareTo(coupon.getMinOrderAmount()) < 0) {
+            throw new BusinessException(OrderErrorCode.COUPON_MIN_AMOUNT_NOT_MET);
+        }
+    }
+
+    private void validateCouponNotNull(CouponRes coupon) {
+        if (coupon == null) {
+            throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
+        }
+    }
+
     private void validateCouponStatus(CouponRes coupon) {
         if (!"ACTIVE".equals(coupon.getStatus())) {
             throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
         }
     }
-
-    // 쿠폰 할인 타입/할인값 검증
-    private void validateCouponDiscountType(CouponRes coupon) {
+    private void validateCouponDiscountInfo(CouponRes coupon) {
         if (coupon.getDiscountType() == null) {
             throw new BusinessException(OrderErrorCode.INVALID_COUPON_TYPE);
         }
@@ -168,12 +269,11 @@ public class OrderValidator {
         }
 
         if (coupon.getDiscountType() == CouponDiscountType.PERCENTAGE
-                && coupon.getDiscountValue() > 100) {
+                && coupon.getDiscountValue() > MAX_PERCENTAGE_DISCOUNT) {
             throw new BusinessException(OrderErrorCode.INVALID_COUPON_VALUE);
         }
     }
 
-    // 쿠폰 발급 기간 검증
     private void validateCouponIssuePeriod(CouponRes coupon) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -186,14 +286,99 @@ public class OrderValidator {
         }
     }
 
-    // 쿠폰 최소 주문 금액 검증
-    private void validateCouponMinOrderAmount(CouponRes coupon, BigDecimal orderAmount) {
-        if (coupon.getMinOrderAmount() == null) {
-            return;
+    // ===== Amount Validation (금액 검증) =====
+    // 계산용 금액 유효성 검증
+    public void validateAmountForCalculation(BigDecimal amount) {
+        if (amount == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_AMOUNT);
         }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_AMOUNT);
+        }
+    }
 
-        if (orderAmount == null || orderAmount.compareTo(coupon.getMinOrderAmount()) < 0) {
-            throw new BusinessException(OrderErrorCode.COUPON_MIN_AMOUNT_NOT_MET);
+    // ===== Authorization 권한 검증 =====
+    // 주문 조회 권한 검증
+    public void verifyOrderReadPermission(
+            Order order,
+            UserRole userRole,
+            Long customerId,           // CUSTOMER일 때 필요
+            UUID companyUserId,        // COMPANY_USER일 때 필요
+            UUID sellerId              // COMPANY_USER일 때 필요
+    ) {
+        switch (userRole) {
+            case MANAGER -> {
+                log.debug("MANAGER 조회 권한 허용 - orderId: {}", order.getOrderId());
+            }
+            case CUSTOMER -> {
+                verifyCustomerOwnership(order, customerId);
+                log.debug("고객 조회 권한 허용 - orderId: {}, userId: {}",
+                        order.getOrderId(), customerId);
+            }
+            case COMPANY_USER -> {
+                verifySellerOwnership(companyUserId, sellerId);
+                log.debug("판매자 조회 권한 허용 - orderId: {}, companyUserId: {}",
+                        order.getOrderId(), companyUserId);
+            }
+            default -> {
+                log.warn("잘못된 사용자 권한으로 조회 시도 - role: {}", userRole);
+                throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+            }
+        }
+    }
+
+    // 주문 취소 권한 검증
+    public void verifyCancellationPermission(
+            Order order,
+            UserRole userRole,
+            Long customerId,           // CUSTOMER일 때 필요
+            UUID companyUserId,        // COMPANY_USER일 때 필요
+            UUID sellerId              // COMPANY_USER일 때 필요
+    ) {
+        switch (userRole) {
+            case MANAGER -> {
+                log.debug("MANAGER 취소 권한 허용 - orderId: {}", order.getOrderId());
+            }
+            case CUSTOMER -> {
+                if (!customerId.equals(order.getUserId())) {
+                    log.warn("고객 취소 권한 거부 - userId: {}, orderUserId: {}",
+                            customerId, order.getUserId());
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+                log.debug("고객 취소 권한 허용 - orderId: {}, userId: {}",
+                        order.getOrderId(), customerId);
+            }
+            case COMPANY_USER -> {
+                if (!companyUserId.equals(sellerId)) {
+                    log.warn("판매자 취소 권한 거부 - companyUserId: {}, sellerId: {}",
+                            companyUserId, sellerId);
+                    throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+                }
+                log.debug("판매자 취소 권한 허용 - orderId: {}, companyUserId: {}",
+                        order.getOrderId(), companyUserId);
+            }
+            default -> {
+                log.error("잘못된 사용자 권한으로 취소 시도 - role: {}", userRole);
+                throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+            }
+        }
+    }
+
+    // 고객 소유권 검증
+    public void verifyCustomerOwnership(Order order, Long customerId) {
+        if (!order.getUserId().equals(customerId)) {
+            log.warn("고객 소유권 검증 실패 - customerId: {}, orderUserId: {}",
+                    customerId, order.getUserId());
+            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+        }
+    }
+
+    // 판매자 소유권 검증
+    public void verifySellerOwnership(UUID companyUserId, UUID sellerId) {
+        if (!companyUserId.equals(sellerId)) {
+            log.warn("판매자 소유권 검증 실패 - companyUserId: {}, sellerId: {}",
+                    companyUserId, sellerId);
+            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
     }
 }

@@ -4,12 +4,16 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 // 주문 생성 요청 DTO
-@Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateOrderReq {
 
     @NotNull(message = "상품 ID는 필수입니다.")

@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 // 주문 생성 응답 DTO
@@ -21,7 +21,7 @@ public class OrderCreateRes {
     private PricingRes pricing;
     private CouponSnapshotRes coupon;
     private Boolean timeDealOrder;
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     // Order 엔티티 → 주문 생성 응답 DTO 변환
     public static OrderCreateRes from(Order order) {

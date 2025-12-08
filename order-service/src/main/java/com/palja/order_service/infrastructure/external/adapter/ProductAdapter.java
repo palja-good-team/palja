@@ -20,7 +20,7 @@ public class ProductAdapter implements ProductService {
      //private final ProductClient productClient;
 
     @Override
-    public ProductRes getProduct(UUID productId, int quantity) {
+    public ProductRes getProduct(UUID productId) {
         log.debug("상품 정보 조회: productId={}", productId);
 
         // TODO: 실제 상품 API 호출 (Feign)
@@ -34,6 +34,7 @@ public class ProductAdapter implements ProductService {
 
     private ProductRes toProductRes(ProductDTO dto) {
         return ProductRes.of(
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 dto.getProductId(),
                 dto.getName(),
                 dto.getPrice(),
@@ -42,14 +43,14 @@ public class ProductAdapter implements ProductService {
     }
 
     @Override
-    public void deductStock(UUID productId, int quantity) {
+    public void deductProductStock(UUID productId, int quantity) {
         log.debug("재고 차감 요청: productId={}, quantity={}", productId, quantity);
         // TODO: 상품 재고 차감 API 호출 구현
         log.error("재고 차감 실패: productId={}, quantity={}", productId, quantity);
     }
 
     @Override
-    public void restoreStock(UUID productId, int quantity) {
+    public void restoreProductStock(UUID productId, int quantity) {
         log.debug("재고 복구 요청: productId={}, quantity={}", productId, quantity);
         // TODO: 상품 재고 차감 API 호출 구현
         log.error("재고 복구 실패: productId={}, quantity={}", productId, quantity);

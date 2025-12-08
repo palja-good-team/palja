@@ -14,7 +14,7 @@ public enum OrderStatus {
         }
 
         @Override
-        public boolean isCancelableCandidate() {
+        public boolean isOrderCancellable() {
             return true;
         }
     },
@@ -31,7 +31,7 @@ public enum OrderStatus {
         }
 
         @Override
-        public boolean isCancelableCandidate() {
+        public boolean isOrderCancellable() {
             return true;
         }
     },
@@ -48,7 +48,7 @@ public enum OrderStatus {
         }
 
         @Override
-        public boolean isCancelableCandidate() {
+        public boolean isOrderCancellable() {
             return true;
         }
     },
@@ -174,7 +174,7 @@ public enum OrderStatus {
      * - CREATED / PAID / PREPARING
      * - 실제 취소 가능 여부는 배송 상태(READY/REQUESTED 이하)까지 같이 확인
      */
-    public boolean isCancelableCandidate() {
+    public boolean isOrderCancellable() {
         return false;
     }
 

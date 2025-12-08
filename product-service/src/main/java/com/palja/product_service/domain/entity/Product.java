@@ -64,7 +64,7 @@ public class Product extends BaseEntity {
         return product;
     }
 
-    public Product updateProduct(String name, String description, Long price, String category) {
+    public Product updateInfo(String name, String description, Long price, String category) {
 
         if (Objects.nonNull(name)) {
             if(name.length() <= 30) this.name = name;
@@ -77,6 +77,14 @@ public class Product extends BaseEntity {
         this.price = Objects.nonNull(price) ? Money.of(price) : this.price;
         this.category = Objects.nonNull(category) ? Category.fromString(category) : this.category;
 
+        return this;
+    }
+
+    public Product updateStock(Integer stock) {
+        if(Objects.isNull(stock) || stock < 0)
+            throw new BusinessException(ProductErrorCode.INVALID_STOCK);
+
+        this.productStock.updateQuantity(stock);
         return this;
     }
 

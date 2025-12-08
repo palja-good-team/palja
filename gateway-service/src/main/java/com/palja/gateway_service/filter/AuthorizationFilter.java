@@ -33,6 +33,12 @@ public class AuthorizationFilter implements GlobalFilter {
 	private final ObjectMapper objectMapper;
 	private final TokenRepository tokenRepository;
 
+	private static final List<String> swaggerPaths = List.of(
+		"/swagger-ui",
+		"/v3/api-docs",
+		"/swagger-resources"
+	);
+
 	private final Map<String, List<String>> permitAllPaths = Map.of(
 		"/api/v1/auth/login", List.of("POST"),
 		"/api/v1/auth/refresh", List.of("POST"),
@@ -47,6 +53,10 @@ public class AuthorizationFilter implements GlobalFilter {
 		String method = request.getMethod().name();
 
 		log.info("[%s] %s".formatted(method, request.getURI()));
+
+		if (swaggerPaths.stream().anyMatch(path::startsWith)) {
+			return chain.filter(exchange);
+		}
 
 		List<String> authorizationHeaders = request.getHeaders().get("Authorization");
 		if (authorizationHeaders != null && !authorizationHeaders.isEmpty()) {

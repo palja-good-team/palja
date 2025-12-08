@@ -11,33 +11,75 @@ spring:
               uri: lb://payment-service
               predicates:
                 - Path=/api/v1/payments/**, /api/v1/payment-logs/**
+            - id: payment-service-docs
+              uri: lb://payment-service
+              predicates:
+                - Path=/v3/api-docs/payment-service
+              filters:
+                - RewritePath=/v3/api-docs/payment-service, /v3/api-docs
 
             - id: review-service
               uri: lb://review-service
               predicates:
                 - Path=/api/v1/reviews/**
+            - id: review-service-docs
+              uri: lb://review-service
+              predicates:
+                - Path=/v3/api-docs/review-service
+              filters:
+                - RewritePath=/v3/api-docs/review-service, /v3/api-docs
 
             - id: user-service
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/managers/**, /api/v1/customers/**, /api/v1/company-users/**, /api/v1/auth/**
+            - id: user-service-docs
+              uri: lb://user-service
+              predicates:
+                - Path=/v3/api-docs/user-service
+              filters:
+                - RewritePath=/v3/api-docs/user-service, /v3/api-docs
 
             - id: product-service
               uri: lb://product-service
               predicates:
                 - Path=/api/v1/products/**
+            - id: product-service-docs
+              uri: lb://product-service
+              predicates:
+                - Path=/v3/api-docs/product-service
+              filters:
+                - RewritePath=/v3/api-docs/product-service, /v3/api-docs
 
             - id: order-service
               uri: lb://order-service
               predicates:
                 - Path=/api/v1/orders/**
+            - id: order-service-docs
+              uri: lb://order-service
+              predicates:
+                - Path=/v3/api-docs/order-service
+              filters:
+                - RewritePath=/v3/api-docs/order-service, /v3/api-docs
 
             - id: coupon-service
               uri: lb://coupon-service
               predicates:
                 - Path=/api/v1/coupons/**
+            - id: coupon-service-docs
+              uri: lb://coupon-service
+              predicates:
+                - Path=/v3/api-docs/coupon-service
+              filters:
+                - RewritePath=/v3/api-docs/coupon-service, /v3/api-docs
 
             - id: timedeal-service
               uri: lb://timedeal-service
               predicates:
                 - Path=/api/v1/time-deals/**
+            - id: timedeal-service-docs
+              uri: lb://timedeal-service
+              predicates:
+                - Path=/v3/api-docs/timedeal-service
+              filters:
+                - RewritePath=/v3/api-docs/timedeal-service, /v3/api-docs

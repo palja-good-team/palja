@@ -11,3 +11,4 @@ spring:
       - route
       - security
       - redis
+      - swagger

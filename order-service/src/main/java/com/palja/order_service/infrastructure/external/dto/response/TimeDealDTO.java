@@ -28,7 +28,7 @@ public class TimeDealDTO {
     public static TimeDealDTO dummy(UUID timeDealId) {
         return new TimeDealDTO(
                 timeDealId,
-                UUID.randomUUID(),
+                UUID.fromString("22222222-2222-2222-2222-222222222222"),
                 LocalDateTime.of(2025, 12, 1, 0, 0),
                 LocalDateTime.of(2025, 12, 10, 23, 59, 59),
                 BigDecimal.valueOf(9900),

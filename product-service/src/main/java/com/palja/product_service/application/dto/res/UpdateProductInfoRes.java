@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter
-public class UpdateProductRes {
+public class UpdateProductInfoRes {
 
     private UUID productId;
     private String name;
@@ -14,8 +14,8 @@ public class UpdateProductRes {
     private String price;
     private String category;
 
-    public static UpdateProductRes fromEntity(Product product) {
-        UpdateProductRes res = new UpdateProductRes();
+    public static UpdateProductInfoRes fromEntity(Product product) {
+        UpdateProductInfoRes res = new UpdateProductInfoRes();
 
         res.productId =  product.getId();
         res.name = product.getName();
