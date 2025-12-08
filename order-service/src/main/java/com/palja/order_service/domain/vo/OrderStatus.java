@@ -191,4 +191,34 @@ public enum OrderStatus {
     public boolean isConfirmable() {
         return this == DELIVERED;
     }
+
+    // ======= 관리자 권한 검증 =======
+    /**
+     * 관리자 권한으로 변경 가능한 상태인지 검증
+     * - 최종 상태(CANCELED, COMPLETED)로의 전환 불가
+     *    - CANCELED: 취소 API 사용 필요 (환불, 재고 복구 등 보상 트랜잭션)
+     *    - COMPLETED: 확정 API 사용 필요 (정산 처리)
+     * - 최종 상태에서 다른 상태로 전환 불가 (되돌릴 수 없음)
+     *    - CANCELED → 이미 환불/재고복구 완료
+     *    - COMPLETED → 이미 정산 완료
+     */
+    public void validateManagerTransition(OrderStatus targetStatus) {
+        // 최종 상태에서의 전환 차단
+        if (this.isFinalState()) {
+            throw new IllegalStateException(
+                    String.format("%s(%s) 상태에서는 다른 상태로 변경할 수 없습니다. " +
+                                    "이미 처리가 완료된 주문입니다.",
+                            this.name(), this.description)
+            );
+        }
+
+        // 최종 상태(CANCELED, COMPLETED)로의 직접 전환 차단
+        if (targetStatus.isFinalState()) {
+            throw new IllegalStateException(
+                    String.format("%s(%s) 상태로는 직접 변경할 수 없습니다. " +
+                                    "해당 상태 전용 API를 사용해주세요.",
+                            targetStatus.name(), targetStatus.description)
+            );
+        }
+    }
 }
