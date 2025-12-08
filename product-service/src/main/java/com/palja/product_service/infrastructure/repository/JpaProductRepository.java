@@ -16,8 +16,4 @@ public interface JpaProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByIdFetchStock(@Param("productId") UUID productId);
 
     Boolean existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(String companyName, Category category, String name);
-
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE ProductStock ps Set ps.quantity = ps.quantity + :quantity WHERE ps.product.id = :productId")
-    void restoreStock(@Param("productId")UUID productId, @Param("quantity") Integer quantity);
 }

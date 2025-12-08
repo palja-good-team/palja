@@ -42,7 +42,7 @@ public class RedisRepositoryImpl implements RedisRepository {
             );
 
             // 레디스에 key로 매핑된 Hash(자바의 Map)을 가져온다.
-            RMap<String, Integer> map = redissonClient.getMap(key);
+            RMap<String, Integer> map = transaction.getMap(key);
 
             //값이 있으면 가져오고 없으면 DB의 재고로 잡는다
             Integer remainStock = map.getOrDefault(productId, stock);
@@ -71,11 +71,9 @@ public class RedisRepositoryImpl implements RedisRepository {
     }
 
     @Override
-    public boolean restoreStock(String hashKey, String productId, Integer quantity) {
+    public boolean adjustStock(String hashKey, String productId, Integer quantity) {
 
         RLock lock = redissonClient.getLock(productId);
-
-        RTransaction transaction = null;
 
         try {
             //락을 10초동안 얻지 못한다면 실패 반환
@@ -83,27 +81,12 @@ public class RedisRepositoryImpl implements RedisRepository {
                 return false;
             }
 
-            transaction = redissonClient.createTransaction(
-                    TransactionOptions.defaults().timeout(10, TimeUnit.SECONDS)
-            );
-
             RMap<String, Integer> map = redissonClient.getMap(hashKey);
 
-            //레디스에 저장된 상품이 아니라면 실패
-            Integer remainStock = map.get(productId);
-            if (Objects.isNull(remainStock)) {
-                return false;
-            }
+            //DB에 먼저 값이 저장되고 레디스에 저장하는 방식이기 때문에, 덮어씌워야함
+            map.fastPut(productId, quantity);
 
-            //레디스에 복구될 재고를 넣는다
-            map.fastPut(productId, remainStock + quantity);
-
-            //예외 없이 모든 작업이 끝난다면 커밋해 레디스에 적용시킨다
-            transaction.commit();
-
-        } catch (Exception e) {
-            if(Objects.nonNull(transaction))
-                transaction.rollback();
+        } catch (InterruptedException e) {
             return false;
         } finally {
             lock.unlock();

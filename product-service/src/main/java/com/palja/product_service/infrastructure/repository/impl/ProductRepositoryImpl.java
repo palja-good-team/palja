@@ -56,9 +56,4 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         jdbcProductRepository.stockBulkUpdateForSchedule(dtos);
     }
-
-    @Override
-    public void restoreStock(UUID productId, Integer quantity) {
-        jpaProductRepository.restoreStock(productId, quantity);
-    }
 }
