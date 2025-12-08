@@ -70,15 +70,6 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
-	@Transactional
-	public void updateCompanyUserStatus(String currentUserLoginId, String loginId, UpdateCompanyUserStatusCommand command) {
-		validateUserExistsByLoginId(currentUserLoginId);
-
-		User companyUser = getUserByLoginId(loginId);
-		companyUser.updateStatus(command.status());
-	}
-
-	@Override
 	public PageResponse<ReadCompanyUserSummaryRes> getAllCompanyUsers(
 		String currentUserLoginId, String loginId, String email, String name, String status, Pageable pageable
 	) {
@@ -129,6 +120,15 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		companyUser.update(command.companyName(), command.address());
 
 		return UpdateCompanyUserDetailRes.from(companyUser);
+	}
+
+	@Override
+	@Transactional
+	public void updateCompanyUserStatus(String currentUserLoginId, String loginId, UpdateCompanyUserStatusCommand command) {
+		validateUserExistsByLoginId(currentUserLoginId);
+
+		User companyUser = getUserByLoginId(loginId);
+		companyUser.updateStatus(command.status());
 	}
 
 	@Override

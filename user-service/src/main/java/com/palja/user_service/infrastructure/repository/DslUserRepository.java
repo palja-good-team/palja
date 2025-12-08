@@ -48,7 +48,7 @@ public class DslUserRepository {
 		List<User> customers = jpaQueryFactory
 			.selectFrom(qUser)
 			.where(
-				loginId != null ? qUser.loginId.contains(loginId) : null,
+				loginId != null	 ? qUser.loginId.contains(loginId) : null,
 				email != null ? qUser.email.contains(email) : null,
 				name != null ? qUser.name.contains(name) : null,
 				qUser.role.eq(UserRole.CUSTOMER),

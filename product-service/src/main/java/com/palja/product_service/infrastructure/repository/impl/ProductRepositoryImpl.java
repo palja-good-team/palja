@@ -2,16 +2,20 @@ package com.palja.product_service.infrastructure.repository.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
+import com.palja.product_service.domain.dto.req.StockScheduleDto;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
+import com.palja.product_service.infrastructure.repository.JdbcProductRepository;
 import com.palja.product_service.infrastructure.repository.JpaProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +25,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     private final JpaProductRepository jpaProductRepository;
     private final DslProductRepository dslProductRepository;
+    private final JdbcProductRepository jdbcProductRepository;
 
     @Override
     public Product save(Product product) {
@@ -43,5 +48,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findProductsToCondition(FindListByConditionReq condition, Pageable pageable) {
         return dslProductRepository.findProductByCondition(condition, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void stockBulkUpdateForSchedule(Collection<StockScheduleDto> dtos) {
+
+        jdbcProductRepository.stockBulkUpdateForSchedule(dtos);
     }
 }

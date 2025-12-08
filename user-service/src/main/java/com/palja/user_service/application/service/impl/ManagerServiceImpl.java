@@ -1,6 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -8,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.CreateManagerCommand;
@@ -58,7 +56,7 @@ public class ManagerServiceImpl implements ManagerService {
 		String currentUserLoginId, String loginId, String email, String name, Pageable pageable
 	) {
 		validateUserExistsByLoginId(currentUserLoginId);
-		Page<User> users = userRepository.searchAllManagers(loginId, email, name, pageable);
+
 		return PageResponse.from(
 			userRepository.searchAllManagers(loginId, email, name, pageable)
 				.map(ReadManagerSummaryRes::from)
@@ -87,7 +85,7 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	@Transactional
 	public UpdateManagerDetailRes updateManagerByLoginId(String loginId, UpdateManagerCommand command) {
-		User user = getUserByLoginId(loginId);
+		User user = getManagerByLoginId(loginId);
 		user.update(command.address());
 
 		return UpdateManagerDetailRes.from(user);
@@ -105,8 +103,7 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	@Transactional
 	public void deleteManagerByLoginId(String loginId) {
-		User user = getUserByLoginId(loginId);
-		validateNotMaster(user);
+		User user = getManagerByLoginId(loginId);
 		user.softDelete();
 	}
 
@@ -143,12 +140,6 @@ public class ManagerServiceImpl implements ManagerService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
-		}
-	}
-
-	private void validateNotMaster(User user) {
-		if (user.getRole().equals(UserRole.MASTER)) {
-			throw new BusinessException(CommonErrorCode.FORBIDDEN);
 		}
 	}
 
