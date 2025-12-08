@@ -7,6 +7,7 @@ import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.domain.entity.Order;
+import com.palja.order_service.domain.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -379,6 +380,42 @@ public class OrderValidator {
             log.warn("판매자 소유권 검증 실패 - companyUserId: {}, sellerId: {}",
                     companyUserId, sellerId);
             throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+        }
+    }
+
+    // ===== Order Status Validation (주문 상태 검증) =====
+    // 주문 상태 문자열 파싱 및 검증
+    public OrderStatus validateAndParseOrderStatus(String statusStr) {
+        if (statusStr == null || statusStr.isBlank()) {
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        try {
+            OrderStatus status = OrderStatus.valueOf(statusStr.toUpperCase());
+            log.debug("주문 상태 파싱 완료 - status: {}", status);
+            return status;
+        } catch (IllegalArgumentException e) {
+            log.error("유효하지 않은 주문 상태 - statusStr: {}", statusStr);
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS);
+        }
+    }
+
+    // CANCELED, COMPLETED로의 관리자 수동 변경 차단 (별도 API를 통해서만 처리)
+    public void validateManagerTransition(OrderStatus currentStatus, OrderStatus targetStatus) {
+
+        // 1. 자기 자신으로 변경 불가
+        if (currentStatus == targetStatus) {
+            throw new BusinessException(OrderErrorCode.SAME_STATUS_NOT_ALLOWED);
+        }
+
+        // 2. 이미 최종 상태면 변경 불가
+        if (currentStatus.isFinalState()) {
+            throw new BusinessException(OrderErrorCode.FINAL_STATUS_CANNOT_CHANGE);
+        }
+
+        // 3. 최종 상태(CANCELED, COMPLETED)로의 변경 불가
+        if (targetStatus.isFinalState()) {
+            throw new BusinessException(OrderErrorCode.USE_SPECIFIC_API_FOR_FINAL_STATUS);
         }
     }
 }

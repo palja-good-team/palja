@@ -6,6 +6,7 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.OrderCancelRes;
 import com.palja.order_service.application.dto.OrderCreateRes;
 import com.palja.order_service.application.dto.OrderDetailRes;
+import com.palja.order_service.domain.entity.Order;
 
 import java.util.UUID;
 
@@ -15,4 +16,6 @@ public interface OrderService {
     OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole);
 
     OrderCancelRes cancelOrder(CancelOrderCommand command);
+
+    Order findOrderWithDetails(UUID orderId);
 }

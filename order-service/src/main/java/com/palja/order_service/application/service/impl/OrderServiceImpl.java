@@ -376,12 +376,13 @@ public class OrderServiceImpl implements OrderService {
         return new OrderAuthContext(customerId, companyUserId, productSellerId);
     }
 
-    // ===== Private: Utility =====
-    private Order findOrderWithDetails(UUID orderId) {
+    // ===== Public: Utility =====
+    public Order findOrderWithDetails(UUID orderId) {
         return orderRepository.findOrderByIdWithItemAndDelivery(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
+    // ===== Private: Utility =====
     private Long resolveCustomerId(String loginId) {
         return userService.getCustomerUserByLoginId(loginId).getUserId();
     }
