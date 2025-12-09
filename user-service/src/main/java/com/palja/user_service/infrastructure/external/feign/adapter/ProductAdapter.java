@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.common.response.ApiResponse;
 import com.palja.user_service.application.service.ProductService;
 import com.palja.user_service.infrastructure.external.feign.ProductClient;
 
@@ -23,12 +24,17 @@ public class ProductAdapter implements ProductService {
 	@Override
 	public void deleteAllProducts(UUID companyUserId) {
 		try {
-			productClient.deleteAllProducts(companyUserId);
+			getDummy(companyUserId); // TODO: API 개발 완료 후 실제 호출로 변경
+			// productClient.deleteAllProducts(companyUserId);
 		} catch (FeignException e) {
 			log.error("[Feign] status={} url=[{}] {} message={}",
 				e.status(), e.request().httpMethod().name(), e.request().url(), e.contentUTF8());
 			throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
 		}
+	}
+
+	private ApiResponse<Void> getDummy(UUID companyUserId) {
+		return ApiResponse.success("리뷰가 삭제되었습니다.");
 	}
 
 }
