@@ -1,9 +1,8 @@
-package com.palja.coupon_service.application.dto;
+package com.palja.coupon_service.application.dto.couponUser;
 
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.entity.CouponUser;
 import com.palja.coupon_service.domain.vo.CouponUserStatus;
-import com.palja.coupon_service.domain.vo.DiscountType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,28 +11,28 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class CouponUserRes {
+public class UsedCouponUserRes {
     private UUID couponUserId;
     private UUID couponId;
     private String userId;
     private String couponName;
-    private DiscountType discountType;
-    private Integer discountValue;
-    private LocalDateTime expireAt;
     private CouponUserStatus status;
+    private LocalDateTime usedAt;
+    private UUID orderId;
+    private Long discountAmount;
 
-    public static CouponUserRes from(CouponUser couponUser) {
+    public static UsedCouponUserRes from(CouponUser couponUser) {
         Coupon coupon = couponUser.getCoupon();
 
-        return CouponUserRes.builder()
+        return UsedCouponUserRes.builder()
                 .couponUserId(couponUser.getId())
                 .couponId(coupon.getId())
                 .userId(couponUser.getUserId())
-                .couponName(couponUser.getCoupon().getName())
-                .discountType(coupon.getDiscountPolicy().getDiscountType())
-                .discountValue(coupon.getDiscountPolicy().getDiscountValue())
-                .expireAt(couponUser.getExpireAt())
+                .couponName(coupon.getName())
                 .status(couponUser.getStatus())
+                .usedAt(couponUser.getUsedAt())
+                .orderId(couponUser.getOrderId())
+                .discountAmount(couponUser.getDiscountAmount())
                 .build();
     }
 }

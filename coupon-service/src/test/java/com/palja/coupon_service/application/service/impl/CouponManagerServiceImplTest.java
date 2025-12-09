@@ -4,8 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.CreateCouponCommand;
 import com.palja.coupon_service.application.command.UpdateCouponCommand;
-import com.palja.coupon_service.application.dto.CouponDetailRes;
-import com.palja.coupon_service.application.dto.CouponRes;
+import com.palja.coupon_service.application.dto.coupon.*;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.repository.CouponRepository;
 import com.palja.coupon_service.domain.vo.*;
@@ -78,7 +77,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
 
             // when
-            CouponRes result = couponManagerService.createCoupon(command);
+            CreateCouponRes result = couponManagerService.createCoupon(command);
 
             // then
             assertThat(result).isNotNull();
@@ -210,7 +209,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(existingCoupon));
 
             // when
-            CouponRes result = couponManagerService.updateCoupon(command);
+            UpdateCouponRes result = couponManagerService.updateCoupon(command);
 
             // then
             assertThat(result).isNotNull();
@@ -271,7 +270,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(existingCoupon));
 
             // when
-            CouponRes result = couponManagerService.changeCouponStatus(command);
+            ChangeStatusCouponRes result = couponManagerService.changeCouponStatus(command);
 
             // then
             assertThat(result).isNotNull();
@@ -326,7 +325,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.findAllByDeletedAtIsNull(pageable)).willReturn(couponPage);
 
             // when
-            Page<CouponRes> result = couponManagerService.getCouponList(pageable);
+            Page<ReadCouponRes> result = couponManagerService.getCouponList(pageable);
 
             // then
             assertThat(result).isNotNull();
@@ -345,7 +344,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.findAllByDeletedAtIsNull(pageable)).willReturn(couponPage);
 
             // when
-            Page<CouponRes> result = couponManagerService.getCouponList(pageable);
+            Page<ReadCouponRes> result = couponManagerService.getCouponList(pageable);
 
             // then
             assertThat(result).isNotNull();
@@ -370,7 +369,7 @@ class CouponManagerServiceImplTest {
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(coupon));
 
             // when
-            CouponDetailRes result = couponManagerService.getCouponDetail(couponId);
+            ReadCouponDetailRes result = couponManagerService.getCouponDetail(couponId);
 
             // then
             assertThat(result).isNotNull();

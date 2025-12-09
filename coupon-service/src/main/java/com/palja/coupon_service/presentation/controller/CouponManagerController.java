@@ -2,8 +2,7 @@ package com.palja.coupon_service.presentation.controller;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
-import com.palja.coupon_service.application.dto.CouponDetailRes;
-import com.palja.coupon_service.application.dto.CouponRes;
+import com.palja.coupon_service.application.dto.coupon.*;
 import com.palja.coupon_service.presentation.dto.request.ChangeCouponStatusReq;
 import com.palja.coupon_service.presentation.dto.request.CreateCouponReq;
 import com.palja.coupon_service.presentation.dto.request.UpdateCouponReq;
@@ -24,30 +23,30 @@ public interface CouponManagerController {
             summary = "쿠폰 생성",
             description = "쿠폰을 생성합니다."
     )
-    ResponseEntity<ApiResponse<CouponRes>> createCoupon(@Valid @RequestBody CreateCouponReq request);
+    ResponseEntity<ApiResponse<CreateCouponRes>> createCoupon(@Valid @RequestBody CreateCouponReq request);
 
     @Operation(
             summary = "쿠폰 수정",
             description = "쿠폰을 수정합니다."
     )
-    ResponseEntity<ApiResponse<CouponRes>> updateCoupon(@PathVariable UUID couponId, @Valid @RequestBody UpdateCouponReq request);
+    ResponseEntity<ApiResponse<UpdateCouponRes>> updateCoupon(@PathVariable UUID couponId, @Valid @RequestBody UpdateCouponReq request);
 
     @Operation(
             summary = "쿠폰 상태",
             description = "쿠폰 상태를 변경합니다."
     )
-    ResponseEntity<ApiResponse<CouponRes>> changeCouponStatus(@PathVariable UUID couponId,
-                                                              @Valid @RequestBody ChangeCouponStatusReq request);
+    ResponseEntity<ApiResponse<ChangeStatusCouponRes>> changeCouponStatus(@PathVariable UUID couponId,
+                                                                          @Valid @RequestBody ChangeCouponStatusReq request);
 
     @Operation(
             summary = "쿠폰 목록 조회",
             description = "생성된 쿠폰 목록을 조회합니다."
     )
-    ResponseEntity<ApiResponse<PageResponse<CouponRes>>> getCouponList(Pageable pageable);
+    ResponseEntity<ApiResponse<PageResponse<ReadCouponRes>>> getCouponList(Pageable pageable);
 
     @Operation(
             summary = "쿠폰 상세 조회",
             description = "쿠폰을 상세 조회합니다."
     )
-    ResponseEntity<ApiResponse<CouponDetailRes>> getCouponDetail(@PathVariable UUID couponId);
+    ResponseEntity<ApiResponse<ReadCouponDetailRes>> getCouponDetail(@PathVariable UUID couponId);
 }

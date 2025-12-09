@@ -7,9 +7,7 @@ import com.palja.common.response.PageResponse;
 import com.palja.coupon_service.application.command.ChangeCouponStatusCommand;
 import com.palja.coupon_service.application.command.IssueCouponCommand;
 import com.palja.coupon_service.application.command.UseCouponCommand;
-import com.palja.coupon_service.application.dto.CouponUserDetailRes;
-import com.palja.coupon_service.application.dto.CouponUserRes;
-import com.palja.coupon_service.application.dto.UsedCouponUserRes;
+import com.palja.coupon_service.application.dto.couponUser.*;
 import com.palja.coupon_service.application.service.CouponService;
 import com.palja.coupon_service.presentation.controller.CouponController;
 import com.palja.coupon_service.presentation.dto.request.ChangeCouponStatusReq;
@@ -36,12 +34,12 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @PostMapping("/{couponId}")
-    public ResponseEntity<ApiResponse<CouponUserRes>> issueCoupon(@PathVariable UUID couponId) {
+    public ResponseEntity<ApiResponse<CreateCouponUserRes>> issueCoupon(@PathVariable UUID couponId) {
         log.info("POST /api/v1/coupons/{} - 쿠폰 발급 요청 userId={}", couponId, CurrentUser.getLoginId());
 
         IssueCouponCommand command = new IssueCouponCommand(couponId, CurrentUser.getLoginId());
 
-        CouponUserRes response = couponService.issueCoupon(command);
+        CreateCouponUserRes response = couponService.issueCoupon(command);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "쿠폰이 발급되었습니다."));
     }
@@ -63,10 +61,10 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @PutMapping("/{couponUserId}/cancel")
-    public ResponseEntity<ApiResponse<CouponUserRes>> cancelCoupon(@PathVariable UUID couponUserId) {
+    public ResponseEntity<ApiResponse<CancelCouponUserRes>> cancelCoupon(@PathVariable UUID couponUserId) {
         log.info("PUT /api/v1/coupons/{}/cancel - 쿠폰 취소 요청 userId={}", couponUserId, CurrentUser.getLoginId());
 
-        CouponUserRes response = couponService.cancelCoupon(couponUserId, CurrentUser.getLoginId());
+        CancelCouponUserRes response = couponService.cancelCoupon(couponUserId, CurrentUser.getLoginId());
 
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰이 취소되었습니다."));
     }
@@ -74,13 +72,13 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @PutMapping("/{couponUserId}/status")
-    public ResponseEntity<ApiResponse<CouponUserRes>> changeCouponStatus(@PathVariable UUID couponUserId,
-                                                                         @Valid @RequestBody ChangeCouponStatusReq request) {
+    public ResponseEntity<ApiResponse<ChangeStatusCouponUserRes>> changeCouponStatus(@PathVariable UUID couponUserId,
+                                                                                     @Valid @RequestBody ChangeCouponStatusReq request) {
         log.info("PUT /api/v1/coupons/{}/status - 쿠폰 상태 변경 요청 status: {}", couponUserId, request.getStatus());
 
         ChangeCouponStatusCommand command = ChangeCouponStatusReq.of(couponUserId, CurrentUser.getLoginId(), request);
 
-        CouponUserRes response = couponService.changeCouponStatus(command);
+        ChangeStatusCouponUserRes response = couponService.changeCouponStatus(command);
 
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰 상태가 변경되었습니다."));
     }
@@ -88,10 +86,10 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @DeleteMapping("/{couponUserId}")
-    public ResponseEntity<ApiResponse<CouponUserRes>> deleteCoupon(@PathVariable UUID couponUserId) {
+    public ResponseEntity<ApiResponse<DeleteCouponUserRes>> deleteCoupon(@PathVariable UUID couponUserId) {
         log.info("DELETE /api/v1/coupons/{} - 쿠폰 삭제 요청 userId={}", couponUserId, CurrentUser.getLoginId());
 
-        CouponUserRes response = couponService.deleteCoupon(couponUserId, CurrentUser.getLoginId());
+        DeleteCouponUserRes response = couponService.deleteCoupon(couponUserId, CurrentUser.getLoginId());
 
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰이 삭제되었습니다."));
     }
@@ -99,12 +97,12 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<PageResponse<CouponUserRes>>> getCouponList(Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponse<ReadCouponUserRes>>> getCouponList(Pageable pageable) {
         log.info("GET /api/v1/coupons/me - 사용자 쿠폰 목록 조회 요청 userId={}", CurrentUser.getLoginId());
 
-        Page<CouponUserRes> couponUserResPage = couponService.getCouponList(CurrentUser.getLoginId(), pageable);
+        Page<ReadCouponUserRes> couponUserResPage = couponService.getCouponList(CurrentUser.getLoginId(), pageable);
 
-        PageResponse<CouponUserRes> response = PageResponse.from(couponUserResPage);
+        PageResponse<ReadCouponUserRes> response = PageResponse.from(couponUserResPage);
 
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 쿠폰 목록 조회"));
     }
@@ -112,10 +110,10 @@ public class CouponControllerImpl implements CouponController {
     @Override
     @RequiredAnonymous
     @GetMapping("/me/{couponUserId}")
-    public ResponseEntity<ApiResponse<CouponUserDetailRes>> getCouponDetail(@PathVariable UUID couponUserId) {
+    public ResponseEntity<ApiResponse<ReadCouponUserDetailRes>> getCouponDetail(@PathVariable UUID couponUserId) {
         log.info("GET /api/v1/coupons/me/{} - 쿠폰 상세 조회 요청", couponUserId);
 
-        CouponUserDetailRes response = couponService.getCouponDetail(couponUserId, CurrentUser.getLoginId());
+        ReadCouponUserDetailRes response = couponService.getCouponDetail(couponUserId, CurrentUser.getLoginId());
 
         return ResponseEntity.ok(ApiResponse.success(response, "사용자 쿠폰 상세 조회"));
     }

@@ -1,4 +1,4 @@
-package com.palja.coupon_service.application.dto;
+package com.palja.coupon_service.application.dto.couponUser;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.palja.coupon_service.domain.entity.Coupon;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CouponUserDetailRes {
+public class ReadCouponUserDetailRes {
     private UUID couponUserId;
     private UUID couponId;
     private String userId;
@@ -30,10 +30,10 @@ public class CouponUserDetailRes {
     private UUID orderId;
     private Long discountAmount;
 
-    public static CouponUserDetailRes from(CouponUser couponUser) {
+    public static ReadCouponUserDetailRes from(CouponUser couponUser) {
         Coupon coupon = couponUser.getCoupon();
 
-        return CouponUserDetailRes.builder()
+        return ReadCouponUserDetailRes.builder()
                 .couponUserId(couponUser.getId())
                 .couponId(coupon.getId())
                 .userId(couponUser.getUserId())
