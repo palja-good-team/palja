@@ -37,11 +37,10 @@ public class JwtUtilTest {
 
 	@BeforeEach
 	public void setUp() {
-		manager = User.builder()
-			.loginId("manager")
-			.password("manager")
-			.role(UserRole.MANAGER)
-			.build();
+		manager = User.create(
+			"manager", "manager", "manager",
+			"manager@gmail.com", "서울시 강남구 테헤란로 123", UserRole.MANAGER
+		);
 
 		ReflectionTestUtils.setField(manager, "id", 1L);
 	}

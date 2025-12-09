@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
@@ -33,6 +34,8 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
+import com.palja.user_service.application.service.ProductService;
+import com.palja.user_service.application.service.TimeDealService;
 import com.palja.user_service.application.service.impl.CompanyUserServiceImpl;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -50,6 +53,8 @@ public class CompanyUserServiceImplTest {
 	@Mock private CompanyUserRepository companyUserRepository;
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
+	@Mock private TimeDealService timeDealService;
+	@Mock private ProductService productService;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 
@@ -60,29 +65,17 @@ public class CompanyUserServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-		user1 = User.builder()
-			.loginId("loginId1")
-			.password("password1")
-			.name("name1")
-			.email("email1@test.com")
-			.address("address1")
-			.role(UserRole.COMPANY_USER)
-			.build();
+		user1 = User.create(
+			"loginId1", "password1", "name1",
+			"email1@test.com", "address1", UserRole.COMPANY_USER
+			);
 
-		user2 = User.builder()
-			.loginId("loginId2")
-			.password("password2")
-			.name("name2")
-			.email("email2@test.com")
-			.address("address2")
-			.role(UserRole.COMPANY_USER)
-			.build();
+		user2 = User.create(
+			"loginId2", "password2", "name2",
+			"email2@test.com", "address2", UserRole.COMPANY_USER
+		);
 
-		companyUser1 = CompanyUser.builder()
-			.user(user1)
-			.companyName("companyName1")
-			.companyNumber("companyNumber1")
-			.build();
+		companyUser1 = CompanyUser.create(user1, "companyName1", "companyNumber1");
 
 		currentUserLoginId = "loginId";
 	}
@@ -616,6 +609,7 @@ public class CompanyUserServiceImplTest {
 			given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
 			given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 			AuditorContext.set(currentUserLoginId, UserRole.MANAGER);
+			ReflectionTestUtils.setField(companyUser1, "id", UUID.randomUUID());
 
 			// when
 			companyUserService.deleteCompanyUserByLoginId(currentUserLoginId, companyUser1.getUser().getLoginId());

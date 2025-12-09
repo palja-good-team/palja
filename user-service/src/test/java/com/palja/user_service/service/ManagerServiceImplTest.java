@@ -47,23 +47,15 @@ public class ManagerServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-		manager1 = User.builder()
-			.loginId("loginId1")
-			.password("password1")
-			.name("name1")
-			.email("email1@test.com")
-			.address("address1")
-			.role(UserRole.MANAGER)
-			.build();
+		manager1 = User.create(
+			"loginId1", "password1", "name1",
+			"email1@test.com", "address1", UserRole.MANAGER
+		);
 
-		manager2 = User.builder()
-			.loginId("loginId2")
-			.password("password2")
-			.name("name2")
-			.email("email2@test.com")
-			.address("address2")
-			.role(UserRole.MANAGER)
-			.build();
+		manager2 = User.create(
+			"loginId2", "password2", "name2",
+			"email2@test.com", "address2", UserRole.MANAGER
+		);
 
 		currentUserLoginId = "loginId";
 	}

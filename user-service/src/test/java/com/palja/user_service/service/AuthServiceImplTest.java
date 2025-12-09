@@ -42,17 +42,15 @@ public class AuthServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-		customer = User.builder()
-			.loginId("loginId")
-			.password("password")
-			.role(UserRole.CUSTOMER)
-			.build();
+		customer = User.create(
+			"loginId", "password", "customer",
+			"customer@gmail.com", "서울시 강남구 테헤란로 123", UserRole.CUSTOMER
+		);
 
-		companyUser = User.builder()
-			.loginId("loginId")
-			.password("password")
-			.role(UserRole.COMPANY_USER)
-			.build();
+		companyUser = User.create(
+			"loginId", "password", "company",
+			"company@gmail.com", "서울시 강남구 테헤란로 123", UserRole.COMPANY_USER
+		);
 	}
 
 	@Nested
