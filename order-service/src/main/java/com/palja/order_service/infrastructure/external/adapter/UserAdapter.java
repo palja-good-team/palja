@@ -1,8 +1,8 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.order_service.application.dto.CompanyUserRes;
-import com.palja.order_service.application.dto.CustomerUserRes;
-import com.palja.order_service.application.dto.ManagerUserRes;
+import com.palja.order_service.application.dto.response.CompanyUserRes;
+import com.palja.order_service.application.dto.response.CustomerUserRes;
+import com.palja.order_service.application.dto.response.ManagerUserRes;
 import com.palja.order_service.application.service.UserService;
 import com.palja.order_service.infrastructure.external.dto.response.CompanyUserDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CustomerUserDTO;

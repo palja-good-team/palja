@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.order_service.application.dto.CouponDiscountType;
-import com.palja.order_service.application.dto.CouponRes;
+import com.palja.order_service.application.dto.response.CouponRes;
 import com.palja.order_service.application.service.CouponService;
 import com.palja.order_service.infrastructure.external.dto.response.CouponCancelDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;

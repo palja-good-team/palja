@@ -1,6 +1,6 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.order_service.application.dto.TimeDealRes;
+import com.palja.order_service.application.dto.response.TimeDealRes;
 import com.palja.order_service.application.service.TimeDealService;
 import com.palja.order_service.infrastructure.external.dto.response.TimeDealDTO;
 import lombok.RequiredArgsConstructor;

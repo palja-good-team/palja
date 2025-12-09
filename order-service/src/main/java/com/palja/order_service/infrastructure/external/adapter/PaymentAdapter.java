@@ -1,7 +1,6 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.order_service.application.dto.PaymentCancelRes;
-import com.palja.order_service.application.dto.PaymentRes;
+import com.palja.order_service.application.dto.response.PaymentRes;
 import com.palja.order_service.application.service.PaymentService;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentCancelDTO;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentCreateDTO;

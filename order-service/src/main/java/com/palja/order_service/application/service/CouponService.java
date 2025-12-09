@@ -1,6 +1,6 @@
 package com.palja.order_service.application.service;
 
-import com.palja.order_service.application.dto.CouponRes;
+import com.palja.order_service.application.dto.response.CouponRes;
 
 import java.util.UUID;
 

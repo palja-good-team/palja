@@ -1,6 +1,6 @@
 package com.palja.order_service.application.service;
 
-import com.palja.order_service.application.dto.TimeDealRes;
+import com.palja.order_service.application.dto.response.TimeDealRes;
 
 import java.util.UUID;
 

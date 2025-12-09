@@ -1,5 +1,6 @@
-package com.palja.order_service.application.dto;
+package com.palja.order_service.application.dto.response;
 
+import com.palja.order_service.application.dto.CouponDiscountType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

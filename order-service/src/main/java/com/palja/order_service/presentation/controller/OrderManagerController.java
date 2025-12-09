@@ -4,7 +4,7 @@ import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.application.dto.OrderStatusChangeRes;
+import com.palja.order_service.application.dto.response.OrderStatusChangeRes;
 import com.palja.order_service.application.service.OrderManagerService;
 import com.palja.order_service.presentation.dto.request.ChangeOrderStatusReq;
 import jakarta.validation.Valid;

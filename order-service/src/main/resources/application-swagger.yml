@@ -1,0 +1,5 @@
+springdoc:
+  group:
+    name: order-service
+  swagger-ui:
+    enabled: false
