@@ -26,8 +26,15 @@ public enum OrderErrorCode implements ErrorCode {
     MISSING_REQUIRED_FIELD(HttpStatus.BAD_REQUEST, "필수 입력 항목이 누락되었습니다."),
     ORDER_CANNOT_BE_CANCELLED(HttpStatus.BAD_REQUEST, "취소할 수 없는 주문 상태입니다."),
     ORDER_DELIVERY_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "이미 배송이 시작되어 취소할 수 없습니다."),
-    REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리에 실패했습니다."),
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "주문 금액이 올바르지 않습니다."),
+    ORDER_CANNOT_BE_CANCELED(HttpStatus.BAD_REQUEST, "현재 상태에서는 주문을 취소할 수 없습니다."),
+    NO_CANCEL_PERMISSION(HttpStatus.FORBIDDEN, "해당 주문을 취소할 권한이 없습니다."),
+
+    INVENTORY_DEDUCTION_FAILED(HttpStatus.BAD_REQUEST, "재고 차감에 실패했습니다."),
+    INVENTORY_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "재고 복구에 실패했습니다."),
+    COUPON_APPLICATION_FAILED(HttpStatus.BAD_REQUEST, "쿠폰 사용에 실패했습니다."),
+    COUPON_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠폰 복구에 실패했습니다."),
+    REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 환불에 실패했습니다."),
     // 주문 상태 변경 관련
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 주문 상태입니다."),
     SAME_STATUS_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "동일한 상태로는 변경할 수 없습니다."),
@@ -74,6 +81,7 @@ public enum OrderErrorCode implements ErrorCode {
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "결제 금액이 일치하지 않습니다."),
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "결제 시간이 초과되었습니다."),
+    INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 수단입니다."),
 
     // ===== 권한 관련 =====
     USER_NOT_ALLOWED(HttpStatus.FORBIDDEN, "접근 권한이 없는 사용자입니다."),
