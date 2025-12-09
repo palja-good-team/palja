@@ -37,7 +37,7 @@ ext {
 }
 
 dependencies {
-	implementation 'com.palja:common-module:0.8.0'
+	implementation 'com.palja:common-module:0.8.4'
 	// QueryDSL (jakarta 버전)
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
 	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
