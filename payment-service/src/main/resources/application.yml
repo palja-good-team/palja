@@ -9,6 +9,8 @@ spring:
     include:
       - datasource
       - zipkin
+      - eureka
+      - swagger
 
 toss:
   base-url: https://api.tosspayments.com

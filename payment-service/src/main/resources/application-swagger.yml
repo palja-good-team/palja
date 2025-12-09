@@ -1,0 +1,5 @@
+springdoc:
+  group:
+    name: payment-service
+  swagger-ui:
+    enabled: false
