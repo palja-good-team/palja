@@ -5,4 +5,6 @@ public interface RedisRepository {
     boolean decreaseStockBySale(String key, String productId, Integer stock, Integer quantity);
 
     boolean adjustStock(String hashKey, String productId, Integer quantity);
+
+    boolean deleteProductStock(String hashKey, String productId);
 }

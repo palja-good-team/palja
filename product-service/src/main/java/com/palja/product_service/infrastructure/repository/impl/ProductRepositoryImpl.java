@@ -56,4 +56,10 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         jdbcProductRepository.stockBulkUpdateForSchedule(dtos);
     }
+
+    @Override
+    public void deleteProduct(Product product) {
+
+        jpaProductRepository.delete(product);
+    }
 }

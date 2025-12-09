@@ -119,4 +119,9 @@ public class Product extends BaseEntity {
         this.price = price.multiply(rate);
         return this.price;
     }
+
+    public void delete() {
+        this.productStock.delete();
+        super.softDelete();
+    }
 }

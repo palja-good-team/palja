@@ -123,4 +123,11 @@ public class ProductController {
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 증가 성공"), HttpStatus.OK);
     }
+
+    @DeleteMapping("/manager/{productId}")
+    public ResponseEntity<ApiResponse<?>> deleteProduct(@PathVariable UUID productId) {
+
+        service.deleteProduct(productId);
+        return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
+    }
 }
