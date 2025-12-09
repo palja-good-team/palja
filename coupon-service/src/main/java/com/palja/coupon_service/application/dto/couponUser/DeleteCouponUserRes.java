@@ -10,15 +10,15 @@ import java.util.UUID;
 public class DeleteCouponUserRes {
     private UUID couponUserId;
     private String userId;
-    private LocalDateTime deleteAt;
-    private String deleteBy;
+    private LocalDateTime deletedAt;
+    private String deletedBy;
 
     public static DeleteCouponUserRes from(CouponUser couponUser) {
         return DeleteCouponUserRes.builder()
                 .couponUserId(couponUser.getId())
                 .userId(couponUser.getUserId())
-                .deleteAt(couponUser.getDeletedAt())
-                .deleteBy(couponUser.getDeletedBy())
+                .deletedAt(couponUser.getDeletedAt())
+                .deletedBy(couponUser.getDeletedBy())
                 .build();
     }
 }

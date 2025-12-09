@@ -203,7 +203,7 @@ class CouponManagerServiceImplTest {
                     .build();
 
             Coupon existingCoupon = mock(Coupon.class);
-            given(existingCoupon.getDiscountPolicy()).willReturn(mock(DiscountPolicy.class));
+            given(existingCoupon.getName()).willReturn("쿠폰");
             given(existingCoupon.getAmountPolicy()).willReturn(mock(AmountPolicy.class));
             given(existingCoupon.getIssuePeriod()).willReturn(mock(IssuePeriod.class));
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(existingCoupon));
@@ -263,9 +263,6 @@ class CouponManagerServiceImplTest {
                     .build();
 
             Coupon existingCoupon = mock(Coupon.class);
-            given(existingCoupon.getDiscountPolicy()).willReturn(mock(DiscountPolicy.class));
-            given(existingCoupon.getAmountPolicy()).willReturn(mock(AmountPolicy.class));
-            given(existingCoupon.getIssuePeriod()).willReturn(mock(IssuePeriod.class));
             given(existingCoupon.getStatus()).willReturn(CouponStatus.ACTIVE);
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(existingCoupon));
 
@@ -309,12 +306,10 @@ class CouponManagerServiceImplTest {
             // given
             Coupon coupon1 = mock(Coupon.class);
             given(coupon1.getDiscountPolicy()).willReturn(mock(DiscountPolicy.class));
-            given(coupon1.getAmountPolicy()).willReturn(mock(AmountPolicy.class));
             given(coupon1.getIssuePeriod()).willReturn(mock(IssuePeriod.class));
 
             Coupon coupon2 = mock(Coupon.class);
             given(coupon2.getDiscountPolicy()).willReturn(mock(DiscountPolicy.class));
-            given(coupon2.getAmountPolicy()).willReturn(mock(AmountPolicy.class));
             given(coupon2.getIssuePeriod()).willReturn(mock(IssuePeriod.class));
 
             Pageable pageable = PageRequest.of(0, 10);

@@ -18,8 +18,8 @@ public class ChangeStatusCouponRes {
         return ChangeStatusCouponRes.builder()
                 .couponId(coupon.getId())
                 .couponStatus(coupon.getStatus())
-                .updateAt(LocalDateTime.now())
-                .updateBy("updateBy")
+                .updateAt(coupon.getUpdatedAt())
+                .updateBy(coupon.getUpdatedBy())
                 .build();
     }
 }
