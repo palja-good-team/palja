@@ -22,6 +22,7 @@ import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
+import com.palja.user_service.application.service.TimeDealService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.CompanyUser;
 import com.palja.user_service.domain.entity.User;
@@ -41,6 +42,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
 	private final TokenRepository tokenRepository;
+	private final TimeDealService timeDealService;
 
 	@Override
 	@Transactional
@@ -138,6 +140,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.softDelete();
+		timeDealService.deleteAllTimeDeals(companyUser.getId());
 	}
 
 	@Override
@@ -145,6 +148,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	public void deleteMe(String accessToken, String currentUserLoginId) {
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.softDelete();
+		timeDealService.deleteAllTimeDeals(companyUser.getId());
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
