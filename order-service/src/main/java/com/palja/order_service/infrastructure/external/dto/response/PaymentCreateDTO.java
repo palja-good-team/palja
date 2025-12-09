@@ -1,5 +1,6 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
+import com.palja.order_service.application.dto.response.PaymentCreateRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,19 +25,18 @@ public class PaymentCreateDTO {
     private LocalDateTime requestedAt;
     private LocalDateTime completedAt;
 
-    // TODO: 결제 서비스 연동 전까지 사용하는 더미 데이터. payment-service 연동 후 삭제.
-    public static PaymentCreateDTO dummy(UUID orderId, Long userId, BigDecimal amount) {
-        return new PaymentCreateDTO(
-                UUID.randomUUID(),
-                orderId,
-                userId,
-                amount,
-                "CARD",
-                "KRW",
-                "dummy-payment-key-" + UUID.randomUUID(),
-                "APPROVED",
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+    public PaymentCreateRes toResponse() {
+        return PaymentCreateRes.builder()
+                .paymentId(paymentId)
+                .amount(amount)
+                .build();
+    }
+
+    // TODO: 결제 서비스 연동 완료 전까지 사용하는 더미 데이터 (TOSS_SECRET_KEY 받으면 제거)
+    public PaymentCreateRes toResponseByDummy() {
+        return PaymentCreateRes.builder()
+                .paymentId(UUID.fromString("10000000-0000-0000-1000-000000000000"))
+                .amount(BigDecimal.valueOf(30000))
+                .build();
     }
 }
