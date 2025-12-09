@@ -9,4 +9,5 @@ spring:
     include:
       - datasource
       - zipkin
+      - eureka
       - redis

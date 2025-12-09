@@ -5,10 +5,12 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.dto.res.CreateProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.application.dto.res.FindProductRes;
+import com.palja.product_service.application.service.UserService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,21 +45,32 @@ class ProductServiceImplTest {
     @Mock
     private DslProductRepository dslProductRepository;
 
+    @Mock
+    private UserService userService;
+
     private CreateProductCommand createProductCommand;
+    private CompanyUserInfoDto companyUserInfoDto;
     private Product product;
 
     @BeforeEach
     void init() {
         createProductCommand = new CreateProductCommand(
-                "상품", "설명", 1000L, 100, "FOOD", "회사이름"
+                "상품", "설명", 1000L, 100, "FOOD"
+        );
+
+        companyUserInfoDto = new CompanyUserInfoDto(
+                1L, UUID.randomUUID(), "loginId", "password",
+                "name", "number", "email", "address",
+                "role", "status", LocalDateTime.now(), "loginId", LocalDateTime.now(),
+                "loginId"
         );
 
         product = Product.create(createProductCommand.name(),
                 createProductCommand.description(),
                 createProductCommand.price(),
                 createProductCommand.category(),
-                UUID.randomUUID(),
-                createProductCommand.companyName(),
+                companyUserInfoDto.getCompanyUserId(),
+                companyUserInfoDto.getCompanyName(),
                 createProductCommand.stock());
     }
 
@@ -67,6 +81,7 @@ class ProductServiceImplTest {
         CreateProductCommand command = createProductCommand;
         Product expected = product;
 
+        given(userService.getMyInfo()).willReturn(companyUserInfoDto);
         given(productRepository.isNotUnique(anyString(), any(Category.class), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 

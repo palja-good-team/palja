@@ -1,7 +1,10 @@
 package com.palja.product_service.presentation.controller;
 
+import com.palja.common.annotation.RequiredRole;
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
+import com.palja.common.vo.UserRole;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
@@ -27,10 +30,12 @@ public class ProductController {
 
     private final ProductService service;
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PostMapping()
     public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq req) {
 
         CreateProductCommand createCommand = req.toCommand(req);
+        CurrentUser.getLoginId();
         CreateProductRes res = service.createProduct(createCommand);
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 등록 성공"), HttpStatus.CREATED);
@@ -69,6 +74,7 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PutMapping("/manager/{productId}")
     public ResponseEntity<ApiResponse<UpdateProductInfoRes>> updateProductInfo(@RequestBody @Valid UpdateProductInfoReq req,
                                                                                @PathVariable UUID productId) {
@@ -79,6 +85,7 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 수정 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PutMapping("/manager/modifyStock/{productId}")
     public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
                                                                           @RequestParam Integer stock) {
@@ -88,6 +95,7 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.CUSTOMER)
     @PutMapping("/order/sale/{productId}")
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
                                                                    @RequestParam Integer quantity) {
@@ -124,6 +132,7 @@ public class ProductController {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 증가 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @DeleteMapping("/manager/{productId}")
     public ResponseEntity<ApiResponse<?>> deleteProduct(@PathVariable UUID productId) {
 

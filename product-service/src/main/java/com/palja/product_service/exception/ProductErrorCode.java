@@ -16,6 +16,7 @@ public enum ProductErrorCode implements ErrorCode {
 
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
     DUPLICATE_PRODUCT(HttpStatus.BAD_REQUEST, "중복된 상품을 등록할 수 없습니다."),
+    FORBIDDEN_REQUEST(HttpStatus.FORBIDDEN, "작업 권한이 없습니다"),
 
     CONNECTION_ERROR_REDIS(HttpStatus.SERVICE_UNAVAILABLE, "요청이 많아 혼잡하니 다시 시도해주세요");
 

@@ -13,6 +13,8 @@ import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
+import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
+import com.palja.product_service.application.service.UserService;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final DslProductRepository dslProductRepository;
     private final RedisRepository redisRepository;
+    private final UserService userClient;
 
     @Value("${redis-key.map0}")
     private String map0Key;
@@ -46,23 +49,16 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
-        /*
-          헤더로 로그인 아이디가 넘어와서, 해당 유저의 아이디를 조회해 가져와야함.
-          -> UUID.randomUUID() 부분.
-          이때, 회사의 이름을 같이 줘서 이 유저의 회사가 맞는지 검증도 같이 요청
-          userClient.요청(로그인아이디, 회사이름);
-         */
+        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+
         Product product = Product.create(createCommand.name(),
                 createCommand.description(),
                 createCommand.price(),
                 createCommand.category(),
-                UUID.randomUUID(),
-                createCommand.companyName(),
+                myInfo.getCompanyUserId(),
+                myInfo.getCompanyName(),
                 createCommand.stock());
 
-        /*
-            유니크 제약조건 검사 - 회사는 같은 카테고리에 같은 이름의 상품을 등록할 수 없다.
-        */
         if(repository.isNotUnique(product.getCompanyName(), product.getCategory(), product.getName()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
@@ -122,13 +118,12 @@ public class ProductServiceImpl implements ProductService {
     public UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand) {
 
         Product product = repository.findProduct(productId);
+        CompanyUserInfoDto myInfo = userClient.getMyInfo();
 
-        /*
-            String loginId = CurrentUser.getLoginId();
-            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
-            UUID companyUserId = userClient.요청(loginId);
-            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
-         */
+        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
+            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
+        }
+
         if(repository.isNotUnique(
                 product.getCompanyName(),
                 Category.fromString(updateCommand.category()),
@@ -148,12 +143,11 @@ public class ProductServiceImpl implements ProductService {
     public UpdateStockRes updateStock(UUID productId, Integer stock) {
 
         Product product = repository.findProduct(productId);
-        /*
-            String loginId = CurrentUser.getLoginId();
-            이 정보로, 해당 로그인 아이디를 사용하는 유저의 UUID를 가져와서 상품의 UUID와 비교해야함.
-            UUID companyUserId = userClient.요청(loginId);
-            if(product.getCompanyUserId().equals(companyUserID)) 가 True여야만 다음 로직 진행.
-         */
+        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+
+        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
+            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
+        }
 
         Product updateProduct = product.updateStock(stock);
 
@@ -165,8 +159,6 @@ public class ProductServiceImpl implements ProductService {
 
         String hashKey = createRedisHashKey(productId);
 
-        //찾아오는 이유는 레디스에 저장되어있지 않은 상품이라면 해당 상품의 재고가 필요.
-        //재고만 찾아오게 리팩터링 필요.
         Product product = repository.findProduct(productId);
         Integer stock = product.getProductStock().getQuantity();
 
@@ -222,20 +214,25 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(UUID productId) {
 
-        /**
-         * TODO: 로그인 아이디를 받아와서, 그 아이디로 유저서비스에서 UUID를 가져와 비교해야함.
-         */
         Product product = repository.findProduct(productId);
+        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+
+        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
+            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
+        }
+
         product.delete();
 
         boolean result = redisRepository.deleteProductStock(createRedisHashKey(productId), productId.toString());
         validateRedisOperation(result);
     }
 
+    private boolean isDifferCompanyUser(UUID productCompanyUserId, UUID myId) {
+        return !productCompanyUserId.equals(myId);
+    }
+
     private String createRedisHashKey(UUID productId) {
 
-        //상품 아이디의 앞 7자리를 해시해, 짝수냐 아니냐로 키를 나눔
-        //레디스의 한 컬렉션에 많은 데이터가 저장되면 좋지 않다고 함
         String substring = productId.toString().substring(0, 8);
         int hash = substring.hashCode();
         if(hash % 2 == 0)
