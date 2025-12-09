@@ -9,7 +9,7 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter
-@Builder(access = AccessLevel.PRIVATE)
+@Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompanyUserRes {
 
@@ -20,24 +20,4 @@ public class CompanyUserRes {
     private final String email;
     private final UserRole role;
     private final String status;
-
-    public static CompanyUserRes of(
-            Long userId,
-            UUID companyUserId,
-            String loginId,
-            String companyName,
-            String email,
-            UserRole role,
-            String status
-    ) {
-        return CompanyUserRes.builder()
-                .userId(userId)
-                .companyUserId(companyUserId)
-                .loginId(loginId)
-                .companyName(companyName)
-                .email(email)
-                .role(role)
-                .status(status)
-                .build();
-    }
 }
