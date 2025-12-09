@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CancelPaymentDTO {
 
-    private String reason;
+    private BigDecimal cancelAmount;
+    private String cancelReason;
 }

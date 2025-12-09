@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface PaymentService {
 
-    PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, PaymentMethod paymentMethod);
+    PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentKey, PaymentMethod paymentMethod);
 
-    PaymentCancelRes cancelPayment(UUID orderId, UUID paymentId);
+    PaymentCancelRes cancelPayment(UUID orderId, UUID paymentId, BigDecimal cancelAmount, String cancelReason);
 }

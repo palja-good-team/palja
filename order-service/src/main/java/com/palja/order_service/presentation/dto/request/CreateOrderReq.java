@@ -3,6 +3,7 @@ package com.palja.order_service.presentation.dto.request;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +28,10 @@ public class CreateOrderReq {
 
     private UUID couponId;
 
-    @NotNull(message = "결제 수단은 필수입니다.")
+    @NotBlank(message = "결제 Key는 필수입니다.")
+    private String paymentKey;
+
+    @NotBlank(message = "결제 수단은 필수입니다.")
     private String paymentMethod;
 
     @NotNull(message = "배송 정보는 필수입니다.")
@@ -42,6 +46,7 @@ public class CreateOrderReq {
                 .quantity(quantity)
                 .timeDealId(timeDealId)
                 .couponId(couponId)
+                .paymentKey(paymentKey)
                 .paymentMethod(paymentMethod)
                 .delivery(delivery.toCommand())
                 .build();
