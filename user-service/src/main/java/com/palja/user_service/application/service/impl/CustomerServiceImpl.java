@@ -19,6 +19,7 @@ import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
+import com.palja.user_service.application.service.ReviewService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.TokenRepository;
@@ -31,9 +32,12 @@ import lombok.RequiredArgsConstructor;
 public class CustomerServiceImpl implements CustomerService {
 
 	private final UserRepository userRepository;
+	private final TokenRepository tokenRepository;
+
+	private final ReviewService reviewService;
+
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
-	private final TokenRepository tokenRepository;
 
 	@Override
 	@Transactional
@@ -116,6 +120,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 		User user = getCustomerByLoginId(loginId);
 		user.softDelete();
+		reviewService.deleteAllReviews(user.getId());
 	}
 
 	@Override
@@ -123,6 +128,7 @@ public class CustomerServiceImpl implements CustomerService {
 	public void deleteMe(String accessToken, String currentUserLoginId) {
 		User user = getCustomerByLoginId(currentUserLoginId);
 		user.softDelete();
+		reviewService.deleteAllReviews(user.getId());
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
