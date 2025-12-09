@@ -1,7 +1,6 @@
 package com.palja.timedeal_service.infrastructure.external;
 
-import com.palja.timedeal_service.infrastructure.dto.CompanyUserDTO;
-import org.springframework.cloud.openfeign.FeignClient;
+import com.palja.timedeal_service.infrastructure.external.dto.CompanyUserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 

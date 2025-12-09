@@ -30,8 +30,11 @@ public enum TimeDealErrorCode implements ErrorCode {
     INVALID_STOCK_QUANTITY(HttpStatus.BAD_REQUEST, "타임딜 재고는 상품의 실제 재고를 초과할 수 없습니다."),
     INVALID_TOTAL_QUANTITY_UPDATE(HttpStatus.BAD_REQUEST, "이미 판매된 수량보다 적은 총 수량으로 변경할 수 없습니다."),
     INVALID_REMAINING_QUANTITY(HttpStatus.BAD_REQUEST, "남은 수량이 총 수량 범위를 벗어났습니다."),
-    TIME_DEAL_INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "잘못된 차감 수량이 요청되었습니다."),
+    TIME_DEAL_INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "잘못된 수량이 요청되었습니다."),
     TIME_DEAL_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "요청 수량만큼 재고가 남아있지 않습니다."),
+    TIME_DEAL_PENDING_CANNOT_RESTORE(HttpStatus.BAD_REQUEST, "PENDING 상태의 타임딜은 재고를 복구할 수 없습니다."),
+    TIME_DEAL_CLOSED_RESTORE_EXTERNAL(HttpStatus.BAD_REQUEST, "CLOSED 상태의 타임딜은 내부 재고를 복구할 수 없으며, 외부 상품 재고를 복구해야 합니다."),
+    TIME_DEAL_STOCK_OVERFLOW(HttpStatus.BAD_REQUEST, "복구된 재고가 총 재고 수량을 초과할 수 없습니다."),
 
     // 수정 관련
     TIME_DEAL_NOT_EDITABLE(HttpStatus.BAD_REQUEST, "타임딜을 수정할 수 없는 상태입니다."),

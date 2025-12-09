@@ -3,10 +3,7 @@ package com.palja.timedeal_service.application.service.impl;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.vo.UserRole;
-import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
-import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
-import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
-import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
+import com.palja.timedeal_service.application.command.*;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
@@ -25,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Time;
 import java.util.UUID;
 
 @Slf4j
@@ -125,7 +123,25 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        timeDeal.decreaseRemainingQuantity(command.deltaQuantity());
+        timeDeal.decreaseRemainingQuantity(command.decreaseQuantity());
+
+        log.info("타임딜 남은 수량 차감 완료");
+    }
+
+    @Override
+    @Transactional
+    public void restoreRemainingQuantity(RestoreRemainingQuantityCommand command) {
+        log.info("타임딜 남은 수량 복구 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+
+        if (timeDeal.isClosed()) {
+            productClient.restoreStock(timeDeal.getProductId(), command.restoreQuantity());
+        } else {
+            timeDeal.restoreRemainingQuantity(command.restoreQuantity());
+        }
+
+        log.info("타임딜 남은 수량 복구 성공");
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {

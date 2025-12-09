@@ -6,4 +6,5 @@ import java.util.UUID;
 
 public interface ProductClient {
     ProductInfo getProduct(UUID productId);
+    void restoreStock(UUID productId, long restoreQuantity);
 }

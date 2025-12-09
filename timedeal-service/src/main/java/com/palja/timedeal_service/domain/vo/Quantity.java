@@ -51,14 +51,20 @@ public class Quantity {
         return new Quantity(newTotalQuantity, newRemaining);
     }
 
-    public Quantity decreaseRemainingQuantity(long deltaQuantity) {
-        validateDecreaseRemainingQuantity(deltaQuantity);
+    public Quantity decreaseRemainingQuantity(long decreaseQuantity) {
+        validateDecreaseRemainingQuantity(decreaseQuantity);
 
-        return new Quantity(this.totalQuantity, this.remainingQuantity - deltaQuantity);
+        return new Quantity(this.totalQuantity, this.remainingQuantity - decreaseQuantity);
     }
 
     public boolean isSoldOut() {
         return this.remainingQuantity == 0;
+    }
+
+    public Quantity restoreRemainingQuantity(long restoreQuantity) {
+        validateRestoreRemainingQuantity(restoreQuantity);
+
+        return new Quantity(this.totalQuantity, this.remainingQuantity + restoreQuantity);
     }
 
     private void validateTotalQuantity(long totalQuantity) {
@@ -73,13 +79,25 @@ public class Quantity {
         }
     }
 
-    private void validateDecreaseRemainingQuantity(long deltaQuantity) {
+    private void validateDecreaseRemainingQuantity(long decreaseQuantity) {
+        validateDeltaQuantity(decreaseQuantity);
+
+        if (this.remainingQuantity < decreaseQuantity) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_OUT_OF_STOCK);
+        }
+    }
+
+    private void validateRestoreRemainingQuantity(long restoreQuantity) {
+        validateDeltaQuantity(restoreQuantity);
+
+        if (this.remainingQuantity + restoreQuantity > this.totalQuantity) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STOCK_OVERFLOW);
+        }
+    }
+
+    private void validateDeltaQuantity(long deltaQuantity) {
         if (deltaQuantity <= 0) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_INVALID_QUANTITY);
-        }
-
-        if (this.remainingQuantity < deltaQuantity) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_OUT_OF_STOCK);
         }
     }
 }

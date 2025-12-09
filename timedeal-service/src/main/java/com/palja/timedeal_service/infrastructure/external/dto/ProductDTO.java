@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.dto;
+package com.palja.timedeal_service.infrastructure.external.dto;
 
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 

@@ -4,16 +4,10 @@ import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
-import com.palja.timedeal_service.application.command.ChangeTimeDealStatusCommand;
-import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
-import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
-import com.palja.timedeal_service.application.command.UpdateTimeDealCommand;
+import com.palja.timedeal_service.application.command.*;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
-import com.palja.timedeal_service.presentation.dto.request.ChangeTimeDealStatusReq;
-import com.palja.timedeal_service.presentation.dto.request.CreateTimeDealReq;
-import com.palja.timedeal_service.presentation.dto.request.DecreaseRemainingQuantityReq;
-import com.palja.timedeal_service.presentation.dto.request.UpdateTimeDealReq;
+import com.palja.timedeal_service.presentation.dto.request.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -102,6 +96,21 @@ public class TimeDealController {
         timeDealService.decreaseRemainingQuantity(command);
 
         log.info("타임딜 남은 재고 차감 성공");
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{timeDealId}/stock/restore")
+    public ResponseEntity<Void> restoreRemainingQuantity(
+            @PathVariable UUID timeDealId,
+            @RequestBody @Valid RestoreRemainingQuantityReq req
+    ) {
+        log.info("PUT api/v1/time-deals/{}/stock/restore 타임딜 남은 재고 복구 요청", timeDealId);
+
+        RestoreRemainingQuantityCommand command = req.toCommand(timeDealId);
+
+        timeDealService.restoreRemainingQuantity(command);
+
+        log.info("타임딜 남은 재고 복구 성공");
         return ResponseEntity.noContent().build();
     }
 }
