@@ -9,6 +9,8 @@ import com.palja.order_service.application.dto.response.OrderCancelRes;
 import com.palja.order_service.application.dto.response.OrderCreateRes;
 import com.palja.order_service.application.dto.response.OrderDetailRes;
 import com.palja.order_service.domain.entity.Order;
+import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -23,13 +25,6 @@ public interface OrderService {
     Order findOrderWithDetails(UUID orderId);
 
     PageResponse<CustomerOrderSummaryRes> getMyOrdersByCustomer(
-            String loginId,
-            String status,
-            LocalDate startDate,
-            LocalDate endDate,
-            Boolean timeDealOrder,
-            Integer page,
-            Integer size,
-            String sort
+            String loginId, CustomerOrderSearchReq request, Pageable pageable
     );
 }

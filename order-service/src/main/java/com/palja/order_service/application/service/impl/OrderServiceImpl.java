@@ -15,6 +15,7 @@ import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
 import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.domain.vo.Recipient;
+import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -377,30 +377,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageResponse<CustomerOrderSummaryRes> getMyOrdersByCustomer(
             String loginId,
-            String status,
-            LocalDate startDate,
-            LocalDate endDate,
-            Boolean timeDealOrder,
-            Integer page,
-            Integer size,
-            String sort
+            CustomerOrderSearchReq request,
+            Pageable pageable
     ) {
         log.info("고객 주문 목록 조회 시작 - loginId: {}", loginId);
 
         Long userId = resolveCustomerId(loginId);
-        Pageable pageable = createPageable(page, size, sort);
 
-        OrderStatus orderStatus = parseOrderStatus(status);
-
-        LocalDateTime startDateTime = toStartDateTimeOrMin(startDate);
-        LocalDateTime endDateTime = toEndDateTimeOrMax(endDate);
-
+        OrderStatus orderStatus = parseOrderStatus(request.getStatus());
+        LocalDateTime startDateTime = toStartDateTimeOrMin(request.getStartDate());
+        LocalDateTime endDateTime = toEndDateTimeOrMax(request.getEndDate());
         Page<Order> orderPage = findCustomerOrdersWithFilters(
                 userId,
-                orderStatus,
-                startDateTime,
-                endDateTime,
-                timeDealOrder,
+                orderStatus, startDateTime, endDateTime, request.getTimeDealOrder(),
                 pageable
         );
 
@@ -455,31 +444,6 @@ public class OrderServiceImpl implements OrderService {
     public Order findOrderWithDetails(UUID orderId) {
         return orderRepository.findOrderByIdWithItemAndDelivery(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-    }
-
-    // Pageable 생성
-    private Pageable createPageable(Integer page, Integer size, String sortText
-    ) {
-        Sort sort = parseSort(sortText);
-        return PageRequest.of(page, size, sort);
-    }
-
-    /**
-     * 정렬 문자열 파싱
-     * "createdAt,desc" → Sort.by(DESC, "createdAt")
-     */
-    private Sort parseSort(String sortParam) {
-        if (sortParam == null || sortParam.isBlank()) {
-            return Sort.by(Sort.Direction.DESC, "createdAt");
-        }
-
-        String[] parts = sortParam.split(",");
-        String property = parts[0];
-        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1])
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-
-        return Sort.by(direction, property);
     }
 
     private OrderStatus parseOrderStatus(String status) {

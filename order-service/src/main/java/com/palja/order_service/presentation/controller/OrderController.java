@@ -12,14 +12,16 @@ import com.palja.order_service.application.dto.response.OrderDetailRes;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.presentation.dto.request.CancelOrderReq;
 import com.palja.order_service.presentation.dto.request.CreateOrderReq;
+import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -69,25 +71,12 @@ public class OrderController {
     @GetMapping("/customer/me")
     @RequiredRole({UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<PageResponse<CustomerOrderSummaryRes>>> getMyOrdersByCustomer(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(required = false) Boolean timeDealOrder,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam(required = false, defaultValue = "createdAt,desc") String sort
+            @ModelAttribute CustomerOrderSearchReq request,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
     ) {
         PageResponse<CustomerOrderSummaryRes> response = orderService.getMyOrdersByCustomer(
-                CurrentUser.getLoginId(),
-                status,
-                startDate,
-                endDate,
-                timeDealOrder,
-                page,
-                size,
-                sort
+                CurrentUser.getLoginId(), request, pageable
         );
         return ResponseEntity.ok(ApiResponse.success(response, "고객용 주문 목록이 조회되었습니다.")
         );
