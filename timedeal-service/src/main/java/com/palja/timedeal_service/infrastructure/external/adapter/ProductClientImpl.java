@@ -5,7 +5,7 @@ import com.palja.common.exception.CommonErrorCode;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
-import com.palja.timedeal_service.infrastructure.dto.ProductDTO;
+import com.palja.timedeal_service.infrastructure.external.dto.ProductDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,6 +38,19 @@ public class ProductClientImpl implements ProductClient {
 
         } catch (Exception e) {
             log.error("[ProductClient] 상품 조회 실패: {}", e.getMessage());
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+        }
+    }
+
+    @Override
+    public void restoreStock(UUID productId, long restoreQuantity) {
+        log.info("상품 재고 복구 요청: productId = {}", productId);
+
+        try {
+/*            // TODO. 추후 변경
+            productFeignClient.restoreStock(productId, restoreQuantity);*/
+        } catch (Exception e) {
+            log.error("[ProductClient] 상품 재고 복구 실패: {}", e.getMessage());
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
     }

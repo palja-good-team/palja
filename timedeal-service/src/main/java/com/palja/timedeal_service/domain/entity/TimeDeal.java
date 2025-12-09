@@ -145,7 +145,7 @@ public class TimeDeal extends BaseEntity {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_OPEN);
         }
 
-        if (!period.isNowWithin(LocalDateTime.now())) {
+        if (!this.period.isNowWithin(LocalDateTime.now())) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_IN_PERIOD);
         }
 
@@ -154,6 +154,24 @@ public class TimeDeal extends BaseEntity {
         if (this.timeDealStock.getQuantity().isSoldOut()) {
             this.timeDealStatus = TimeDealStatus.SOLD_OUT;
         }
+    }
+
+    public void restoreRemainingQuantity(long restoreQuantity) {
+        if (this.timeDealStatus == TimeDealStatus.PENDING) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_PENDING_CANNOT_RESTORE);
+        }
+
+        if (this.timeDealStatus == TimeDealStatus.OPEN || this.timeDealStatus == TimeDealStatus.SOLD_OUT) {
+            this.timeDealStock.restoreRemainingQuantity(restoreQuantity);
+        }
+
+        if (this.timeDealStatus == TimeDealStatus.CLOSED) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_CLOSED_RESTORE_EXTERNAL);
+        }
+    }
+
+    public boolean isClosed() {
+        return this.timeDealStatus == TimeDealStatus.CLOSED;
     }
 
     private static void validate(

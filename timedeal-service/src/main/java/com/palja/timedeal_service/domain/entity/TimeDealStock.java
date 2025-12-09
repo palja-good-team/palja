@@ -45,4 +45,8 @@ public class TimeDealStock extends BaseEntity {
     public void decreaseRemainingQuantity(long decreaseQuantity) {
         this.quantity = this.quantity.decreaseRemainingQuantity(decreaseQuantity);
     }
+
+    public void restoreRemainingQuantity(long restoreQuantity) {
+        this.quantity = this.quantity.restoreRemainingQuantity(restoreQuantity);
+    }
 }
