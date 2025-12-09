@@ -103,7 +103,7 @@ public class OrderServiceImpl implements OrderService {
             log.debug("타임딜 검증 완료 - timeDealId: {}", command.timeDealId());
         }
 
-        // 4. 쿠폰 조회 및 검증 (선택적)
+        // 쿠폰 조회 및 검증 (선택적)
         Optional<CouponRes> coupon = Optional.empty();
         if (command.couponId() != null) {
             CouponRes c = couponService.getCoupon(command.couponId());
@@ -111,6 +111,12 @@ public class OrderServiceImpl implements OrderService {
             coupon = Optional.of(c);
             log.debug("쿠폰 검증 완료 - couponId: {}", command.couponId());
         }
+
+        // paymentKey 검증
+        if (command.paymentKey() == null || command.paymentKey().isBlank()) {
+            throw new BusinessException(OrderErrorCode.INVALID_PAYMENT_KEY);
+        }
+        log.debug("결제 키 검증 완료 - paymentKey: {}", command.paymentKey());
 
         PaymentMethod paymentMethod = PaymentMethod.from(command.paymentMethod());
         log.debug("결제 수단 검증 완료 - paymentMethod: {}", paymentMethod);
@@ -121,6 +127,7 @@ public class OrderServiceImpl implements OrderService {
                 timeDeal,
                 coupon,
                 command.quantity(),
+                command.paymentKey(),
                 paymentMethod
         );
     }
@@ -184,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
         // TODO: 이벤트 발행으로 대체
         reserveInventory(order, context.timeDeal());
         applyCoupon(order.getCouponId(), order.getOrderId());
-        executePayment(order, context.customer().getUserId(), context.paymentMethod());
+        executePayment(order, context.customer().getUserId(), context.paymentKey(), context.paymentMethod());
     }
 
     /**
@@ -234,10 +241,10 @@ public class OrderServiceImpl implements OrderService {
 
     // 결제 실행
     // TODO: 이벤트 기반 처리
-    private void executePayment(Order order, Long userId, PaymentMethod paymentMethod) {
+    private void executePayment(Order order, Long userId, String paymentKey, PaymentMethod paymentMethod) {
         try {
             PaymentCreateRes payment = paymentService.createPayment(
-                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), paymentMethod
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), paymentKey, paymentMethod
             );
 
             order.markAsPaid(payment.getPaymentId());
@@ -279,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
         order.cancel(command.cancelReason(), command.CurrentUserLoginId());
 
         // TODO: Kafka Event 발행으로 전환
-        processOrderCancellationExternalEvents(order);
+        processOrderCancellationExternalEvents(order, command.cancelReason());
 
         orderRepository.save(order);
         log.info("주문 취소 완료 - orderId: {}", command.orderId());
@@ -288,23 +295,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // 주문 취소
-    private void processOrderCancellationExternalEvents(Order order) {
+    private void processOrderCancellationExternalEvents(Order order, String cancelReason) {
         // TODO: 이벤트 발행으로 대체
-        refundPayment(order);
+        refundPayment(order, cancelReason);
         restoreInventory(order);
         restoreCoupon(order);
     }
 
     // 결제 환불
     // TODO: 이벤트 기반 처리
-    private void refundPayment(Order order) {
+    private void refundPayment(Order order, String cancelReason) {
         if (order.getPaymentId() == null) {
             log.debug("환불할 결제 정보 없음 - orderId: {}", order.getOrderId());
             return;
         }
 
         try {
-            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId());
+            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
             log.info("결제 환불 완료 - paymentId: {}, amount: {}",
                     order.getPaymentId(), order.getOrderAmount().getFinalAmount());
         } catch (Exception e) {
@@ -520,7 +527,7 @@ public class OrderServiceImpl implements OrderService {
             Optional<TimeDealRes> timeDeal,
             Optional<CouponRes> coupon,
             int quantity,
-
+            String paymentKey,
             PaymentMethod paymentMethod
     ) {}
 

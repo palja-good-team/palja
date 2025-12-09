@@ -14,7 +14,8 @@ import java.util.UUID;
 public class CreatePaymentDTO {
 
     private UUID orderId;
-    private Long userId;
     private BigDecimal amount;
     private PaymentMethod paymentMethod;
+    private String currency;
+    private String paymentKey;
 }
