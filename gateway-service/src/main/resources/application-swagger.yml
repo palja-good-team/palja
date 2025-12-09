@@ -1,6 +1,8 @@
 springdoc:
   swagger-ui:
     use-root-path: true
+    operations-sorter: method
+    tags-sorter: alpha
     urls:
       - name: payment-service
         url: /v3/api-docs/payment-service
