@@ -34,7 +34,7 @@ public class ProductAdapter implements ProductService {
 	}
 
 	private ApiResponse<Void> getDummy(UUID companyUserId) {
-		return ApiResponse.success("리뷰가 삭제되었습니다.");
+		return ApiResponse.success("상품이 삭제되었습니다.");
 	}
 
 }
