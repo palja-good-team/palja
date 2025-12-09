@@ -1,6 +1,7 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.dto.response.ManagerUserRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ public class ManagerUserDTO {
     private String loginId;
     private String name;
     private String email;
+    private String address;
     private UserRole role;   // MASTER, MANAGER, CUSTOMER, COMPANY_USER
     private String status;   // PENDING, ACTIVE
     private LocalDateTime createdAt;
@@ -23,19 +25,14 @@ public class ManagerUserDTO {
     private LocalDateTime updatedAt;
     private String updatedBy;
 
-    // TODO: 사용자 서비스 연동 전까지 사용하는 더미 데이터. user-service 연결 후 삭제.
-    public static ManagerUserDTO dummy(String loginId) {
-        return new ManagerUserDTO(
-                1L,
-                loginId,
-                loginId,
-                loginId + "@example.com",
-                UserRole.MANAGER,
-                "ACTIVE",
-                LocalDateTime.now(),
-                loginId,
-                LocalDateTime.now(),
-                loginId
-        );
+    public ManagerUserRes toResponse() {
+        return ManagerUserRes.builder()
+                .userId(userId)
+                .loginId(loginId)
+                .name(name)
+                .email(email)
+                .role(role)
+                .status(status)
+                .build();
     }
 }

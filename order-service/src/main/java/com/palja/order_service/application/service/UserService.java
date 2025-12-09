@@ -7,11 +7,11 @@ import com.palja.order_service.application.dto.response.ManagerUserRes;
 public interface UserService {
 
     // 고객 사용자 조회
-    CustomerUserRes getCustomerUserByLoginId(String loginId);
-
-    // 매니저 사용자 조회
-    ManagerUserRes getManagerUserByLoginId(String loginId);
+    CustomerUserRes getMyCustomer(String loginId);
 
     // 판매업체 사용자 조회
-    CompanyUserRes getCompanyUserByLoginId(String loginId);
+    CompanyUserRes getMyCompanyUser(String loginId);
+
+    // 매니저 사용자 조회
+    ManagerUserRes getMyManager(String loginId);
 }

@@ -86,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 생성에 필요한 데이터 수집 및 검증
     private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
-        CustomerUserRes customer = userService.getCustomerUserByLoginId(command.loginId());
+        CustomerUserRes customer = userService.getMyCustomer(command.loginId());
         orderValidator.validateCustomerForOrder(customer);
         log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
 
@@ -491,11 +491,11 @@ public class OrderServiceImpl implements OrderService {
 
     // ===== Private: Utility =====
     private Long resolveCustomerId(String loginId) {
-        return userService.getCustomerUserByLoginId(loginId).getUserId();
+        return userService.getMyCustomer(loginId).getUserId();
     }
 
     private UUID resolveCompanyUserId(String loginId) {
-        return userService.getCompanyUserByLoginId(loginId).getCompanyUserId();
+        return userService.getMyCompanyUser(loginId).getCompanyUserId();
     }
 
     private UUID resolveProductSellerId(UUID productId) {

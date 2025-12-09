@@ -428,6 +428,6 @@ public class OrderValidator {
 
     // 관리자 권한 검증 (유효한 관리자)
     public void validateManager(String loginId) {
-        userService.getManagerUserByLoginId(loginId);
+        userService.getMyManager(loginId);
     }
 }

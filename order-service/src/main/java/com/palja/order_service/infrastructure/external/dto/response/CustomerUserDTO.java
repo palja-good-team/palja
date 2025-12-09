@@ -1,6 +1,7 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.dto.response.CustomerUserRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,20 +25,14 @@ public class CustomerUserDTO {
     private LocalDateTime updatedAt;
     private String updatedBy;
 
-    // TODO: 사용자 서비스 연동 전까지 사용하는 더미 데이터. user-service 연결 후 삭제.
-    public static CustomerUserDTO dummy(String loginId) {
-        return new CustomerUserDTO(
-                1L,
-                loginId,
-                loginId,
-                loginId + "@example.com",
-                "서울시 강남구 테헤란로 123",
-                UserRole.CUSTOMER,
-                "ACTIVE",
-                LocalDateTime.now(),
-                loginId,
-                LocalDateTime.now(),
-                loginId
-        );
+    public CustomerUserRes toResponse() {
+        return CustomerUserRes.builder()
+                .userId(userId)
+                .loginId(loginId)
+                .name(name)
+                .email(email)
+                .role(role)
+                .status(status)
+                .build();
     }
 }
