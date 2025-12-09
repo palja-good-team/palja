@@ -1,0 +1,6 @@
+springdoc:
+  group:
+    name: timedeal-service
+  swagger-ui:
+    enabled: false
+
