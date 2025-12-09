@@ -30,6 +30,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
+import com.palja.user_service.application.service.ReviewService;
 import com.palja.user_service.application.service.impl.CustomerServiceImpl;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
@@ -43,6 +44,7 @@ public class CustomerServiceImplTest {
 
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
+	@Mock private ReviewService reviewService;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 
@@ -52,23 +54,15 @@ public class CustomerServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-		customer1 = User.builder()
-			.loginId("loginId1")
-			.password("password1")
-			.name("name1")
-			.email("email1@test.com")
-			.address("address1")
-			.role(UserRole.CUSTOMER)
-			.build();
+		customer1 = User.create(
+			"loginId1", "password1", "name1",
+			"email1@test.com", "address1", UserRole.CUSTOMER
+		);
 
-		customer2 = User.builder()
-			.loginId("loginId2")
-			.password("password2")
-			.name("name2")
-			.email("email2@test.com")
-			.address("address2")
-			.role(UserRole.CUSTOMER)
-			.build();
+		customer2 = User.create(
+			"loginId2", "password2", "name2",
+			"email2@test.com", "address2", UserRole.CUSTOMER
+		);
 
 		currentUserLoginId = "loginId";
 	}

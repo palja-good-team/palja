@@ -68,10 +68,8 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 		@RequestParam(required = false) String status,
 		Pageable pageable
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		PageResponse<ReadCompanyUserSummaryRes> pagedResponseDto = companyUserService.getAllCompanyUsers(
-			currentUserLoginId, loginId, email, name, status, pageable
+			CurrentUser.getLoginId(), loginId, email, name, status, pageable
 		);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(pagedResponseDto, "업체 판매자 목록을 조회했습니다."));
@@ -81,9 +79,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.MANAGER})
 	@GetMapping("/{loginId}")
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByLoginId(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByLoginId(currentUserLoginId, loginId);
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByLoginId(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
@@ -92,9 +88,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.MANAGER})
 	@GetMapping("/internal/{companyUserId}")
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(@PathVariable UUID companyUserId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByCompanyUserId(currentUserLoginId, companyUserId);
+		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByCompanyUserId(CurrentUser.getLoginId(), companyUserId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
@@ -103,9 +97,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.COMPANY_USER})
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getMe() {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCompanyUserDetailRes responseDto = companyUserService.getMe(currentUserLoginId);
+		ReadCompanyUserDetailRes responseDto = companyUserService.getMe(CurrentUser.getLoginId());
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자 사용자를 조회했습니다."));
 	}
@@ -116,10 +108,8 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	public ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateByLoginId(
 		@PathVariable String loginId, @Valid @RequestBody UpdateCompanyUserReq requestDto
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateCompanyUserCommand command = UpdateCompanyUserReq.of(requestDto);
-		UpdateCompanyUserDetailRes responseDto = companyUserService.updateCompanyUserByLoginId(currentUserLoginId, loginId, command);
+		UpdateCompanyUserDetailRes responseDto = companyUserService.updateCompanyUserByLoginId(CurrentUser.getLoginId(), loginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
 	}
@@ -128,10 +118,8 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.COMPANY_USER})
 	@PutMapping("/me")
 	public ResponseEntity<ApiResponse<UpdateCompanyUserDetailRes>> updateMe(@Valid @RequestBody UpdateCompanyUserReq requestDto) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateCompanyUserCommand command = UpdateCompanyUserReq.of(requestDto);
-		UpdateCompanyUserDetailRes responseDto = companyUserService.updateMe(currentUserLoginId, command);
+		UpdateCompanyUserDetailRes responseDto = companyUserService.updateMe(CurrentUser.getLoginId(), command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "업체 판매자가 수정되었습니다."));
 	}
@@ -142,10 +130,8 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	public ResponseEntity<ApiResponse<Void>> updateStatus(
 		@PathVariable("loginId") String loginId, @Valid @RequestBody UpdateCompanyUserStatusReq requestDto
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateCompanyUserStatusCommand command = UpdateCompanyUserStatusReq.of(requestDto);
-		companyUserService.updateCompanyUserStatus(currentUserLoginId, loginId, command);
+		companyUserService.updateCompanyUserStatus(CurrentUser.getLoginId(), loginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자의 상태가 수정되었습니다."));
 	}
@@ -154,9 +140,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.MANAGER})
 	@DeleteMapping("/{loginId}")
 	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		companyUserService.deleteCompanyUserByLoginId(currentUserLoginId, loginId);
+		companyUserService.deleteCompanyUserByLoginId(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자가 삭제되었습니다."));
 	}
@@ -165,11 +149,9 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.COMPANY_USER})
 	@DeleteMapping("/me")
 	public ResponseEntity<ApiResponse<Void>> deleteMe(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		companyUserService.deleteMe(accessToken, currentUserLoginId);
+		companyUserService.deleteMe(accessToken, CurrentUser.getLoginId());
 
 		ResponseCookie cookie = ResponseCookie
 			.from("refresh_token", "")
@@ -187,9 +169,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.MANAGER})
 	@DeleteMapping("/{loginId}/reject")
 	public ResponseEntity<ApiResponse<Void>> reject(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		companyUserService.rejectCompanyUser(currentUserLoginId, loginId);
+		companyUserService.rejectCompanyUser(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("업체 판매자 가입이 거절되었습니다."));
 	}

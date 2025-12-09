@@ -71,11 +71,9 @@ public class AuthControllerImpl implements AuthController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		authService.logout(currentUserLoginId, accessToken);
+		authService.logout(CurrentUser.getLoginId(), accessToken);
 		addRefreshTokenToCookie(response, "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));

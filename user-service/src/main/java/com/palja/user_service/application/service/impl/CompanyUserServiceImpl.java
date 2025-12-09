@@ -20,6 +20,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
+import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.application.service.ProductService;
@@ -54,20 +55,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
-		User user = User.builder()
-			.loginId(command.loginId())
-			.password(passwordEncoder.encode(command.password()))
-			.name(command.name())
-			.email(command.email())
-			.address(command.address())
-			.role(UserRole.COMPANY_USER)
-			.build();
+		User user = User.create(
+			command.loginId(), passwordEncoder.encode(command.password()),
+			command.name(), command.email(), command.address(), UserRole.COMPANY_USER
+		);
 
-		CompanyUser companyUser = CompanyUser.builder()
-			.user(user)
-			.companyName(command.companyName())
-			.companyNumber(command.companyNumber())
-			.build();
+		CompanyUser companyUser = CompanyUser.create(user, command.companyName(), command.companyNumber());
 
 		AuditorContext.set(user.getLoginId(), user.getRole());
 		companyUserRepository.save(companyUser);
@@ -151,6 +144,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	@Override
 	@Transactional
 	public void deleteMe(String accessToken, String currentUserLoginId) {
+		validateTokenIsNotNull(accessToken);
+
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.softDelete();
 		timeDealService.deleteAllTimeDeals(companyUser.getId());
@@ -224,6 +219,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 			return UserStatus.valueOf(status.toUpperCase());
 		} catch (IllegalArgumentException e) {
 			throw new BusinessException(UserErrorCode.USER_STATUS_NOT_FOUND);
+		}
+	}
+
+	private void validateTokenIsNotNull(String token) {
+		if (token == null) {
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
 		}
 	}
 

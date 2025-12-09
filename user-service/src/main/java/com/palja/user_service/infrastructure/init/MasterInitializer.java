@@ -23,14 +23,10 @@ public class MasterInitializer implements CommandLineRunner {
 		AuditorContext.set("master", UserRole.MASTER);
 
 		if (!userRepository.existsByLoginIdAndDeletedAtIsNull("master")) {
-			User master = User.builder()
-				.loginId("master")
-				.password(passwordEncoder.encode("master"))
-				.name("master")
-				.email("master@master.com")
-				.address("서울시 강남구 테헤란로 123")
-				.role(UserRole.MASTER)
-				.build();
+			User master = User.create(
+				"master", passwordEncoder.encode("master"),
+				"master", "master@master.com", "서울시 강남구 테헤란로 123", UserRole.MASTER
+			);
 
 			userRepository.save(master);
 		}

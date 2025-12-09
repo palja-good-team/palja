@@ -53,7 +53,7 @@ public class User extends BaseEntity {
 	// @JdbcTypeCode(SqlTypes.NAMED_ENUM)
 	private UserStatus status;
 
-	@Builder
+	@Builder(access = AccessLevel.PRIVATE)
 	private User(String loginId, String password, String name, String email, String address, UserRole role) {
 		this.loginId = loginId;
 		this.password = password;
@@ -62,6 +62,17 @@ public class User extends BaseEntity {
 		this.address = address;
 		this.role = role;
 		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
+	}
+
+	public static User create(String loginId, String password, String name, String email, String address, UserRole role) {
+		return User.builder()
+			.loginId(loginId)
+			.password(password)
+			.name(name)
+			.email(email)
+			.address(address)
+			.role(role)
+			.build();
 	}
 
 	public void update(String address) {

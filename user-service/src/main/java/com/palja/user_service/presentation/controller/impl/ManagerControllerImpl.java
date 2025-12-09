@@ -58,10 +58,8 @@ public class ManagerControllerImpl implements ManagerController {
 		@RequestParam(required = false) String name,
 		Pageable pageable
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		PageResponse<ReadManagerSummaryRes> pagedResponseDto = managerService.getAllManagers(
-			currentUserLoginId, loginId, email, name, pageable
+			CurrentUser.getLoginId(), loginId, email, name, pageable
 		);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(pagedResponseDto, "관리자 목록을 조회했습니다."));
@@ -71,9 +69,7 @@ public class ManagerControllerImpl implements ManagerController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@GetMapping("/{loginId}")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByLoginId(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadManagerDetailRes responseDto = managerService.getManagerByLoginId(currentUserLoginId, loginId);
+		ReadManagerDetailRes responseDto = managerService.getManagerByLoginId(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
@@ -82,9 +78,7 @@ public class ManagerControllerImpl implements ManagerController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByUserId(@PathVariable Long userId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadManagerDetailRes responseDto = managerService.getManagerByUserId(currentUserLoginId, userId);
+		ReadManagerDetailRes responseDto = managerService.getManagerByUserId(CurrentUser.getLoginId(), userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
@@ -93,9 +87,7 @@ public class ManagerControllerImpl implements ManagerController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getMe() {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadManagerDetailRes responseDto = managerService.getMe(currentUserLoginId);
+		ReadManagerDetailRes responseDto = managerService.getMe(CurrentUser.getLoginId());
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자를 조회했습니다."));
 	}
@@ -116,10 +108,8 @@ public class ManagerControllerImpl implements ManagerController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@PutMapping("/me")
 	public ResponseEntity<ApiResponse<UpdateManagerDetailRes>> updateMe(@Valid @RequestBody UpdateManagerReq requestDto) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateManagerCommand command = UpdateManagerReq.of(requestDto);
-		UpdateManagerDetailRes responseDto = managerService.updateMe(currentUserLoginId, command);
+		UpdateManagerDetailRes responseDto = managerService.updateMe(CurrentUser.getLoginId(), command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "관리자가 수정되었습니다."));
 	}

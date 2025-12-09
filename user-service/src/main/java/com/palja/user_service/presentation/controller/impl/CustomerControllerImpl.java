@@ -63,10 +63,8 @@ public class CustomerControllerImpl implements CustomerController {
 		@RequestParam(required = false) String name,
 		Pageable pageable
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		PageResponse<ReadCustomerSummaryRes> pagedResponseDto = customerService.getAllCustomers(
-			currentUserLoginId, loginId, email, name, pageable
+			CurrentUser.getLoginId(), loginId, email, name, pageable
 		);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(pagedResponseDto, "일반 사용자 목록을 조회했습니다."));
@@ -76,9 +74,7 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.MANAGER})
 	@GetMapping("/{loginId}")
 	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByLoginId(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCustomerDetailRes responseDto = customerService.getCustomerByLoginId(currentUserLoginId, loginId);
+		ReadCustomerDetailRes responseDto = customerService.getCustomerByLoginId(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
 	}
@@ -87,9 +83,7 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.MANAGER})
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(@PathVariable Long userId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCustomerDetailRes responseDto = customerService.getCustomerByUserId(currentUserLoginId, userId);
+		ReadCustomerDetailRes responseDto = customerService.getCustomerByUserId(CurrentUser.getLoginId(), userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
 	}
@@ -98,9 +92,7 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.CUSTOMER})
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getMe() {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		ReadCustomerDetailRes responseDto = customerService.getMe(currentUserLoginId);
+		ReadCustomerDetailRes responseDto = customerService.getMe(CurrentUser.getLoginId());
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자를 조회했습니다."));
 	}
@@ -111,10 +103,8 @@ public class CustomerControllerImpl implements CustomerController {
 	public ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateByLoginId(
 		@PathVariable String loginId, @Valid @RequestBody UpdateCustomerReq requestDto
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateCustomerCommand command = UpdateCustomerReq.of(requestDto);
-		UpdateCustomerDetailRes responseDto = customerService.updateCustomerByLoginId(currentUserLoginId, loginId, command);
+		UpdateCustomerDetailRes responseDto = customerService.updateCustomerByLoginId(CurrentUser.getLoginId(), loginId, command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
 	}
@@ -123,10 +113,8 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.CUSTOMER})
 	@PutMapping("/me")
 	public ResponseEntity<ApiResponse<UpdateCustomerDetailRes>> updateMe(@Valid @RequestBody UpdateCustomerReq requestDto) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
 		UpdateCustomerCommand command = UpdateCustomerReq.of(requestDto);
-		UpdateCustomerDetailRes responseDto = customerService.updateMe(currentUserLoginId, command);
+		UpdateCustomerDetailRes responseDto = customerService.updateMe(CurrentUser.getLoginId(), command);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "일반 사용자가 수정되었습니다."));
 	}
@@ -135,9 +123,7 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.MANAGER})
 	@DeleteMapping("/{loginId}")
 	public ResponseEntity<ApiResponse<Void>> deleteByLoginId(@PathVariable String loginId) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		customerService.deleteCustomerByLoginId(currentUserLoginId, loginId);
+		customerService.deleteCustomerByLoginId(CurrentUser.getLoginId(), loginId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("일반 사용자가 삭제되었습니다."));
 	}
@@ -146,11 +132,9 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.CUSTOMER})
 	@DeleteMapping("/me")
 	public ResponseEntity<ApiResponse<Void>> deleteMe(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		customerService.deleteMe(accessToken, currentUserLoginId);
+		customerService.deleteMe(accessToken, CurrentUser.getLoginId());
 
 		ResponseCookie cookie = ResponseCookie
 			.from("refresh_token", "")

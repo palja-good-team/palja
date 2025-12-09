@@ -36,14 +36,10 @@ public class ManagerServiceImpl implements ManagerService {
 		validateDuplicateLoginId(command.loginId());
 		validateDuplicateEmail(command.email());
 
-		User user = User.builder()
-			.loginId(command.loginId())
-			.password(passwordEncoder.encode(command.password()))
-			.name(command.name())
-			.email(command.email())
-			.address(command.address())
-			.role(UserRole.MANAGER)
-			.build();
+		User user = User.create(
+			command.loginId(), passwordEncoder.encode(command.password()),
+			command.name(), command.email(), command.address(), UserRole.MANAGER
+		);
 
 		AuditorContext.set(user.getLoginId(), user.getRole());
 		userRepository.save(user);
