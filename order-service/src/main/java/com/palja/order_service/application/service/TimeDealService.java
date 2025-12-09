@@ -7,7 +7,7 @@ import java.util.UUID;
 public interface TimeDealService {
 
     // 타임딜 조회
-    TimeDealRes getTimeDeal(UUID timeDealId, int quantity);
+    TimeDealRes getTimeDeal(UUID timeDealId);
 
     // 타임딜 재고 차감
     void deductTimeDealStock(UUID timeDealId, int quantity);

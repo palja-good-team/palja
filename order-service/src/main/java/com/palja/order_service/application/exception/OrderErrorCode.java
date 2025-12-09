@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
 
-    // 사용자
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
-
     // ===== 주문 관련 =====
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 상품 정보를 찾을 수 없습니다."),
@@ -34,7 +31,7 @@ public enum OrderErrorCode implements ErrorCode {
     INVENTORY_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "재고 복구에 실패했습니다."),
     COUPON_APPLICATION_FAILED(HttpStatus.BAD_REQUEST, "쿠폰 사용에 실패했습니다."),
     COUPON_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠폰 복구에 실패했습니다."),
-    REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 환불에 실패했습니다."),
+
     // 주문 상태 변경 관련
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 주문 상태입니다."),
     SAME_STATUS_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "동일한 상태로는 변경할 수 없습니다."),
@@ -42,12 +39,14 @@ public enum OrderErrorCode implements ErrorCode {
     USE_SPECIFIC_API_FOR_FINAL_STATUS(HttpStatus.BAD_REQUEST, "해당 상태로는 전용 API를 사용해야 합니다."),
 
     // ===== 타임딜 관련 =====
-    TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜을 찾을 수 없습니다."),
     TIME_DEAL_EXPIRED(HttpStatus.BAD_REQUEST, "타임딜 기간이 만료되었습니다."),
     TIME_DEAL_NOT_STARTED(HttpStatus.BAD_REQUEST, "타임딜이 아직 시작되지 않았습니다."),
     TIME_DEAL_SOLD_OUT(HttpStatus.CONFLICT, "타임딜 수량이 모두 소진되었습니다."),
     TIME_DEAL_INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "타임딜 재고가 부족합니다."),
     INVALID_TIME_DEAL(HttpStatus.BAD_REQUEST, "유효하지 않은 타임딜입니다."),
+    TIME_DEAL_STOCK_DECREASE_FAILED(HttpStatus.BAD_REQUEST, "타임딜 재고 차감에 실패했습니다."),
+    TIME_DEAL_FETCH_FAILED(HttpStatus.BAD_REQUEST, "타임딜 정보를 조회할 수 없습니다."),
+    TIME_DEAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 처리 중 오류가 발생했습니다."),
 
     // ==== 쿠폰 관련 ====
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰을 찾을 수 없습니다."),
@@ -78,7 +77,6 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_TRACKING_NUMBER(HttpStatus.BAD_REQUEST, "운송장 번호가 유효하지 않습니다."),
 
     // ===== 결제 관련 =====
-    PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "결제 금액이 일치하지 않습니다."),
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "결제 시간이 초과되었습니다."),
     INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 수단입니다."),
@@ -95,6 +93,22 @@ public enum OrderErrorCode implements ErrorCode {
     USER_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "사용자 서비스 연동 중 오류가 발생했습니다."),
     TIME_DEAL_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스 연동 중 오류가 발생했습니다."),
     PAYMENT_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스 연동 중 오류가 발생했습니다."),
+
+    // 조회 실패
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
+    TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜 정보를 찾을 수 없습니다."),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
+
+    // 외부 서비스 통신 실패
+    USER_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "사용자 서비스를 일시적으로 사용할 수 없습니다."),
+    TIME_DEAL_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스를 일시적으로 사용할 수 없습니다."),
+    PAYMENT_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스를 일시적으로 사용할 수 없습니다."),
+
+    // 비즈니스 로직 실패
+    TIME_DEAL_STOCK_DEDUCTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 차감에 실패했습니다."),
+    TIME_DEAL_STOCK_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 복구에 실패했습니다."),
+    PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다."),
+    REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리 중 오류가 발생했습니다."),
 
     // ===== 서버 내부 오류 =====
     ORDER_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "주문 생성 중 오류가 발생했습니다."),
