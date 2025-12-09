@@ -4,6 +4,8 @@ import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.infrastructure.repository.JpaTimeDealRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,5 +23,10 @@ public class TimeDealRepositoryAdapter implements TimeDealRepository {
     @Override
     public Optional<TimeDeal> findDetailByTimeDealId(UUID timeDealId) {
         return jpaTimeDealRepository.findDetailByTimeDealId(timeDealId);
+    }
+
+    @Override
+    public Page<TimeDeal> searchTimeDeals(Pageable pageable) {
+        return jpaTimeDealRepository.searchTimeDeals(pageable);
     }
 }
