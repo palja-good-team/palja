@@ -1,9 +1,17 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
-import com.palja.order_service.application.dto.response.PaymentRes;
+import com.palja.common.exception.BusinessException;
+import com.palja.order_service.application.dto.PaymentMethod;
+import com.palja.order_service.application.dto.response.PaymentCancelRes;
+import com.palja.order_service.application.dto.response.PaymentCreateRes;
+import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.service.PaymentService;
+import com.palja.order_service.infrastructure.external.PaymentClient;
+import com.palja.order_service.infrastructure.external.dto.request.CancelPaymentDTO;
+import com.palja.order_service.infrastructure.external.dto.request.CreatePaymentDTO;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentCancelDTO;
 import com.palja.order_service.infrastructure.external.dto.response.PaymentCreateDTO;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,30 +24,47 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PaymentAdapter implements PaymentService {
 
-    // TODO: 결제 서비스 연동 시 PaymentClient 주입 및 구현 추가
-    //private final PaymentClient paymentClient;
+    private final PaymentClient paymentClient;
 
     @Override
-    public PaymentRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentMethod) {
+    public PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, PaymentMethod paymentMethod) {
         log.debug("결제 생성 요청: orderId={}, userId={}, amount={}, paymentMethod={}",
                 orderId, userId, amount, paymentMethod);
-
-        // TODO: payment-service 연동 시 FeignClient 호출 사용
-        // CreatePaymentDTO request = new CreatePaymentDTO(orderId, userId, amount, paymentMethod);
-        // PaymentCreateDTO response = paymentClient.createPayment(request).data();
-        // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
-        // 임시 더미 데이터
-        PaymentCreateDTO dummy = PaymentCreateDTO.dummy(orderId, userId, amount);
-
-        return PaymentRes.of(dummy.getPaymentId(), dummy.getAmount());
+        try {
+            CreatePaymentDTO request = new CreatePaymentDTO(orderId, userId, amount, paymentMethod);
+            PaymentCreateDTO response = paymentClient.createPayment(request).data();
+            log.info("결제 생성 성공: paymentId={}", response.getPaymentId());
+            //return response.toResponse();
+            // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
+            return response.toResponseByDummy();
+        } catch (FeignException e) {
+            log.error("결제 API 호출 실패: orderId={}, status={}, message={}",
+                    orderId, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_ERROR);
+        } catch (Exception e) {
+            log.error("결제 생성 중 예상치 못한 오류: orderId={}, error={}",
+                    orderId, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PAYMENT_FAILED);
+        }
     }
 
-    public void cancelPayment(UUID orderId, UUID paymentId) {
-        log.info("결제 취소 요청 시작: paymentId={}", paymentId);
-        // TODO: payment-service 연동 시 FeignClient 호출 사용
-        //CancelPaymentDTO request = new CancelPaymentDTO("주문 취소");
-        //PaymentCancelDTO response = paymentClient.cancelPayment(paymentId, request).data();
-        // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
-        PaymentCancelDTO dummy = PaymentCancelDTO.dummy(orderId, paymentId);
+    public PaymentCancelRes cancelPayment(UUID orderId, UUID paymentId) {
+        log.info("결제 취소 요청 시작: orderId={}, paymentId={}", orderId, paymentId);
+        try {
+            CancelPaymentDTO request = new CancelPaymentDTO("주문 취소");
+            PaymentCancelDTO response = paymentClient.cancelPayment(paymentId, request).data();
+            log.info("결제 생성 성공: paymentId={}", response.getPaymentId());
+            //return response.toResponse();
+            // TODO: 실제 결제 서비스 연동 시 위의 코드로 교체
+            return response.toResponseDummy(paymentId);
+        } catch (FeignException e) {
+            log.error("결제 취소 API 호출 실패: paymentId={}, status={}, message={}",
+                    paymentId, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_ERROR);
+        } catch (Exception e) {
+            log.error("결제 취소 중 예상치 못한 오류: paymentId={}, error={}",
+                    paymentId, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PAYMENT_FAILED);
+        }
     }
 }
