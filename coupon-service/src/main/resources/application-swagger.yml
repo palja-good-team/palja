@@ -1,0 +1,5 @@
+springdoc:
+  group:
+    name: coupon-service
+  swagger-ui:
+    enabled: false
