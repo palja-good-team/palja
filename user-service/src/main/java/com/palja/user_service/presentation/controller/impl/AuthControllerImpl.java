@@ -71,7 +71,7 @@ public class AuthControllerImpl implements AuthController {
 	@RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 

@@ -165,7 +165,7 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	@RequiredRole({UserRole.COMPANY_USER})
 	@DeleteMapping("/me")
 	public ResponseEntity<ApiResponse<Void>> deleteMe(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 

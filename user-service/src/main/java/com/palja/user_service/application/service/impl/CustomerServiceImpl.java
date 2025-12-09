@@ -17,6 +17,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
+import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.application.service.ReviewService;
@@ -126,6 +127,8 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	@Transactional
 	public void deleteMe(String accessToken, String currentUserLoginId) {
+		validateTokenIsNotNull(accessToken);
+
 		User user = getCustomerByLoginId(currentUserLoginId);
 		user.softDelete();
 		reviewService.deleteAllReviews(user.getId());
@@ -166,6 +169,12 @@ public class CustomerServiceImpl implements CustomerService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
+		}
+	}
+
+	private void validateTokenIsNotNull(String token) {
+		if (token == null) {
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
 		}
 	}
 

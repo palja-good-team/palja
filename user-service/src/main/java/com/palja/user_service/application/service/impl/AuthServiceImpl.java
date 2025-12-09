@@ -58,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public String refreshAccessToken(String accessToken, String refreshToken) {
+		validateTokenIsNotNull(refreshToken);
 		String substringRefreshToken = jwtUtil.substringToken(URLDecoder.decode(refreshToken, StandardCharsets.UTF_8));
 		validateRefreshToken(substringRefreshToken);
 		String loginId = jwtUtil.parseRefreshToken(substringRefreshToken).getSubject();
@@ -74,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public void logout(String currentUserLoginId, String accessToken) {
+		validateTokenIsNotNull(accessToken);
 		getUserByLoginId(currentUserLoginId);
 
 		addAccessTokenToBlackList(currentUserLoginId, accessToken);
@@ -98,8 +100,14 @@ public class AuthServiceImpl implements AuthService {
 		}
 	}
 
-	private void validateRefreshToken(String refreshToken) {
-		if (refreshToken == null || !jwtUtil.validateRefreshToken(refreshToken)) {
+	private void validateTokenIsNotNull(String token) {
+		if (token == null) {
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
+		}
+	}
+
+	private void validateRefreshToken(String substringRefreshToken) {
+		if (!jwtUtil.validateRefreshToken(substringRefreshToken)) {
 			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
 		}
 	}

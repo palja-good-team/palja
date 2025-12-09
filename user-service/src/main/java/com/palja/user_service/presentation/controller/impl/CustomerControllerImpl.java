@@ -146,7 +146,7 @@ public class CustomerControllerImpl implements CustomerController {
 	@RequiredRole({UserRole.CUSTOMER})
 	@DeleteMapping("/me")
 	public ResponseEntity<ApiResponse<Void>> deleteMe(
-		@RequestHeader("Authorization") String accessToken, HttpServletResponse response
+		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
 		String currentUserLoginId = CurrentUser.getLoginId();
 
