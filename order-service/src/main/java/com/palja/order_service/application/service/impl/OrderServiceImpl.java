@@ -384,7 +384,7 @@ public class OrderServiceImpl implements OrderService {
 
         Long userId = resolveCustomerId(loginId);
 
-        OrderStatus orderStatus = parseOrderStatus(request.getStatus());
+        OrderStatus orderStatus = OrderStatus.from(request.getStatus());
         LocalDateTime startDateTime = toStartDateTimeOrMin(request.getStartDate());
         LocalDateTime endDateTime = toEndDateTimeOrMax(request.getEndDate());
         Page<Order> orderPage = findCustomerOrdersWithFilters(
@@ -444,17 +444,6 @@ public class OrderServiceImpl implements OrderService {
     public Order findOrderWithDetails(UUID orderId) {
         return orderRepository.findOrderByIdWithItemAndDelivery(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-    }
-
-    private OrderStatus parseOrderStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return null;
-        }
-        try {
-            return OrderStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null; // 잘못된 값이면 필터 미적용
-        }
     }
 
     private LocalDateTime toStartDateTimeOrMin(LocalDate date) {

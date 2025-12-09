@@ -221,4 +221,14 @@ public enum OrderStatus {
             );
         }
     }
+    public static OrderStatus from(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        try {
+            return OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null; // 잘못된 값이면 필터 미적용
+        }
+    }
 }
