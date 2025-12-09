@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class PaymentLogDetailRes {
+public class ReadPaymentLogRes {
 
     private UUID paymentLogId;
     private UUID paymentId;
@@ -23,8 +23,8 @@ public class PaymentLogDetailRes {
     private String pgResponseMessage;
     private LocalDateTime processedAt;
 
-    public static PaymentLogDetailRes from(PaymentLog log) {
-        return PaymentLogDetailRes.builder()
+    public static ReadPaymentLogRes from(PaymentLog log) {
+        return ReadPaymentLogRes.builder()
                 .paymentLogId(log.getId())
                 .paymentId(log.getPayment().getId())
                 .orderId(log.getOrderId())

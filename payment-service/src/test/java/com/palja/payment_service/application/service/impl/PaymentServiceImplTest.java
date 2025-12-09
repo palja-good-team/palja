@@ -6,9 +6,12 @@ import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
+import com.palja.payment_service.application.dto.response.CancelPaymentRes;
+import com.palja.payment_service.application.dto.response.CreatePaymentRes;
 import com.palja.payment_service.application.dto.response.OrderRes;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
-import com.palja.payment_service.application.dto.response.PaymentDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.application.dto.response.UserRes;
 import com.palja.payment_service.application.service.OrderService;
 import com.palja.payment_service.application.service.PGPaymentService;
@@ -126,11 +129,10 @@ class PaymentServiceImplTest {
         given(pgPaymentService.requestPayment(any(Payment.class)))
                 .willReturn(pgRes);
 
-        PaymentDetailRes result = paymentService.createPayment(command);
+        CreatePaymentRes result = paymentService.createPayment(command);
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.APPROVED.name());
-        assertThat(result.getPaymentKey()).isEqualTo("pg-payment-key");
 
         then(paymentValidator).should().validateCreatePayment(
                 eq(command), eq(orderRes), eq(userRes)
@@ -260,7 +262,7 @@ class PaymentServiceImplTest {
                 .cancelReason("전체 환불")
                 .build();
 
-        PaymentDetailRes result = paymentService.cancelPayment(cancelCommand);
+        CancelPaymentRes result = paymentService.cancelPayment(cancelCommand);
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.CANCELED.name());
@@ -392,7 +394,7 @@ class PaymentServiceImplTest {
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(payment));
         given(userService.getUserByLoginId(any())).willReturn(userRes);
 
-        PaymentDetailRes result = paymentService.getPayment(paymentId);
+        ReadPaymentDetailRes result = paymentService.getPayment(paymentId);
 
         assertThat(result).isNotNull();
         assertThat(result.getPaymentId()).isEqualTo(paymentId);
@@ -454,7 +456,7 @@ class PaymentServiceImplTest {
         FindPaymentListByConditionCommand searchCommand =
                 new FindPaymentListByConditionCommand(status, userId, orderId, startDate, endDate);
 
-        Page<PaymentDetailRes> result = paymentService.searchPayments(searchCommand, pageRequest);
+        Page<ReadPaymentSummaryRes> result = paymentService.searchPayments(searchCommand, pageRequest);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).hasSize(2);
@@ -494,7 +496,7 @@ class PaymentServiceImplTest {
         FindPaymentListByConditionCommand searchCommand =
                 new FindPaymentListByConditionCommand(null, userId, null, null, null);
 
-        Page<PaymentDetailRes> result = paymentService.searchPayments(searchCommand, pageRequest);
+        Page<ReadPaymentSummaryRes> result = paymentService.searchPayments(searchCommand, pageRequest);
 
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getContent()).isEmpty();

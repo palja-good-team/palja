@@ -4,7 +4,7 @@ import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
-import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentLogRes;
 import com.palja.payment_service.application.dto.response.UserRes;
 import com.palja.payment_service.application.service.UserService;
 import com.palja.payment_service.application.validator.PaymentValidator;
@@ -111,7 +111,7 @@ class PaymentLogServiceImplTest {
         given(paymentLogRepository.findByPaymentId(paymentId))
                 .willReturn(List.of(log1, log2));
 
-        List<PaymentLogDetailRes> result = paymentLogService.getLogsByPaymentId(paymentId);
+        List<ReadPaymentLogRes> result = paymentLogService.getLogsByPaymentId(paymentId);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getPaymentId()).isEqualTo(paymentId);
@@ -208,7 +208,7 @@ class PaymentLogServiceImplTest {
                         endDate
                 );
 
-        Page<PaymentLogDetailRes> result = paymentLogService.searchLogs(command, pageRequest);
+        Page<ReadPaymentLogRes> result = paymentLogService.searchLogs(command, pageRequest);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).hasSize(2);

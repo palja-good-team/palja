@@ -3,25 +3,24 @@ package com.palja.payment_service.application.service;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
-import com.palja.payment_service.application.dto.response.PaymentDetailRes;
+import com.palja.payment_service.application.dto.response.CancelPaymentRes;
+import com.palja.payment_service.application.dto.response.CreatePaymentRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.UUID;
 
-import java.util.UUID;
-
 public interface PaymentService {
 
-    PaymentDetailRes createPayment(CreatePaymentCommand command);
+    CreatePaymentRes createPayment(CreatePaymentCommand command);
 
-    PaymentDetailRes cancelPayment(CancelPaymentCommand command);
+    CancelPaymentRes cancelPayment(CancelPaymentCommand command);
 
-    PaymentDetailRes getPayment(UUID paymentId);
+    ReadPaymentDetailRes getPayment(UUID paymentId);
 
-    Page<PaymentDetailRes> getPayments(PageRequest pageRequest);
-
-    Page<PaymentDetailRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest);
+    Page<ReadPaymentSummaryRes> searchPayments(FindPaymentListByConditionCommand command, PageRequest pageRequest);
 
     void deletePayment(UUID paymentId);
 }

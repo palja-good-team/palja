@@ -3,7 +3,7 @@ package com.palja.payment_service.application.service.impl;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
-import com.palja.payment_service.application.dto.response.PaymentLogDetailRes;
+import com.palja.payment_service.application.dto.response.ReadPaymentLogRes;
 import com.palja.payment_service.application.dto.response.UserRes;
 import com.palja.payment_service.application.service.PaymentLogService;
 import com.palja.payment_service.application.service.UserService;
@@ -32,7 +32,7 @@ public class PaymentLogServiceImpl implements PaymentLogService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentLogDetailRes> getLogsByPaymentId(UUID paymentId) {
+    public List<ReadPaymentLogRes> getLogsByPaymentId(UUID paymentId) {
 
         String loginId = CurrentUser.getLoginId();
         UserRes user = userService.getUserByLoginId(loginId);
@@ -44,14 +44,14 @@ public class PaymentLogServiceImpl implements PaymentLogService {
             throw new BusinessException(PaymentErrorCode.PAYMENT_LOG_NOT_FOUND);
         }
         return logs.stream()
-                .map(PaymentLogDetailRes::from)
+                .map(ReadPaymentLogRes::from)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PaymentLogDetailRes> searchLogs(FindPaymentLogListByConditionCommand command,
-                                                PageRequest pageRequest) {
+    public Page<ReadPaymentLogRes> searchLogs(FindPaymentLogListByConditionCommand command,
+                                              PageRequest pageRequest) {
 
         String loginId = CurrentUser.getLoginId();
         UserRes user = userService.getUserByLoginId(loginId);
@@ -76,7 +76,7 @@ public class PaymentLogServiceImpl implements PaymentLogService {
                 pageRequest
         );
 
-        return logs.map(PaymentLogDetailRes::from);
+        return logs.map(ReadPaymentLogRes::from);
     }
 
     @Override
