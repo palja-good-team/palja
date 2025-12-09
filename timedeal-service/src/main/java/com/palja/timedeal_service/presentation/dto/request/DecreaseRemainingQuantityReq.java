@@ -13,12 +13,12 @@ import java.util.UUID;
 public class DecreaseRemainingQuantityReq {
     @NotNull
     @Positive(message = "타임딜 재고의 감소 수량은 0보다 커야 합니다.")
-    long deltaQuantity;
+    long decreaseQuantity;
 
     public DecreaseRemainingQuantityCommand toCommand(UUID timeDealId) {
         return DecreaseRemainingQuantityCommand.builder()
                 .timeDealId(timeDealId)
-                .deltaQuantity(deltaQuantity)
+                .decreaseQuantity(decreaseQuantity)
                 .build();
     }
 }

@@ -125,7 +125,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        timeDeal.decreaseRemainingQuantity(command.deltaQuantity());
+        timeDeal.decreaseRemainingQuantity(command.decreaseQuantity());
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {

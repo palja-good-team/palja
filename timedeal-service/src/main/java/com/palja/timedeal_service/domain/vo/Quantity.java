@@ -51,10 +51,10 @@ public class Quantity {
         return new Quantity(newTotalQuantity, newRemaining);
     }
 
-    public Quantity decreaseRemainingQuantity(long deltaQuantity) {
-        validateDecreaseRemainingQuantity(deltaQuantity);
+    public Quantity decreaseRemainingQuantity(long decreaseQuantity) {
+        validateDecreaseRemainingQuantity(decreaseQuantity);
 
-        return new Quantity(this.totalQuantity, this.remainingQuantity - deltaQuantity);
+        return new Quantity(this.totalQuantity, this.remainingQuantity - decreaseQuantity);
     }
 
     public boolean isSoldOut() {
@@ -73,12 +73,12 @@ public class Quantity {
         }
     }
 
-    private void validateDecreaseRemainingQuantity(long deltaQuantity) {
-        if (deltaQuantity <= 0) {
+    private void validateDecreaseRemainingQuantity(long decreaseQuantity) {
+        if (decreaseQuantity <= 0) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_INVALID_QUANTITY);
         }
 
-        if (this.remainingQuantity < deltaQuantity) {
+        if (this.remainingQuantity < decreaseQuantity) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_OUT_OF_STOCK);
         }
     }

@@ -7,6 +7,6 @@ import java.util.UUID;
 @Builder
 public record DecreaseRemainingQuantityCommand(
         UUID timeDealId,
-        long deltaQuantity
+        long decreaseQuantity
 ) {
 }

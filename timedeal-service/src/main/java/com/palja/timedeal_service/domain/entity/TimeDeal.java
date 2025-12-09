@@ -140,7 +140,7 @@ public class TimeDeal extends BaseEntity {
         changeStatus(TimeDealStatus.CLOSED, reason);
     }
 
-    public void decreaseRemainingQuantity(long deltaQuantity) {
+    public void decreaseRemainingQuantity(long decreaseQuantity) {
         if (this.timeDealStatus != TimeDealStatus.OPEN) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_OPEN);
         }
@@ -149,7 +149,7 @@ public class TimeDeal extends BaseEntity {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_IN_PERIOD);
         }
 
-        this.timeDealStock.decreaseRemainingQuantity(deltaQuantity);
+        this.timeDealStock.decreaseRemainingQuantity(decreaseQuantity);
 
         if (this.timeDealStock.getQuantity().isSoldOut()) {
             this.timeDealStatus = TimeDealStatus.SOLD_OUT;
