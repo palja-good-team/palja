@@ -1,6 +1,5 @@
 package com.palja.user_service.domain.entity;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -54,11 +53,19 @@ public class CompanyUser {
 		user.softDelete();
 	}
 
-	@Builder
+	@Builder(access = AccessLevel.PRIVATE)
 	private CompanyUser(User user, String companyName, String companyNumber) {
 		this.user = user;
 		this.companyName = companyName;
 		this.companyNumber = companyNumber;
+	}
+
+	public static CompanyUser create(User user, String companyName, String companyNumber) {
+		return CompanyUser.builder()
+			.user(user)
+			.companyName(companyName)
+			.companyNumber(companyNumber)
+			.build();
 	}
 
 	public void update(String companyName, String address) {
