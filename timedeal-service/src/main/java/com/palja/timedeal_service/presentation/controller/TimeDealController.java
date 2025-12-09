@@ -1,8 +1,10 @@
 package com.palja.timedeal_service.presentation.controller;
 
+import brave.Response;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
+import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.*;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
@@ -11,6 +13,11 @@ import com.palja.timedeal_service.presentation.dto.request.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.shaded.com.google.protobuf.Api;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +45,7 @@ public class TimeDealController {
 
         TimeDealDetailRes res = timeDealService.createTimeDeal(command);
 
-        log.info("타임딜 생성 성공: timeDealId = {}", res.getTimeDealId());
+        log.info("타임딜 생성 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(res, "타임딜이 생성되었습니다."));
     }
 
@@ -48,8 +55,20 @@ public class TimeDealController {
 
         TimeDealDetailRes res = timeDealService.getTimeDeal(timeDealId);
 
-        log.info("타임딜 상세 조회 성공 timeDealId = {}", res.getTimeDealId());
-        return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상세조회에 성공했습니다."));
+        log.info("타임딜 상세 조회 완료 timeDealId = {}", res.getTimeDealId());
+        return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상세 조회에 성공했습니다."));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<TimeDealDetailRes>>> getTimeDeals(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        log.info("GET api/v1/time-deals 타임딜 목록 조회 요청");
+
+        PageResponse<TimeDealDetailRes> res = timeDealService.getTimeDeals(pageable);
+
+        log.info("타임딜 목록 조회 완료");
+        return ResponseEntity.ok(ApiResponse.success(res, "타임딜 목록 조회에 성공했습니다."));
     }
 
     @PutMapping("/{timeDealId}")
@@ -64,7 +83,7 @@ public class TimeDealController {
 
         TimeDealDetailRes res = timeDealService.updateTimeDeal(command);
 
-        log.info("타임딜 수정 성공: timeDealId = {}", res.getTimeDealId());
+        log.info("타임딜 수정 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 수정에 성공했습니다."));
     }
 
@@ -80,7 +99,7 @@ public class TimeDealController {
 
         TimeDealDetailRes res = timeDealService.changeTimeDealStatus(command);
 
-        log.info("타임딜 상태 변경 성공: timeDealId = {}", res.getTimeDealId());
+        log.info("타임딜 상태 변경 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상태 변경에 성공했습니다."));
     }
 
@@ -95,7 +114,7 @@ public class TimeDealController {
 
         timeDealService.decreaseRemainingQuantity(command);
 
-        log.info("타임딜 남은 재고 차감 성공");
+        log.info("타임딜 남은 재고 차감 완료");
         return ResponseEntity.noContent().build();
     }
 
@@ -110,7 +129,7 @@ public class TimeDealController {
 
         timeDealService.restoreRemainingQuantity(command);
 
-        log.info("타임딜 남은 재고 복구 성공");
+        log.info("타임딜 남은 재고 복구 완료");
         return ResponseEntity.noContent().build();
     }
 }

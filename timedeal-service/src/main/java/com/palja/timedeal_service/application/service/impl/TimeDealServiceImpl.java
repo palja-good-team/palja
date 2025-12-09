@@ -2,6 +2,7 @@ package com.palja.timedeal_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.*;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
@@ -19,6 +20,8 @@ import com.palja.timedeal_service.domain.vo.Quantity;
 import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,6 +77,15 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         log.info("타임딜 상세조회 완료");
         return TimeDealDetailRes.from(timeDeal);
+    }
+
+    @Override
+    public PageResponse<TimeDealDetailRes> getTimeDeals(Pageable pageable) {
+        Page<TimeDeal> timeDeals = timeDealRepository.searchTimeDeals(pageable);
+
+        Page<TimeDealDetailRes> timeDealDto = timeDeals.map(TimeDealDetailRes::from);
+
+        return PageResponse.from(timeDealDto);
     }
 
     @Override
