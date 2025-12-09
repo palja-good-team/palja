@@ -2,6 +2,7 @@ package com.palja.order_service.application.service;
 
 import com.palja.order_service.application.dto.response.ProductRes;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ProductService {
@@ -14,4 +15,6 @@ public interface ProductService {
 
     // 상품 재고 복구
     void restoreProductStock(UUID productId, int quantity);
+
+    List<UUID> getProductIdsByCompanyUserId(UUID companyUserId);
 }

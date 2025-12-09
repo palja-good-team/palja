@@ -1,6 +1,7 @@
 package com.palja.order_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
@@ -12,13 +13,21 @@ import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
+import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.domain.vo.Recipient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -356,6 +365,72 @@ public class OrderServiceImpl implements OrderService {
         return OrderDetailRes.from(order);
     }
 
+    // ====== Customer Order List Workflow ======
+    /**
+     * 고객의 주문 목록 조회
+     * 워크플로우:
+     * 1. loginId로 userId 조회
+     * 2. Repository를 통한 주문 목록 조회 (필터 적용)
+     * 3. DTO 변환
+     * 4. 응답 생성
+     */
+    @Override
+    public PageResponse<CustomerOrderSummaryRes> getMyOrdersByCustomer(
+            String loginId,
+            String status,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean timeDealOrder,
+            Integer page,
+            Integer size,
+            String sort
+    ) {
+        log.info("고객 주문 목록 조회 시작 - loginId: {}", loginId);
+
+        Long userId = resolveCustomerId(loginId);
+        Pageable pageable = createPageable(page, size, sort);
+
+        OrderStatus orderStatus = parseOrderStatus(status);
+
+        LocalDateTime startDateTime = toStartDateTimeOrMin(startDate);
+        LocalDateTime endDateTime = toEndDateTimeOrMax(endDate);
+
+        Page<Order> orderPage = findCustomerOrdersWithFilters(
+                userId,
+                orderStatus,
+                startDateTime,
+                endDateTime,
+                timeDealOrder,
+                pageable
+        );
+
+        Page<CustomerOrderSummaryRes> summaryPage = orderPage.map(CustomerOrderSummaryRes::from);
+
+        log.info("고객 주문 목록 조회 완료 - userId: {}, total: {}, size: {}",
+                userId, summaryPage.getTotalElements(), summaryPage.getContent().size());
+
+        return PageResponse.from(summaryPage);
+    }
+
+    // 필터 조건을 적용한 주문 목록 조회
+    private Page<Order> findCustomerOrdersWithFilters(
+            Long userId,
+            OrderStatus status,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            Boolean timeDealOrder,
+            Pageable pageable
+    ) {
+        return orderRepository.findCustomerOrders(
+                userId,
+                status,
+                timeDealOrder,
+                startDateTime,
+                endDateTime,
+                pageable
+        );
+    }
+
     // ===== Private: Authorization Context =====
     // 권한 검증을 위한 컨텍스트 구성
     private OrderAuthContext createAuthContext(Order order, String loginId, UserRole userRole) {
@@ -380,6 +455,57 @@ public class OrderServiceImpl implements OrderService {
     public Order findOrderWithDetails(UUID orderId) {
         return orderRepository.findOrderByIdWithItemAndDelivery(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+    }
+
+    // Pageable 생성
+    private Pageable createPageable(Integer page, Integer size, String sortText
+    ) {
+        Sort sort = parseSort(sortText);
+        return PageRequest.of(page, size, sort);
+    }
+
+    /**
+     * 정렬 문자열 파싱
+     * "createdAt,desc" → Sort.by(DESC, "createdAt")
+     */
+    private Sort parseSort(String sortParam) {
+        if (sortParam == null || sortParam.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+
+        String[] parts = sortParam.split(",");
+        String property = parts[0];
+        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1])
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        return Sort.by(direction, property);
+    }
+
+    private OrderStatus parseOrderStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        try {
+            return OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null; // 잘못된 값이면 필터 미적용
+        }
+    }
+
+    private LocalDateTime toStartDateTimeOrMin(LocalDate date) {
+        if (date == null) {
+            // 시스템에서 충분히 과거로 잡을 값
+            return LocalDateTime.of(2025, 1, 1, 0, 0);
+        }
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime toEndDateTimeOrMax(LocalDate date) {
+        if (date == null) {
+            return LocalDate.now().atTime(23, 59, 59);
+        }
+        return date.atTime(23, 59, 59);
     }
 
     // ===== Private: Utility =====

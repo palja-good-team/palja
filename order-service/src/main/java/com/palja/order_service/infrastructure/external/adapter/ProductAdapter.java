@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 // 상품 서비스 클라이언트 구현
@@ -54,5 +55,11 @@ public class ProductAdapter implements ProductService {
         log.debug("재고 복구 요청: productId={}, quantity={}", productId, quantity);
         // TODO: 상품 재고 차감 API 호출 구현
         log.error("재고 복구 실패: productId={}, quantity={}", productId, quantity);
+    }
+
+    @Override
+    public List<UUID> getProductIdsByCompanyUserId(UUID companyUserId) {
+        // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현
+        return null;
     }
 }
