@@ -4,6 +4,7 @@ import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.infrastructure.repository.JpaOrderRepository;
+import com.palja.order_service.infrastructure.repository.QueryDslOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final JpaOrderRepository jpaOrderRepository;
+    private final QueryDslOrderRepository queryDslOrderRepository;
 
     @Override
     @Transactional
