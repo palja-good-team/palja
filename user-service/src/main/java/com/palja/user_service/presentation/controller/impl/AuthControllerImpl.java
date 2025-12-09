@@ -73,9 +73,7 @@ public class AuthControllerImpl implements AuthController {
 	public ResponseEntity<ApiResponse<Void>> logout(
 		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
-		String currentUserLoginId = CurrentUser.getLoginId();
-
-		authService.logout(currentUserLoginId, accessToken);
+		authService.logout(CurrentUser.getLoginId(), accessToken);
 		addRefreshTokenToCookie(response, "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
