@@ -9,3 +9,5 @@ spring:
     include:
       - datasource
       - zipkin
+      - eureka
+      - swagger

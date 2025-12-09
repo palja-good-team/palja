@@ -1,4 +1,4 @@
-package com.palja.coupon_service.application.dto;
+package com.palja.coupon_service.application.dto.coupon;
 
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.vo.CouponStatus;
@@ -6,13 +6,12 @@ import com.palja.coupon_service.domain.vo.DiscountType;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Builder
-public class CouponDetailRes {
+public class ReadCouponDetailRes {
     private UUID couponId;
     private String couponName;
     private String description;
@@ -31,8 +30,8 @@ public class CouponDetailRes {
     private LocalDateTime updatedAt;
     private String updatedBy;
 
-    public static CouponDetailRes from(Coupon coupon) {
-        return CouponDetailRes.builder()
+    public static ReadCouponDetailRes from(Coupon coupon) {
+        return ReadCouponDetailRes.builder()
                 .couponId(coupon.getId())
                 .couponName(coupon.getName())
                 .description(coupon.getDescription())
