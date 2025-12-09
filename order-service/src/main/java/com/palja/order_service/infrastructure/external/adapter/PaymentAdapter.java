@@ -36,9 +36,9 @@ public class PaymentAdapter implements PaymentService {
             log.info("결제 생성 성공: paymentId={}", response.getPaymentId());
             return response.toResponse();
         } catch (FeignException e) {
-            log.error("결제 API 호출 실패: orderId={}, status={}, message={}",
+            log.error("결제 서비스 호출 실패: orderId={}, status={}, message={}",
                     orderId, e.status(), e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_ERROR);
+            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
             log.error("결제 생성 중 예상치 못한 오류: orderId={}, error={}",
                     orderId, e.getClass().getName(), e);
@@ -46,21 +46,25 @@ public class PaymentAdapter implements PaymentService {
         }
     }
 
+    @Override
     public PaymentCancelRes cancelPayment(UUID orderId, UUID paymentId, BigDecimal cancelAmount, String cancelReason) {
         log.info("결제 취소 요청 시작: orderId={}, paymentId={}", orderId, paymentId);
         try {
             CancelPaymentDTO request = new CancelPaymentDTO(cancelAmount, cancelReason);
             PaymentCancelDTO response = paymentClient.cancelPayment(paymentId, request).data();
-            log.info("결제 생성 성공: paymentId={}", response.getPaymentId());
+            log.info("결제 취소 성공: paymentId={}", response.getPaymentId());
             return response.toResponse();
+        } catch (FeignException.NotFound e) {
+            log.error("결제 정보 없음: paymentId={}", paymentId, e);
+            throw new BusinessException(OrderErrorCode.PAYMENT_NOT_FOUND);
         } catch (FeignException e) {
-            log.error("결제 취소 API 호출 실패: paymentId={}, status={}, message={}",
+            log.error("결제 취소 서비스 호출 실패: paymentId={}, status={}, message={}",
                     paymentId, e.status(), e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_ERROR);
+            throw new BusinessException(OrderErrorCode.PAYMENT_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
             log.error("결제 취소 중 예상치 못한 오류: paymentId={}, error={}",
                     paymentId, e.getClass().getName(), e);
-            throw new BusinessException(OrderErrorCode.PAYMENT_FAILED);
+            throw new BusinessException(OrderErrorCode.REFUND_FAILED);
         }
     }
 }

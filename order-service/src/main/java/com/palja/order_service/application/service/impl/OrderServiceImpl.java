@@ -97,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
 
         Optional<TimeDealRes> timeDeal = Optional.empty();
         if (command.timeDealId() != null) {
-            TimeDealRes deal = timeDealService.getTimeDeal(command.timeDealId(), command.quantity());
+            TimeDealRes deal = timeDealService.getTimeDeal(command.timeDealId());
             orderValidator.validateTimeDealForOrder(deal, command.quantity());
             timeDeal = Optional.of(deal);
             log.debug("타임딜 검증 완료 - timeDealId: {}", command.timeDealId());

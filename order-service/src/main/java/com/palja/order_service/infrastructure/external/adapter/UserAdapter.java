@@ -29,14 +29,17 @@ public class UserAdapter implements UserService {
             CustomerUserDTO dto = userClient.getMyCustomer().data();
             log.info("고객 사용자 조회 성공: userId={}", dto.getUserId());
             return dto.toResponse();
+        } catch (FeignException.NotFound e) {
+            log.error("사용자 정보 없음: loginId={}", loginId, e);
+            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
         } catch (FeignException e) {
-            log.error("사용자 API 호출 실패: loginId={}, status={}, message={}",
+            log.error("사용자 서비스 호출 실패: loginId={}, status={}, message={}",
                     loginId, e.status(), e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.USER_SERVICE_ERROR);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
             log.error("고객 사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
                     loginId, e.getClass().getName(), e);
-            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         }
     }
 
@@ -47,14 +50,17 @@ public class UserAdapter implements UserService {
             CompanyUserDTO dto = userClient.getMyCompanyUser().data();
             log.info("판매업체 사용자 조회 성공: companyUserId={}", dto.getCompanyUserId());
             return dto.toResponse();
+        } catch (FeignException.NotFound e) {
+            log.error("사용자 정보 없음: loginId={}", loginId, e);
+            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
         } catch (FeignException e) {
-            log.error("사용자 API 호출 실패: loginId={}, status={}, message={}",
+            log.error("사용자 서비스 호출 실패: loginId={}, status={}, message={}",
                     loginId, e.status(), e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.USER_SERVICE_ERROR);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
             log.error("판매업체 사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
                     loginId, e.getClass().getName(), e);
-            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         }
     }
 
@@ -65,14 +71,17 @@ public class UserAdapter implements UserService {
             ManagerUserDTO dto = userClient.getMyManager().data();
             log.info("MANAGER 사용자 조회 성공: userId={}", dto.getUserId());
             return dto.toResponse();
+        } catch (FeignException.NotFound e) {
+            log.error("사용자 정보 없음: loginId={}", loginId, e);
+            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
         } catch (FeignException e) {
-            log.error("사용자 API 호출 실패: loginId={}, status={}, message={}",
+            log.error("사용자 서비스 호출 실패: loginId={}, status={}, message={}",
                     loginId, e.status(), e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.USER_SERVICE_ERROR);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
             log.error("MANAGER 사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
                     loginId, e.getClass().getName(), e);
-            throw new BusinessException(OrderErrorCode.USER_NOT_FOUND);
+            throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         }
     }
 }
