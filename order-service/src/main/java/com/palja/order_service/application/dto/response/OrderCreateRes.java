@@ -31,7 +31,7 @@ public class OrderCreateRes {
                 .status(order.getStatus().name())
                 .orderItem(OrderItemRes.from(order.getOrderItem()))
                 .pricing(PricingRes.from(order))
-                .coupon(CouponSnapshotRes.of(order.getCouponId(), order.getCouponName()))
+                .coupon(CouponSnapshotRes.of(order.getCouponUserId(), order.getCouponName()))
                 .delivery(DeliveryRes.from(order.getDelivery()))
                 .timeDealOrder(order.isTimeDealOrder())
                 .createdAt(order.getCreatedAt())

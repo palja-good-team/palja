@@ -1,31 +1,34 @@
 package com.palja.order_service.infrastructure.external;
 
 import com.palja.common.response.ApiResponse;
-import com.palja.order_service.infrastructure.external.dto.request.CancelCouponDTO;
 import com.palja.order_service.infrastructure.external.dto.request.UseCouponDTO;
-import com.palja.order_service.infrastructure.external.dto.response.CouponCancelDTO;
-import com.palja.order_service.infrastructure.external.dto.response.CouponDTO;
-import com.palja.order_service.infrastructure.external.dto.response.CouponUseDTO;
+import com.palja.order_service.infrastructure.external.dto.response.CancelCouponUserDTO;
+import com.palja.order_service.infrastructure.external.dto.response.CouponUserDetailDTO;
+import com.palja.order_service.infrastructure.external.dto.response.UsedCouponUserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @FeignClient(name = "coupon-service", path = "/api/v1/coupons")
 public interface CouponClient {
 
-    // 쿠폰 단건 조회
-    @GetMapping("/{couponId}")
-    ApiResponse<CouponDTO> getCoupon(@PathVariable("couponId") UUID couponId);
+    // 사용자 쿠폰 단건 조회
+    @GetMapping("/me/{couponUserId}")
+    ApiResponse<CouponUserDetailDTO> getMyCouponDetail(
+            @PathVariable("couponUserId") UUID couponUserId
+    );
 
     // 쿠폰 사용
-    @PostMapping("/{couponId}/use")
-    ApiResponse<CouponUseDTO> useCoupon(@PathVariable UUID couponId, @RequestBody UseCouponDTO request);
+    @PostMapping("/{couponUserId}/use")
+    ApiResponse<UsedCouponUserDTO> useCoupon(
+            @PathVariable("couponUserId") UUID couponUserId,
+            @RequestBody UseCouponDTO request
+    );
 
-    // 쿠폰 취소
-    @PostMapping("/{couponId}/cancel")
-    ApiResponse<CouponCancelDTO> cancelCoupon(@PathVariable UUID couponId, @RequestBody CancelCouponDTO request);
+    // 쿠폰 사용 취소
+    @PutMapping("/{couponUserId}/cancel")
+    ApiResponse<CancelCouponUserDTO> cancelCoupon(
+            @PathVariable("couponUserId") UUID couponUserId
+    );
 }

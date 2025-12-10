@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
@@ -11,4 +12,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UseCouponDTO {
     private UUID orderId;
+    private BigDecimal discountAmount;
 }

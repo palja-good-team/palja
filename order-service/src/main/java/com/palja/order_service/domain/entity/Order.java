@@ -30,8 +30,8 @@ public class Order extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "coupon_id")
-    private UUID couponId;
+    @Column(name = "coupon_user_id")
+    private UUID couponUserId;
 
     @Column(name = "payment_id")
     private UUID paymentId;
@@ -71,7 +71,7 @@ public class Order extends BaseEntity {
             int quantity,
             UUID timeDealId,
             BigDecimal timeDealPrice,
-            UUID couponId,
+            UUID couponUserId,
             String couponName,
             BigDecimal couponDiscountAmount,
             BigDecimal deliveryFee,
@@ -80,7 +80,7 @@ public class Order extends BaseEntity {
         validateUserId(userId);
         validateProductId(productId);
 
-        Order order = createOrder(userId, timeDealId, timeDealPrice, couponId, couponName);
+        Order order = createOrder(userId, timeDealId, timeDealPrice, couponUserId, couponName);
 
         createOrderItem(order, productId, productName, unitPrice, quantity, timeDealId, timeDealPrice);
         createOrderDelivery(order, recipient);
@@ -93,7 +93,7 @@ public class Order extends BaseEntity {
             Long userId,
             UUID timeDealId,
             BigDecimal timeDealPrice,
-            UUID couponId,
+            UUID couponUserId,
             String couponName
     ) {
         boolean isTimeDealOrder = (timeDealId != null && timeDealPrice != null);
@@ -102,7 +102,7 @@ public class Order extends BaseEntity {
                 .userId(userId)
                 .status(OrderStatus.CREATED)
                 .timeDealOrder(isTimeDealOrder)
-                .couponId(couponId)
+                .couponUserId(couponUserId)
                 .couponName(couponName)
                 .build();
     }
@@ -221,7 +221,7 @@ public class Order extends BaseEntity {
 
     // 쿠폰 사용 여부
     public boolean hasCoupon() {
-        return couponId != null;
+        return couponUserId != null;
     }
 
     // ===== Validation ===== //

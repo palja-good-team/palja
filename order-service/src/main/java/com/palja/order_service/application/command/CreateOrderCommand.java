@@ -12,7 +12,7 @@ public record CreateOrderCommand(
         UUID productId,
         int quantity,
         UUID timeDealId,
-        UUID couponId,
+        UUID couponUserId,
         String paymentKey,
         String paymentMethod,
         DeliveryCommand delivery
