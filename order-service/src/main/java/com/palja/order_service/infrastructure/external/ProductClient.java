@@ -35,6 +35,6 @@ public interface ProductClient {
     );
 
     // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현
-    @GetMapping("/order//seller/{companyUserId}")
+    @GetMapping("/order/seller/{companyUserId}")
     List<UUID> getProductIdsByCompanyUserId(@PathVariable("companyUserId") UUID companyUserId);
 }
