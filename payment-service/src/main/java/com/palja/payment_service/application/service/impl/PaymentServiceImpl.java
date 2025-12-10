@@ -7,12 +7,14 @@ import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
+import com.palja.payment_service.application.dto.external.OrderRes;
+import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.dto.response.*;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
-import com.palja.payment_service.application.service.OrderService;
+import com.palja.payment_service.application.port.OrderClient;
 import com.palja.payment_service.application.service.PGPaymentService;
 import com.palja.payment_service.application.service.PaymentService;
-import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
@@ -40,8 +42,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentLogRepository paymentLogRepository;
     private final PGPaymentService pgPaymentService;
     private final PaymentValidator paymentValidator;
-    private final OrderService orderService;
-    private final UserService userService;
+    private final OrderClient orderClient;
+    private final UserClient userClient;
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
@@ -59,8 +61,8 @@ public class PaymentServiceImpl implements PaymentService {
     public CreatePaymentRes createPayment(CreatePaymentCommand command) {
         log.info("결제 생성 시작: orderId={}, loginId={}", command.orderId(), command.loginId());
 
-        OrderRes order = orderService.getOrderByOrderId(command.orderId());
-        UserRes user = userService.getUserByLoginId(command.loginId());
+        OrderRes order = orderClient.getOrderByOrderId(command.orderId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCreatePayment(command, order, user);
 
@@ -119,7 +121,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        UserRes user = userService.getUserByLoginId(command.loginId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCancelPayment(payment, command, user);
 
@@ -165,7 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateGetPayment(payment, user);
 
@@ -178,7 +180,7 @@ public class PaymentServiceImpl implements PaymentService {
                                                       PageRequest pageRequest) {
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateSearchPayments(command, user);
 
@@ -215,7 +217,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateDeletePayment(payment, user);
 

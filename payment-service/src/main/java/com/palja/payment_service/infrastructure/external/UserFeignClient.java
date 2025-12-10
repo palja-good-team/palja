@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "user-service", path = "/api/v1")
-public interface UserClient {
+public interface UserFeignClient {
     @GetMapping("/customers/{loginId}")
     ApiResponse<CustomerUserDTO> getCustomerUserByLoginId(@PathVariable("loginId") String loginId);
 

@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.dto.response;
+package com.palja.payment_service.application.dto.external;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderRes {
     private final UUID orderId;
-    private Long userId;
+    private final Long userId;
     private final String status;
     private final BigDecimal finalAmount;
 

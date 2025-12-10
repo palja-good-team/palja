@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.dto.response;
+package com.palja.payment_service.application.dto.external;
 
 import com.palja.common.vo.UserRole;
 import lombok.AccessLevel;
