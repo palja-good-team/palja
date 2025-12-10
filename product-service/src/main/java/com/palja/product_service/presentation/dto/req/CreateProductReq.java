@@ -30,17 +30,13 @@ public class CreateProductReq {
     @NotEmpty(message = "상품의 카테고리는 필수항목이며, FOOD, TOOL, CLOTHING 를 지원합니다")
     private String category;
 
-    @NotEmpty(message = "회사의 이름은 필수항목입니다")
-    private String companyName;
-
     public CreateProductCommand toCommand(CreateProductReq req) {
         return new CreateProductCommand(
                 req.getName(),
                 req.getDescription(),
                 req.getPrice(),
                 req.getStock(),
-                req.getCategory(),
-                req.getCompanyName()
+                req.getCategory()
         );
     }
 }
