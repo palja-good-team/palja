@@ -1,7 +1,9 @@
 package com.palja.product_service.presentation.controller.Impl;
 
+import com.palja.common.annotation.RequiredRole;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
+import com.palja.common.vo.UserRole;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
@@ -27,6 +29,7 @@ public class ProductControllerImpl {
 
     private final ProductService service;
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PostMapping()
     public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq req) {
 
@@ -69,6 +72,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PutMapping("/manager/{productId}")
     public ResponseEntity<ApiResponse<UpdateProductInfoRes>> updateProductInfo(@RequestBody @Valid UpdateProductInfoReq req,
                                                                                @PathVariable UUID productId) {
@@ -79,6 +83,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 수정 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @PutMapping("/manager/modifyStock/{productId}")
     public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
                                                                           @RequestParam Integer stock) {
@@ -124,6 +129,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 증가 성공"), HttpStatus.OK);
     }
 
+    @RequiredRole(UserRole.COMPANY_USER)
     @DeleteMapping("/manager/{productId}")
     public ResponseEntity<ApiResponse<String>> deleteProduct(@PathVariable UUID productId) {
 
