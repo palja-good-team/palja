@@ -28,6 +28,16 @@ services:
     networks:
       - msa-network
 
+  # Redis UI (RedisInsight)
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    restart: always
+    networks:
+      - msa-network
+
   # Kafka & Zookeeper
   zookeeper:
     image: wurstmeister/zookeeper:latest
