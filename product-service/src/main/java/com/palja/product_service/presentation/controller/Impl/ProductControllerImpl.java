@@ -97,7 +97,8 @@ public class ProductControllerImpl {
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
                                                                    @RequestParam Integer quantity) {
 
-        SaleProductRes res = service.saleProduct(productId, quantity);
+        SaleProductRes res = service.saleProductV1(productId, quantity);
+//        SaleProductRes res = service.saleProduct(productId, quantity);
 
         return new ResponseEntity<>(ApiResponse.success(res, "판매 재고 차감 성공"), HttpStatus.OK);
     }

@@ -6,6 +6,7 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
+import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
@@ -14,8 +15,6 @@ import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
-import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
-import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -153,6 +152,16 @@ public class ProductServiceImpl implements ProductService {
         Product updateProduct = product.updateStock(stock);
 
         return UpdateStockRes.fromEntity(updateProduct);
+    }
+
+    @Override
+    @Transactional
+    public SaleProductRes saleProductV1(UUID productId, Integer quantity) {
+
+        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
+        product.decreaseStock(quantity);
+
+        return new SaleProductRes(productId, Boolean.TRUE);
     }
 
     @Override
