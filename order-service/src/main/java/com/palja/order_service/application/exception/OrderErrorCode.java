@@ -61,7 +61,6 @@ public enum OrderErrorCode implements ErrorCode {
     // ==== 상품 관련 =====
     INVALID_PRODUCT(HttpStatus.BAD_REQUEST, "유효하지 않은 상품입니다."),
     INVALID_PRODUCT_PRICE(HttpStatus.BAD_REQUEST, "상품 가격 정보가 올바르지 않습니다."),
-    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     PRODUCT_UNAVAILABLE(HttpStatus.BAD_REQUEST, "판매 중단된 상품입니다."),
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "상품 재고가 부족합니다."),
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "품절된 상품입니다."),
@@ -93,19 +92,23 @@ public enum OrderErrorCode implements ErrorCode {
     TIME_DEAL_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스 연동 중 오류가 발생했습니다."),
     PAYMENT_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스 연동 중 오류가 발생했습니다."),
 
-    // 조회 실패
+    // 조회 실패,
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 정보를 찾을 수 없습니다."),
     TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜 정보를 찾을 수 없습니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰 정보를 찾을 수 없습니다."),
 
     // 외부 서비스 통신 실패
     USER_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "사용자 서비스를 일시적으로 사용할 수 없습니다."),
+    PRODUCT_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "상품 서비스를 일시적으로 사용할 수 없습니다."),
     TIME_DEAL_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스를 일시적으로 사용할 수 없습니다."),
     PAYMENT_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스를 일시적으로 사용할 수 없습니다."),
     COUPON_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "쿠폰 서비스를 일시적으로 사용할 수 없습니다."),
 
     // 비즈니스 로직 실패
+    PRODUCT_STOCK_DEDUCTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "상품 재고 차감에 실패했습니다."),
+    PRODUCT_STOCK_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "상품 재고 복구에 실패했습니다."),
     TIME_DEAL_STOCK_DEDUCTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 차감에 실패했습니다."),
     TIME_DEAL_STOCK_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 복구에 실패했습니다."),
     PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다."),
