@@ -1,8 +1,12 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.response.ProductRes;
+import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.service.ProductService;
+import com.palja.order_service.infrastructure.external.ProductClient;
 import com.palja.order_service.infrastructure.external.dto.response.ProductDTO;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,56 +14,85 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-// 상품 서비스 클라이언트 구현
-// FeignClient를 통한 외부 서비스 호출
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProductAdapter implements ProductService {
 
-    // TODO: 상품 서비스 연동 시 productClient 주입 및 구현 추가
-     //private final ProductClient productClient;
+    private final ProductClient productClient;
 
     @Override
     public ProductRes getProduct(UUID productId) {
-        log.debug("상품 정보 조회: productId={}", productId);
-
-        // TODO: 실제 상품 API 호출 (Feign)
-        // ProductDTO response = productClient.getProduct(productId).data();
-        // TODO: 실제 상품 서비스 연동 시 위의 코드로 교체
-        // 임시 더미 데이터
-        ProductDTO response = ProductDTO.dummy(productId);
-
-        return toProductRes(response);
-    }
-
-    private ProductRes toProductRes(ProductDTO dto) {
-        return ProductRes.of(
-                UUID.fromString("11111111-1111-1111-1111-111111111111"),
-                dto.getProductId(),
-                dto.getName(),
-                dto.getPrice(),
-                dto.getStock()
-        );
+        log.debug("상품 정보 조회 요청: productId={}", productId);
+        try {
+            ProductDTO dto = productClient.getProduct(productId).data();
+            log.info("상품 정보 조회 성공: productId={}", productId);
+            return dto.toResponse();
+        } catch (FeignException.NotFound e) {
+            log.error("상품 정보 없음: productId={}", productId, e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_NOT_FOUND);
+        } catch (FeignException e) {
+            log.error("상품 서비스 호출 실패: productId={}, status={}, message={}",
+                    productId, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        } catch (Exception e) {
+            log.error("상품 정보 조회 중 예상치 못한 오류: productId={}, error={}",
+                    productId, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        }
     }
 
     @Override
     public void deductProductStock(UUID productId, int quantity) {
-        log.debug("재고 차감 요청: productId={}, quantity={}", productId, quantity);
-        // TODO: 상품 재고 차감 API 호출 구현
-        log.error("재고 차감 실패: productId={}, quantity={}", productId, quantity);
+        log.info("상품 재고 차감 요청 시작: productId={}, quantity={}", productId, quantity);
+        try {
+            productClient.decreaseProductStock(productId, quantity);
+            log.info("상품 재고 차감 성공: productId={}, quantity={}", productId, quantity);
+        } catch (FeignException e) {
+            log.error("상품 재고 차감 서비스 호출 실패: productId={}, quantity={}, status={}, message={}",
+                    productId, quantity, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        } catch (Exception e) {
+            log.error("상품 재고 차감 중 예상치 못한 오류: productId={}, quantity={}, error={}",
+                    productId, quantity, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_STOCK_DEDUCTION_FAILED);
+        }
     }
 
     @Override
     public void restoreProductStock(UUID productId, int quantity) {
-        log.debug("재고 복구 요청: productId={}, quantity={}", productId, quantity);
-        // TODO: 상품 재고 차감 API 호출 구현
-        log.error("재고 복구 실패: productId={}, quantity={}", productId, quantity);
+        log.info("상품 재고 복구 요청 시작: productId={}, quantity={}", productId, quantity);
+        try {
+            productClient.restoreProductStock(productId, quantity);
+            log.info("상품 재고 복구 성공: productId={}, quantity={}", productId, quantity);
+        } catch (FeignException e) {
+            log.error("상품 재고 복구 서비스 호출 실패: productId={}, quantity={}, status={}, message={}",
+                    productId, quantity, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        } catch (Exception e) {
+            log.error("상품 재고 복구 중 예상치 못한 오류: productId={}, quantity={}, error={}",
+                    productId, quantity, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_STOCK_RESTORE_FAILED);
+        }
     }
 
     @Override
     public List<UUID> getProductIdsByCompanyUserId(UUID companyUserId) {
-        // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현
-        return null;
+        log.debug("판매자 상품 목록 조회 요청: companyUserId={}", companyUserId);
+        try {
+            // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현
+            List<UUID> productIds = productClient.getProductIdsByCompanyUserId(companyUserId);
+            log.info("판매자 상품 목록 조회 성공: companyUserId={}, count={}",
+                    companyUserId, productIds.size());
+            return productIds;
+        } catch (FeignException e) {
+            log.error("상품 목록 조회 서비스 호출 실패: companyUserId={}, status={}, message={}",
+                    companyUserId, e.status(), e.getMessage(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        } catch (Exception e) {
+            log.error("판매자 상품 목록 조회 중 예상치 못한 오류: companyUserId={}, error={}",
+                    companyUserId, e.getClass().getName(), e);
+            throw new BusinessException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
+        }
     }
 }
