@@ -2,15 +2,15 @@ package com.palja.product_service.application.service.impl;
 
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
+import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.CreateProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.application.dto.res.FindProductRes;
-import com.palja.product_service.application.service.UserService;
+import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
-import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,10 +46,10 @@ class ProductServiceImplTest {
     private DslProductRepository dslProductRepository;
 
     @Mock
-    private UserService userService;
+    private UserClient userService;
 
     private CreateProductCommand createProductCommand;
-    private CompanyUserInfoDto companyUserInfoDto;
+    private CompanyUserInfoRes companyUserInfo;
     private Product product;
 
     @BeforeEach
@@ -58,7 +58,7 @@ class ProductServiceImplTest {
                 "상품", "설명", 1000L, 100, "FOOD"
         );
 
-        companyUserInfoDto = new CompanyUserInfoDto(
+        companyUserInfo = new CompanyUserInfoRes(
                 1L, UUID.randomUUID(), "loginId", "password",
                 "name", "number", "email", "address",
                 "role", "status", LocalDateTime.now(), "loginId", LocalDateTime.now(),
@@ -69,8 +69,8 @@ class ProductServiceImplTest {
                 createProductCommand.description(),
                 createProductCommand.price(),
                 createProductCommand.category(),
-                companyUserInfoDto.getCompanyUserId(),
-                companyUserInfoDto.getCompanyName(),
+                companyUserInfo.getCompanyUserId(),
+                companyUserInfo.getCompanyName(),
                 createProductCommand.stock());
     }
 
@@ -81,7 +81,7 @@ class ProductServiceImplTest {
         CreateProductCommand command = createProductCommand;
         Product expected = product;
 
-        given(userService.getMyInfo()).willReturn(companyUserInfoDto);
+        given(userService.getMyInfo()).willReturn(companyUserInfo);
         given(productRepository.isNotUnique(anyString(), any(Category.class), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 

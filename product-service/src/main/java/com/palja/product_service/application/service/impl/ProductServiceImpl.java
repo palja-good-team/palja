@@ -4,6 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.product_service.application.command.CreateProductCommand;
 import com.palja.product_service.application.command.FindProductListByConditionCommand;
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
+import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -14,7 +15,7 @@ import com.palja.product_service.domain.repository.RedisRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
-import com.palja.product_service.application.service.UserService;
+import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final DslProductRepository dslProductRepository;
     private final RedisRepository redisRepository;
-    private final UserService userClient;
+    private final UserClient userClient;
 
     @Value("${redis-key.map0}")
     private String map0Key;
@@ -49,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
-        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+        CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
         Product product = Product.create(createCommand.name(),
                 createCommand.description(),
@@ -118,7 +119,7 @@ public class ProductServiceImpl implements ProductService {
     public UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand) {
 
         Product product = repository.findProduct(productId);
-        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+        CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
         if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
             throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
@@ -143,7 +144,7 @@ public class ProductServiceImpl implements ProductService {
     public UpdateStockRes updateStock(UUID productId, Integer stock) {
 
         Product product = repository.findProduct(productId);
-        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+        CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
         if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
             throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
@@ -215,7 +216,7 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(UUID productId) {
 
         Product product = repository.findProduct(productId);
-        CompanyUserInfoDto myInfo = userClient.getMyInfo();
+        CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
         if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
             throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);

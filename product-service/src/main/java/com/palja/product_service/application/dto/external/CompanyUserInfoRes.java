@@ -1,6 +1,5 @@
-package com.palja.product_service.infrastructure.dto;
+package com.palja.product_service.application.dto.external;
 
-import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,7 +8,7 @@ import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class CompanyUserInfoDto {
+public class CompanyUserInfoRes {
 
     private Long userId;
     private UUID companyUserId;
@@ -25,13 +24,4 @@ public class CompanyUserInfoDto {
     private String createdBy;
     private LocalDateTime updatedAt;
     private String updatedBy;
-
-    public CompanyUserInfoRes toRes() {
-        return new CompanyUserInfoRes(
-                userId, companyUserId, loginId, name,
-                companyName, companyNumber, email, address,
-                role, status, createdAt, createdBy,
-                updatedAt, updatedBy
-        );
-    }
 }

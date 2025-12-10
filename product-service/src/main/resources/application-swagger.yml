@@ -1,0 +1,5 @@
+springdoc:
+  group:
+    name: product-service
+  swagger-ui:
+    enabled: false
