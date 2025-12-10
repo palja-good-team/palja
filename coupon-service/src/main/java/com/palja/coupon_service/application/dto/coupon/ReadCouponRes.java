@@ -4,10 +4,12 @@ import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.vo.CouponStatus;
 import com.palja.coupon_service.domain.vo.DiscountType;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @Builder
 public class ReadCouponRes {
     private UUID couponId;
