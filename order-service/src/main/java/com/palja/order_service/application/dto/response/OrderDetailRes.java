@@ -38,7 +38,7 @@ public class OrderDetailRes {
                 .orderItem(OrderItemRes.from(order.requireOrderItem()))
                 .delivery(DeliveryRes.from(order.requireDelivery()))
                 .pricing(PricingRes.from(order))
-                .coupon(order.getCouponId() != null ? CouponSnapshotRes.of(order.getCouponId(), order.getCouponName()) : null)
+                .coupon(order.getCouponUserId() != null ? CouponSnapshotRes.of(order.getCouponUserId(), order.getCouponName()) : null)
                 .paymentId(order.getPaymentId())
                 .timeDealOrder(order.isTimeDealOrder())
                 .createdAt(order.getCreatedAt())

@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimeDealStockRestoreDTO {
-    long restoreQuantity;
+    private Long restoreQuantity;
 }

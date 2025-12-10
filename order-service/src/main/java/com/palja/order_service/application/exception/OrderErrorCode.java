@@ -49,15 +49,14 @@ public enum OrderErrorCode implements ErrorCode {
     TIME_DEAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 처리 중 오류가 발생했습니다."),
 
     // ==== 쿠폰 관련 ====
-    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰을 찾을 수 없습니다."),
     COUPON_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "사용할 수 없는 쿠폰입니다."),
     COUPON_ALREADY_USED(HttpStatus.BAD_REQUEST, "이미 사용된 쿠폰입니다."),
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "만료된 쿠폰입니다."),
     COUPON_MIN_AMOUNT_NOT_MET(HttpStatus.BAD_REQUEST, "쿠폰 사용 최소 금액을 충족하지 않습니다."),
     INVALID_COUPON(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰입니다."),
-    COUPON_USE_FAILED(HttpStatus.BAD_REQUEST, "쿠폰 사용에 실패했습니다."),
     INVALID_COUPON_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰 타입입니다."),
     INVALID_COUPON_VALUE(HttpStatus.BAD_REQUEST, "쿠폰 할인 값이 올바르지 않습니다."),
+    COUPON_INVALID_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 쿠폰 상태입니다."),
 
     // ==== 상품 관련 =====
     INVALID_PRODUCT(HttpStatus.BAD_REQUEST, "유효하지 않은 상품입니다."),
@@ -98,17 +97,21 @@ public enum OrderErrorCode implements ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜 정보를 찾을 수 없습니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰 정보를 찾을 수 없습니다."),
 
     // 외부 서비스 통신 실패
     USER_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "사용자 서비스를 일시적으로 사용할 수 없습니다."),
     TIME_DEAL_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스를 일시적으로 사용할 수 없습니다."),
     PAYMENT_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스를 일시적으로 사용할 수 없습니다."),
+    COUPON_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "쿠폰 서비스를 일시적으로 사용할 수 없습니다."),
 
     // 비즈니스 로직 실패
     TIME_DEAL_STOCK_DEDUCTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 차감에 실패했습니다."),
     TIME_DEAL_STOCK_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "타임딜 재고 복구에 실패했습니다."),
     PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다."),
     REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리 중 오류가 발생했습니다."),
+    COUPON_USE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠폰 사용 처리 중 오류가 발생했습니다."),
+    COUPON_CANCEL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠폰 취소 처리 중 오류가 발생했습니다."),
 
     // ===== 서버 내부 오류 =====
     ORDER_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "주문 생성 중 오류가 발생했습니다."),

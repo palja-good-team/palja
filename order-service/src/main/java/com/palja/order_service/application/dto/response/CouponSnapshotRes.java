@@ -12,12 +12,12 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CouponSnapshotRes {
 
-    private UUID couponId;
+    private UUID couponUserId;
     private String couponName;
 
-    public static CouponSnapshotRes of(UUID couponId, String couponName) {
+    public static CouponSnapshotRes of(UUID couponUserId, String couponName) {
         return CouponSnapshotRes.builder()
-                .couponId(couponId)
+                .couponUserId(couponUserId)
                 .couponName(couponName)
                 .build();
     }

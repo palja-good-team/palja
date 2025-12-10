@@ -22,8 +22,8 @@ public class TimeDealDTO {
     private BigDecimal originalPrice;
     private BigDecimal timeDealPrice;
     private int discountRate;
-    private int totalQuantity;
-    private int remainingQuantity;
+    private Long totalQuantity;
+    private Long remainingQuantity;
     private String timeDealStatus;  // ENUM(PENDING, OPEN, SOLD_OUT, CLOSED)
 
     public TimeDealRes toResponse() {

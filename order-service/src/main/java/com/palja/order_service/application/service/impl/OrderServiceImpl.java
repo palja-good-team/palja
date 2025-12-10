@@ -104,12 +104,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 쿠폰 조회 및 검증 (선택적)
-        Optional<CouponRes> coupon = Optional.empty();
-        if (command.couponId() != null) {
-            CouponRes c = couponService.getCoupon(command.couponId());
-            orderValidator.validateCouponForOrder(c);
-            coupon = Optional.of(c);
-            log.debug("쿠폰 검증 완료 - couponId: {}", command.couponId());
+        Optional<CouponUserDetailRes> coupon = Optional.empty();
+        if (command.couponUserId() != null) {
+            CouponUserDetailRes cou = couponService.getCoupon(command.couponUserId());
+            orderValidator.validateCouponForOrder(cou);
+            coupon = Optional.of(cou);
+            log.debug("쿠폰 검증 완료 - couponUserId: {}", command.couponUserId());
         }
 
         // paymentKey 검증
@@ -145,15 +145,15 @@ public class OrderServiceImpl implements OrderService {
         // 쿠폰 할인액 계산
         BigDecimal couponDiscount = BigDecimal.ZERO;
         if (context.coupon().isPresent()) {
-            CouponRes coupon = context.coupon().get();
+            CouponUserDetailRes coupon = context.coupon().get();
 
             // 쿠폰 최소 주문 금액 검증
             orderValidator.validateCouponMinimumAmount(coupon, productTotal);
 
             // 할인액 계산
             couponDiscount = orderPriceCalculator.calculateCouponDiscount(coupon, productTotal);
-            log.debug("쿠폰 할인 계산 완료 - couponId: {}, discount: {}",
-                    coupon.getCouponId(), couponDiscount);
+            log.debug("쿠폰 할인 계산 완료 - couponUserId: {}, discount: {}",
+                    coupon.getCouponUserId(), couponDiscount);
         }
 
         // 배송비 계산
@@ -178,8 +178,8 @@ public class OrderServiceImpl implements OrderService {
                 context.quantity(),
                 context.timeDeal().map(TimeDealRes::getTimeDealId).orElse(null),
                 context.timeDeal().map(TimeDealRes::getTimeDealPrice).orElse(null),
-                context.coupon().map(CouponRes::getCouponId).orElse(null),
-                context.coupon().map(CouponRes::getName).orElse(null),
+                context.coupon().map(CouponUserDetailRes::getCouponUserId).orElse(null),
+                context.coupon().map(CouponUserDetailRes::getCouponName).orElse(null),
                 amount.couponDiscount(),
                 amount.deliveryFee(),
                 recipient
@@ -190,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
     private void processOrderCreationExternalEvents(Order order, OrderCreationContext context) {
         // TODO: 이벤트 발행으로 대체
         reserveInventory(order, context.timeDeal());
-        applyCoupon(order.getCouponId(), order.getOrderId());
+        applyCoupon(order.getCouponUserId(), order.getOrderId(), order.getOrderAmount().getCouponDiscountAmount());
         executePayment(order, context.customer().getUserId(), context.paymentKey(), context.paymentMethod());
     }
 
@@ -207,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             if (timeDeal.isPresent()) {
                 TimeDealRes deal = timeDeal.get();
-                timeDealService.deductTimeDealStock(deal.getTimeDealId(), quantity);
+                timeDealService.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
                 log.info("타임딜 재고 차감 완료 - timeDealId: {}, quantity: {}",
                         deal.getTimeDealId(), quantity);
             } else {
@@ -224,16 +224,16 @@ public class OrderServiceImpl implements OrderService {
 
     // 쿠폰 사용
     // TODO: 이벤트 기반 처리
-    private void applyCoupon(UUID couponId, UUID orderId) {
-        if (couponId == null) {
+    private void applyCoupon(UUID couponUserId, UUID orderId, BigDecimal couponDiscountAmount) {
+        if (couponUserId == null) {
             return;
         }
 
         try {
-            couponService.useCoupon(couponId, orderId);
-            log.info("쿠폰 사용 완료 - couponId: {}, orderId: {}", couponId, orderId);
+            couponService.useCoupon(couponUserId, orderId, couponDiscountAmount);
+            log.info("쿠폰 사용 완료 - couponUserId: {}, orderId: {}", couponUserId, orderId);
         } catch (Exception e) {
-            log.error("쿠폰 사용 실패 - orderId: {}, couponId: {}", orderId, couponId, e);
+            log.error("쿠폰 사용 실패 - orderId: {}, couponUserId: {}", orderId, couponUserId, e);
             // TODO: 보상 트랜잭션 처리 (재고 복구)
             throw new BusinessException(OrderErrorCode.COUPON_APPLICATION_FAILED);
         }
@@ -337,7 +337,7 @@ public class OrderServiceImpl implements OrderService {
             if (order.isTimeDealOrder()) {
                 // 타임딜 재고만 복구
                 UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealService.restoreTimeDealStock(timeDealId, quantity);
+                timeDealService.restoreTimeDealStock(timeDealId, (long) quantity);
                 log.info("타임딜 재고 복구 완료 - timeDealId: {}, quantity: {}",
                         timeDealId, quantity);
             } else {
@@ -357,17 +357,17 @@ public class OrderServiceImpl implements OrderService {
     // 쿠폰 복구
     // TODO: 이벤트 기반 처리
     private void restoreCoupon(Order order) {
-        if (order.getCouponId() == null) {
+        if (order.getCouponUserId() == null) {
             return;
         }
 
         try {
-            couponService.cancelCoupon(order.getCouponId(), order.getOrderId());
-            log.info("쿠폰 복구 완료 - couponId: {}, orderId: {}",
-                    order.getCouponId(), order.getOrderId());
+            couponService.cancelCoupon(order.getCouponUserId(), order.getOrderId());
+            log.info("쿠폰 복구 완료 - couponUserId: {}, orderId: {}",
+                    order.getCouponUserId(), order.getOrderId());
         } catch (Exception e) {
-            log.error("쿠폰 복구 실패 - orderId: {}, couponId: {}",
-                    order.getOrderId(), order.getCouponId(), e);
+            log.error("쿠폰 복구 실패 - orderId: {}, couponUserId: {}",
+                    order.getOrderId(), order.getCouponUserId(), e);
             // TODO: 쿠폰 복구 실패 (보상 트랜젝션 처리)
             throw new BusinessException(OrderErrorCode.COUPON_RESTORE_FAILED);
         }
@@ -525,7 +525,7 @@ public class OrderServiceImpl implements OrderService {
             CustomerUserRes customer,
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
-            Optional<CouponRes> coupon,
+            Optional<CouponUserDetailRes> coupon,
             int quantity,
             String paymentKey,
             PaymentMethod paymentMethod

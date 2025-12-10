@@ -44,7 +44,7 @@ public class TimeDealAdapter implements TimeDealService {
     }
 
     @Override
-    public void deductTimeDealStock(UUID timeDealId, int quantity) {
+    public void deductTimeDealStock(UUID timeDealId, Long quantity) {
         log.info("타임딜 재고 차감 요청 시작: timeDealId={}, quantity={}", timeDealId, quantity);
         try {
             timeDealClient.decreaseTimeDealStock(timeDealId, new TimeDealStockDecreaseDTO(quantity));
@@ -62,7 +62,7 @@ public class TimeDealAdapter implements TimeDealService {
 
 
     @Override
-    public void restoreTimeDealStock(UUID timeDealId, int quantity) {
+    public void restoreTimeDealStock(UUID timeDealId, Long quantity) {
         log.info("타임딜 재고 복구 요청 시작: timeDealId={}, quantity={}", timeDealId, quantity);
         try {
             timeDealClient.restoreTimeDealStock(timeDealId, new TimeDealStockRestoreDTO(quantity));

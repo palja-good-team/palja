@@ -26,7 +26,7 @@ public class CreateOrderReq {
 
     private UUID timeDealId;
 
-    private UUID couponId;
+    private UUID couponUserId;
 
     @NotBlank(message = "결제 Key는 필수입니다.")
     private String paymentKey;
@@ -45,7 +45,7 @@ public class CreateOrderReq {
                 .productId(productId)
                 .quantity(quantity)
                 .timeDealId(timeDealId)
-                .couponId(couponId)
+                .couponUserId(couponUserId)
                 .paymentKey(paymentKey)
                 .paymentMethod(paymentMethod)
                 .delivery(delivery.toCommand())

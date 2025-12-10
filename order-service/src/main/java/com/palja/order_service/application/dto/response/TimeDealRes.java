@@ -20,6 +20,6 @@ public class TimeDealRes {
     private final LocalDateTime endAt;
     private final BigDecimal timeDealPrice;
     private final int discountRate;
-    private final int timeDealStockQuantity;
+    private final Long timeDealStockQuantity;
     private final String status;
 }
