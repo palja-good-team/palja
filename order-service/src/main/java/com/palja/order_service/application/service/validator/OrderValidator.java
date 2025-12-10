@@ -6,12 +6,12 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponUserStatus;
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
-import com.palja.order_service.application.dto.response.CustomerUserRes;
-import com.palja.order_service.application.dto.response.ProductRes;
-import com.palja.order_service.application.dto.response.TimeDealRes;
+import com.palja.order_service.application.dto.external.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CustomerUserRes;
+import com.palja.order_service.application.dto.external.ProductRes;
+import com.palja.order_service.application.dto.external.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.UserService;
+import com.palja.order_service.application.port.UserClient;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class OrderValidator {
 
-    private final UserService userService;
+    private final UserClient userClient;
 
     // 검증 상수
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -433,6 +433,6 @@ public class OrderValidator {
 
     // 관리자 권한 검증 (유효한 관리자)
     public void validateManager(String loginId) {
-        userService.getMyManager(loginId);
+        userClient.getMyManager(loginId);
     }
 }

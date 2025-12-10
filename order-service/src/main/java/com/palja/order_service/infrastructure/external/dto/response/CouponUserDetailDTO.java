@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
 import com.palja.order_service.application.dto.CouponDiscountType;
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserDetailRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

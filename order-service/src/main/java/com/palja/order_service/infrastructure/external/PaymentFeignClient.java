@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.UUID;
 
 @FeignClient(name = "payment-service", path = "/api/v1/payments")
-public interface PaymentClient {
+public interface PaymentFeignClient {
 
     // 결제 생성 요청
     @PostMapping

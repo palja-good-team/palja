@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @FeignClient(name = "coupon-service", path = "/api/v1/coupons")
-public interface CouponClient {
+public interface CouponFeignClient {
 
     // 사용자 쿠폰 단건 조회
     @GetMapping("/me/{couponUserId}")

@@ -1,10 +1,10 @@
-package com.palja.order_service.application.service;
+package com.palja.order_service.application.port;
 
-import com.palja.order_service.application.dto.response.TimeDealRes;
+import com.palja.order_service.application.dto.external.TimeDealRes;
 
 import java.util.UUID;
 
-public interface TimeDealService {
+public interface TimeDealClient {
 
     // 타임딜 조회
     TimeDealRes getTimeDeal(UUID timeDealId);

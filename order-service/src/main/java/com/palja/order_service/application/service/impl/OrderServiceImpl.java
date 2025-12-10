@@ -6,8 +6,10 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.PaymentMethod;
+import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
+import com.palja.order_service.application.port.*;
 import com.palja.order_service.application.service.*;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
 import com.palja.order_service.application.service.validator.OrderValidator;
@@ -39,11 +41,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService;
 
-    private final ProductService productService;
-    private final TimeDealService timeDealService;
-    private final CouponService couponService;
-    private final UserService userService;
-    private final PaymentService paymentService;
+    private final ProductClient productClient;
+    private final TimeDealClient timeDealClient;
+    private final CouponClient couponClient;
+    private final UserClient userClient;
+    private final PaymentClient paymentClient;
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
@@ -86,18 +88,18 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 생성에 필요한 데이터 수집 및 검증
     private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
-        CustomerUserRes customer = userService.getMyCustomer(command.loginId());
+        CustomerUserRes customer = userClient.getMyCustomer(command.loginId());
         orderValidator.validateCustomerForOrder(customer);
         log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
 
-        ProductRes product = productService.getProduct(command.productId());
+        ProductRes product = productClient.getProduct(command.productId());
         orderValidator.validateProductForOrder(product, command.quantity());
         log.debug("상품 검증 완료 - productId: {}, stock: {}",
                 command.productId(), product.getStockQuantity());
 
         Optional<TimeDealRes> timeDeal = Optional.empty();
         if (command.timeDealId() != null) {
-            TimeDealRes deal = timeDealService.getTimeDeal(command.timeDealId());
+            TimeDealRes deal = timeDealClient.getTimeDeal(command.timeDealId());
             orderValidator.validateTimeDealForOrder(deal, command.quantity());
             timeDeal = Optional.of(deal);
             log.debug("타임딜 검증 완료 - timeDealId: {}", command.timeDealId());
@@ -106,7 +108,7 @@ public class OrderServiceImpl implements OrderService {
         // 쿠폰 조회 및 검증 (선택적)
         Optional<CouponUserDetailRes> coupon = Optional.empty();
         if (command.couponUserId() != null) {
-            CouponUserDetailRes cou = couponService.getCoupon(command.couponUserId());
+            CouponUserDetailRes cou = couponClient.getCoupon(command.couponUserId());
             orderValidator.validateCouponForOrder(cou);
             coupon = Optional.of(cou);
             log.debug("쿠폰 검증 완료 - couponUserId: {}", command.couponUserId());
@@ -207,11 +209,11 @@ public class OrderServiceImpl implements OrderService {
         try {
             if (timeDeal.isPresent()) {
                 TimeDealRes deal = timeDeal.get();
-                timeDealService.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
+                timeDealClient.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
                 log.info("타임딜 재고 차감 완료 - timeDealId: {}, quantity: {}",
                         deal.getTimeDealId(), quantity);
             } else {
-                productService.deductProductStock(productId, quantity);
+                productClient.deductProductStock(productId, quantity);
                 log.info("상품 재고 차감 완료 - productId: {}, quantity: {}", productId, quantity);
             }
         } catch (Exception e) {
@@ -230,7 +232,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
-            couponService.useCoupon(couponUserId, orderId, couponDiscountAmount);
+            couponClient.useCoupon(couponUserId, orderId, couponDiscountAmount);
             log.info("쿠폰 사용 완료 - couponUserId: {}, orderId: {}", couponUserId, orderId);
         } catch (Exception e) {
             log.error("쿠폰 사용 실패 - orderId: {}, couponUserId: {}", orderId, couponUserId, e);
@@ -243,7 +245,7 @@ public class OrderServiceImpl implements OrderService {
     // TODO: 이벤트 기반 처리
     private void executePayment(Order order, Long userId, String paymentKey, PaymentMethod paymentMethod) {
         try {
-            PaymentCreateRes payment = paymentService.createPayment(
+            PaymentCreateRes payment = paymentClient.createPayment(
                     order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), paymentKey, paymentMethod
             );
 
@@ -311,7 +313,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
-            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
+            paymentClient.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
             log.info("결제 환불 완료 - paymentId: {}, amount: {}",
                     order.getPaymentId(), order.getOrderAmount().getFinalAmount());
         } catch (Exception e) {
@@ -337,12 +339,12 @@ public class OrderServiceImpl implements OrderService {
             if (order.isTimeDealOrder()) {
                 // 타임딜 재고만 복구
                 UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealService.restoreTimeDealStock(timeDealId, (long) quantity);
+                timeDealClient.restoreTimeDealStock(timeDealId, (long) quantity);
                 log.info("타임딜 재고 복구 완료 - timeDealId: {}, quantity: {}",
                         timeDealId, quantity);
             } else {
                 // 일반 상품 재고만 복구
-                productService.restoreProductStock(productId, quantity);
+                productClient.restoreProductStock(productId, quantity);
                 log.info("상품 재고 복구 완료 - productId: {}, quantity: {}",
                         productId, quantity);
             }
@@ -362,7 +364,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
-            couponService.cancelCoupon(order.getCouponUserId(), order.getOrderId());
+            couponClient.cancelCoupon(order.getCouponUserId(), order.getOrderId());
             log.info("쿠폰 복구 완료 - couponUserId: {}, orderId: {}",
                     order.getCouponUserId(), order.getOrderId());
         } catch (Exception e) {
@@ -498,15 +500,15 @@ public class OrderServiceImpl implements OrderService {
 
     // ===== Private: Utility =====
     private Long resolveCustomerId(String loginId) {
-        return userService.getMyCustomer(loginId).getUserId();
+        return userClient.getMyCustomer(loginId).getUserId();
     }
 
     private UUID resolveCompanyUserId(String loginId) {
-        return userService.getMyCompanyUser(loginId).getCompanyUserId();
+        return userClient.getMyCompanyUser(loginId).getCompanyUserId();
     }
 
     private UUID resolveProductSellerId(UUID productId) {
-        return productService.getProduct(productId).getCompanyUserId();
+        return productClient.getProduct(productId).getCompanyUserId();
     }
 
     // 배송 정보 생성

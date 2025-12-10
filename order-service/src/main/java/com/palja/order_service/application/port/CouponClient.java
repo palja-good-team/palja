@@ -1,11 +1,11 @@
-package com.palja.order_service.application.service;
+package com.palja.order_service.application.port;
 
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserDetailRes;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public interface CouponService {
+public interface CouponClient {
 
     // 쿠폰 정보 조회
     CouponUserDetailRes getCoupon(UUID couponUserId);
