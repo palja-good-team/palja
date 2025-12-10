@@ -107,7 +107,8 @@ public class ProductControllerImpl {
     public ResponseEntity<ApiResponse<RestoreStockRes>> restoreStockByCancel(@PathVariable UUID productId,
                                                                              @RequestParam Integer quantity) {
 
-        RestoreStockRes res = service.stockRestore(productId, quantity);
+        RestoreStockRes res = service.stockRestoreV1(productId, quantity);
+//        RestoreStockRes res = service.stockRestore(productId, quantity);
 
         return new ResponseEntity<>(ApiResponse.success(res, "취소 수량 복구 성공"), HttpStatus.OK);
     }
