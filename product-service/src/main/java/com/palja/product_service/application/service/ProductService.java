@@ -29,6 +29,8 @@ public interface ProductService {
 
     SaleProductRes saleProduct(UUID productId, Integer quantity);
 
+    RestoreStockRes stockRestoreV1(UUID productId, Integer quantity);
+
     RestoreStockRes stockRestore(UUID productId, Integer quantity);
 
     DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Integer quantity);

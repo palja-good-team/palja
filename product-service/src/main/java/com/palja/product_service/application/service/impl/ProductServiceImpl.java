@@ -180,6 +180,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    public RestoreStockRes stockRestoreV1(UUID productId, Integer quantity) {
+
+        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
+        product.increaseStock(quantity);
+
+        return new RestoreStockRes(productId, Boolean.TRUE);
+    }
+
+    @Override
+    @Transactional
     public RestoreStockRes stockRestore(UUID productId, Integer quantity) {
 
         ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
