@@ -49,7 +49,7 @@ public class CouponAdapter implements CouponClient {
                 couponUserId, orderId, couponDiscountAmount);
         try {
             UseCouponDTO request = new UseCouponDTO(orderId, couponDiscountAmount);
-            UsedCouponUserDTO response = couponFeignClient.useCoupon(couponUserId, request).data();
+            UsedCouponUserDTO dto = couponFeignClient.useCoupon(couponUserId, request).data();
             log.info("쿠폰 사용 성공: couponUserId={}, orderId={}", couponUserId, orderId);
         } catch (FeignException e) {
             log.error("쿠폰 사용 서비스 호출 실패: couponUserId={}, orderId={}, status={}, message={}",
@@ -66,7 +66,7 @@ public class CouponAdapter implements CouponClient {
     public void cancelCoupon(UUID couponUserId, UUID orderId) {
         log.info("쿠폰 사용 취소 요청 시작: couponUserId={}, orderId={}", couponUserId, orderId);
         try {
-            CancelCouponUserDTO response = couponFeignClient.cancelCoupon(couponUserId).data();
+            CancelCouponUserDTO dto = couponFeignClient.cancelCoupon(couponUserId).data();
             log.info("쿠폰 사용 취소 성공: couponUserId={}", couponUserId);
         } catch (FeignException e) {
             log.error("쿠폰 취소 서비스 호출 실패: couponUserId={}, status={}, message={}",

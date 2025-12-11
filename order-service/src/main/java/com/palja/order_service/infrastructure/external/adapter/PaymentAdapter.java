@@ -32,9 +32,9 @@ public class PaymentAdapter implements PaymentClient {
                 orderId, userId, amount, paymentMethod);
         try {
             CreatePaymentDTO request = new CreatePaymentDTO(orderId, amount, paymentMethod, "KRW", paymentKey);
-            PaymentCreateDTO response = paymentFeignClient.createPayment(request).data();
-            log.info("결제 생성 성공: paymentId={}", response.getPaymentId());
-            return response.toResponse();
+            PaymentCreateDTO dto = paymentFeignClient.createPayment(request).data();
+            log.info("결제 생성 성공: paymentId={}", dto.getPaymentId());
+            return dto.toResponse();
         } catch (FeignException e) {
             log.error("결제 서비스 호출 실패: orderId={}, status={}, message={}",
                     orderId, e.status(), e.getMessage(), e);
@@ -51,9 +51,9 @@ public class PaymentAdapter implements PaymentClient {
         log.info("결제 취소 요청 시작: orderId={}, paymentId={}", orderId, paymentId);
         try {
             CancelPaymentDTO request = new CancelPaymentDTO(cancelAmount, cancelReason);
-            PaymentCancelDTO response = paymentFeignClient.cancelPayment(paymentId, request).data();
-            log.info("결제 취소 성공: paymentId={}", response.getPaymentId());
-            return response.toResponse();
+            PaymentCancelDTO dto = paymentFeignClient.cancelPayment(paymentId, request).data();
+            log.info("결제 취소 성공: paymentId={}", dto.getPaymentId());
+            return dto.toResponse();
         } catch (FeignException.NotFound e) {
             log.error("결제 정보 없음: paymentId={}", paymentId, e);
             throw new BusinessException(OrderErrorCode.PAYMENT_NOT_FOUND);
