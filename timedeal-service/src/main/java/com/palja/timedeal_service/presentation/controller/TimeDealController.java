@@ -1,6 +1,7 @@
 package com.palja.timedeal_service.presentation.controller;
 
 import brave.Response;
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -116,6 +117,7 @@ public class TimeDealController {
     }
 
     @PutMapping("/{timeDealId}/stock/decrease")
+    @RequiredInternal
     public ResponseEntity<Void> decreaseRemainingQuantity(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid DecreaseRemainingQuantityReq req
@@ -131,6 +133,7 @@ public class TimeDealController {
     }
 
     @PutMapping("/{timeDealId}/stock/restore")
+    @RequiredInternal
     public ResponseEntity<Void> restoreRemainingQuantity(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid RestoreRemainingQuantityReq req
