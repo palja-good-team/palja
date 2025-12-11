@@ -76,7 +76,6 @@ public class ManagerControllerImpl implements ManagerController {
 	}
 
 	@Override
-	// @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
 	@RequiredInternal
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByUserId(@PathVariable Long userId) {
