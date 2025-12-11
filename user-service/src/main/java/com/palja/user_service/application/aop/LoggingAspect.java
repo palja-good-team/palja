@@ -1,4 +1,4 @@
-package com.palja.user_service.presentation.aop;
+package com.palja.user_service.application.aop;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
