@@ -62,4 +62,11 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         jpaProductRepository.delete(product);
     }
+
+    @Override
+    public Product findByIdFetchStockWithLock(UUID productId, Integer quantity) {
+        return jpaProductRepository
+                .findByIdFetchStockWithLock(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
 }

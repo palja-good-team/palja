@@ -3,10 +3,12 @@ package com.palja.coupon_service.application.dto.couponUser;
 import com.palja.coupon_service.domain.entity.CouponUser;
 import com.palja.coupon_service.domain.vo.CouponUserStatus;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @Builder
 public class ChangeStatusCouponUserRes {
     private UUID couponUserId;

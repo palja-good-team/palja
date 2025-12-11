@@ -1,5 +1,6 @@
 package com.palja.coupon_service.application.dto.coupon;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.vo.CouponStatus;
 import com.palja.coupon_service.domain.vo.DiscountType;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReadCouponDetailRes {
     private UUID couponId;
     private String couponName;

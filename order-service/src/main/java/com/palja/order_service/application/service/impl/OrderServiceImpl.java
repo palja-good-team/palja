@@ -6,8 +6,10 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.PaymentMethod;
+import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
+import com.palja.order_service.application.port.*;
 import com.palja.order_service.application.service.*;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
 import com.palja.order_service.application.service.validator.OrderValidator;
@@ -39,11 +41,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService;
 
-    private final ProductService productService;
-    private final TimeDealService timeDealService;
-    private final CouponService couponService;
-    private final UserService userService;
-    private final PaymentService paymentService;
+    private final ProductClient productClient;
+    private final TimeDealClient timeDealClient;
+    private final CouponClient couponClient;
+    private final UserClient userClient;
+    private final PaymentClient paymentClient;
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
@@ -55,13 +57,13 @@ public class OrderServiceImpl implements OrderService {
      * - 데이터 수집 및 검증
      * - 금액 계산
      * - 주문 엔티티 생성
-     * - 외부 시스템 처리 (재고, 쿠폰, 결제)
+     * - 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
      * - 영속화
      */
     // TODO: Kafka Event 기반 비동기 처리 및 Saga 패턴 적용
     @Transactional
     public OrderCreateRes createOrder(CreateOrderCommand command) {
-        log.info("주문 생성 시작 - loginId: {}, productId: {}, quantity: {}",
+        log.info("주문 생성 시작: loginId={}, productId={}, quantity={}",
                 command.loginId(), command.productId(), command.quantity());
 
         orderValidator.validateCreateOrderCommand(command);
@@ -72,63 +74,52 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = createOrderEntity(command, context, amountResult);
         orderRepository.save(order);
-        log.info("주문 엔티티 생성 및 임시 저장 완료 (결제 전) - orderId: {}", order.getOrderId());
+        log.info("주문 엔티티 생성 및 임시 저장 완료 (외부 시스템 처리 전): orderId={}", order.getOrderId());
 
         // TODO: Kafka Event 발행으로 전환
         processOrderCreationExternalEvents(order, context);
 
         orderRepository.save(order);
-        log.info("주문 생성 완료 - orderId: {}, finalAmount: {}",
-                order.getOrderId(), order.getOrderAmount().getFinalAmount());
+        log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
+                order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
 
         return OrderCreateRes.from(order);
     }
 
     // 주문 생성에 필요한 데이터 수집 및 검증
     private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
-        CustomerUserRes customer = userService.getMyCustomer(command.loginId());
+        CustomerUserRes customer = userClient.getMyCustomer(command.loginId());
         orderValidator.validateCustomerForOrder(customer);
-        log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
+        log.debug("고객 검증 완료: userId={}", customer.getUserId());
 
-        ProductRes product = productService.getProduct(command.productId());
+        ProductRes product = productClient.getProduct(command.productId());
         orderValidator.validateProductForOrder(product, command.quantity());
-        log.debug("상품 검증 완료 - productId: {}, stock: {}",
+        log.debug("상품 검증 완료: productId={}, stock={}",
                 command.productId(), product.getStockQuantity());
 
         Optional<TimeDealRes> timeDeal = Optional.empty();
         if (command.timeDealId() != null) {
-            TimeDealRes deal = timeDealService.getTimeDeal(command.timeDealId());
+            TimeDealRes deal = timeDealClient.getTimeDeal(command.timeDealId());
             orderValidator.validateTimeDealForOrder(deal, command.quantity());
             timeDeal = Optional.of(deal);
-            log.debug("타임딜 검증 완료 - timeDealId: {}", command.timeDealId());
+            log.debug("타임딜 검증 완료: timeDealId={}", command.timeDealId());
         }
 
         // 쿠폰 조회 및 검증 (선택적)
-        Optional<CouponUserDetailRes> coupon = Optional.empty();
+        Optional<CouponUserRes> coupon = Optional.empty();
         if (command.couponUserId() != null) {
-            CouponUserDetailRes cou = couponService.getCoupon(command.couponUserId());
+            CouponUserRes cou = couponClient.getCoupon(command.couponUserId());
             orderValidator.validateCouponForOrder(cou);
             coupon = Optional.of(cou);
-            log.debug("쿠폰 검증 완료 - couponUserId: {}", command.couponUserId());
+            log.debug("쿠폰 검증 완료: couponUserId={}", command.couponUserId());
         }
-
-        // paymentKey 검증
-        if (command.paymentKey() == null || command.paymentKey().isBlank()) {
-            throw new BusinessException(OrderErrorCode.INVALID_PAYMENT_KEY);
-        }
-        log.debug("결제 키 검증 완료 - paymentKey: {}", command.paymentKey());
-
-        PaymentMethod paymentMethod = PaymentMethod.from(command.paymentMethod());
-        log.debug("결제 수단 검증 완료 - paymentMethod: {}", paymentMethod);
 
         return new OrderCreationContext(
                 customer,
                 product,
                 timeDeal,
                 coupon,
-                command.quantity(),
-                command.paymentKey(),
-                paymentMethod
+                command.quantity()
         );
     }
 
@@ -145,14 +136,14 @@ public class OrderServiceImpl implements OrderService {
         // 쿠폰 할인액 계산
         BigDecimal couponDiscount = BigDecimal.ZERO;
         if (context.coupon().isPresent()) {
-            CouponUserDetailRes coupon = context.coupon().get();
+            CouponUserRes coupon = context.coupon().get();
 
             // 쿠폰 최소 주문 금액 검증
             orderValidator.validateCouponMinimumAmount(coupon, productTotal);
 
             // 할인액 계산
             couponDiscount = orderPriceCalculator.calculateCouponDiscount(coupon, productTotal);
-            log.debug("쿠폰 할인 계산 완료 - couponUserId: {}, discount: {}",
+            log.debug("쿠폰 할인 계산 완료: couponUserId={}, discount={}",
                     coupon.getCouponUserId(), couponDiscount);
         }
 
@@ -178,20 +169,20 @@ public class OrderServiceImpl implements OrderService {
                 context.quantity(),
                 context.timeDeal().map(TimeDealRes::getTimeDealId).orElse(null),
                 context.timeDeal().map(TimeDealRes::getTimeDealPrice).orElse(null),
-                context.coupon().map(CouponUserDetailRes::getCouponUserId).orElse(null),
-                context.coupon().map(CouponUserDetailRes::getCouponName).orElse(null),
+                context.coupon().map(CouponUserRes::getCouponUserId).orElse(null),
+                context.coupon().map(CouponUserRes::getCouponName).orElse(null),
                 amount.couponDiscount(),
                 amount.deliveryFee(),
                 recipient
         );
     }
 
-    // 외부 시스템 처리 (재고, 쿠폰, 결제)
+    // 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
     private void processOrderCreationExternalEvents(Order order, OrderCreationContext context) {
         // TODO: 이벤트 발행으로 대체
         reserveInventory(order, context.timeDeal());
         applyCoupon(order.getCouponUserId(), order.getOrderId(), order.getOrderAmount().getCouponDiscountAmount());
-        executePayment(order, context.customer().getUserId(), context.paymentKey(), context.paymentMethod());
+        createPayment(order, context.customer().getUserId());
     }
 
     /**
@@ -207,15 +198,15 @@ public class OrderServiceImpl implements OrderService {
         try {
             if (timeDeal.isPresent()) {
                 TimeDealRes deal = timeDeal.get();
-                timeDealService.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
-                log.info("타임딜 재고 차감 완료 - timeDealId: {}, quantity: {}",
+                timeDealClient.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
+                log.info("타임딜 재고 차감 완료: timeDealId={}, quantity={}",
                         deal.getTimeDealId(), quantity);
             } else {
-                productService.deductProductStock(productId, quantity);
-                log.info("상품 재고 차감 완료 - productId: {}, quantity: {}", productId, quantity);
+                productClient.deductProductStock(productId, quantity);
+                log.info("상품 재고 차감 완료: productId={}, quantity={}", productId, quantity);
             }
         } catch (Exception e) {
-            log.error("재고 차감 실패 - orderId: {}, productId: {}, isTimeDeal: {}",
+            log.error("재고 차감 실패: orderId={}, productId={}, isTimeDeal={}",
                     order.getOrderId(), productId, timeDeal.isPresent(), e);
             // TODO: 보상 트랜잭션 처리
             throw new BusinessException(OrderErrorCode.INVENTORY_DEDUCTION_FAILED);
@@ -230,28 +221,52 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
-            couponService.useCoupon(couponUserId, orderId, couponDiscountAmount);
-            log.info("쿠폰 사용 완료 - couponUserId: {}, orderId: {}", couponUserId, orderId);
+            couponClient.useCoupon(couponUserId, orderId, couponDiscountAmount);
+            log.info("쿠폰 사용 완료: couponUserId={}, orderId={}", couponUserId, orderId);
         } catch (Exception e) {
-            log.error("쿠폰 사용 실패 - orderId: {}, couponUserId: {}", orderId, couponUserId, e);
+            log.error("쿠폰 사용 실패: orderId={}, couponUserId={}", orderId, couponUserId, e);
             // TODO: 보상 트랜잭션 처리 (재고 복구)
             throw new BusinessException(OrderErrorCode.COUPON_APPLICATION_FAILED);
         }
     }
 
+    /**
+     * 결제 생성 (결제 완료 아님)
+     * - 결제 엔티티만 생성
+     * - 주문 상태는 CREATED 유지
+     * - 결제 완료는 별도 API를 통해 처리
+     */
+    // TODO: 이벤트 기반 처리
+    private void createPayment(Order order, Long userId) {
+        try {
+            PaymentCreateRes payment = paymentClient.createPayment(
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
+            );
+
+            order.registerPaymentId(payment.getPaymentId());
+            log.info("결제 생성 완료: orderId={}, paymentId={}, amount={}, orderStatus={}",
+                    order.getOrderId(), payment.getPaymentId(), payment.getAmount(), order.getStatus());
+        } catch (Exception e) {
+            log.error("결제 생성 실패: orderId={}, amount={}",
+                    order.getOrderId(), order.getOrderAmount().getFinalAmount(), e);
+            // TODO: 보상 트랜잭션 처리 (재고 복구, 쿠폰 복구)
+            throw new BusinessException(OrderErrorCode.PAYMENT_CREATION_FAILED);
+        }
+    }
+
     // 결제 실행
     // TODO: 이벤트 기반 처리
-    private void executePayment(Order order, Long userId, String paymentKey, PaymentMethod paymentMethod) {
+    private void executePayment(Order order, Long userId) {
         try {
-            PaymentCreateRes payment = paymentService.createPayment(
-                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), paymentKey, paymentMethod
+            PaymentCreateRes payment = paymentClient.createPayment(
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
             );
 
             order.markAsPaid(payment.getPaymentId());
-            log.info("결제 완료 - paymentId: {}, amount: {}",
+            log.info("결제 완료: paymentId={}, amount={}",
                     payment.getPaymentId(), payment.getAmount());
         } catch (Exception e) {
-            log.error("결제 실패 - orderId: {}, amount: {}",
+            log.error("결제 실패: orderId={}, amount={}",
                     order.getOrderId(), order.getOrderAmount().getFinalAmount(), e);
             // TODO: 보상 트랜잭션 처리 (재고 복구, 쿠폰 복구)
             throw new BusinessException(OrderErrorCode.PAYMENT_FAILED);
@@ -269,7 +284,7 @@ public class OrderServiceImpl implements OrderService {
     // TODO: Kafka Event 기반 비동기 처리 및 자동 보상 트랜잭션
     @Transactional
     public OrderCancelRes cancelOrder(CancelOrderCommand command) {
-        log.info("주문 취소 시작 - orderId: {}, requestedBy: {}",
+        log.info("주문 취소 시작: orderId={}, requestedBy={}",
                 command.orderId(), command.CurrentUserLoginId());
 
         Order order = findOrderWithDetails(command.orderId());
@@ -289,7 +304,7 @@ public class OrderServiceImpl implements OrderService {
         processOrderCancellationExternalEvents(order, command.cancelReason());
 
         orderRepository.save(order);
-        log.info("주문 취소 완료 - orderId: {}", command.orderId());
+        log.info("주문 취소 완료: orderId={}", command.orderId());
 
         return OrderCancelRes.from(order);
     }
@@ -306,16 +321,16 @@ public class OrderServiceImpl implements OrderService {
     // TODO: 이벤트 기반 처리
     private void refundPayment(Order order, String cancelReason) {
         if (order.getPaymentId() == null) {
-            log.debug("환불할 결제 정보 없음 - orderId: {}", order.getOrderId());
+            log.debug("환불할 결제 정보 없음: orderId={}", order.getOrderId());
             return;
         }
 
         try {
-            paymentService.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
-            log.info("결제 환불 완료 - paymentId: {}, amount: {}",
+            paymentClient.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
+            log.info("결제 환불 완료: paymentId={}, amount={}",
                     order.getPaymentId(), order.getOrderAmount().getFinalAmount());
         } catch (Exception e) {
-            log.error("결제 환불 실패 - orderId: {}, paymentId: {}",
+            log.error("결제 환불 실패: orderId={}, paymentId={}",
                     order.getOrderId(), order.getPaymentId(), e);
             // TODO: 결제 환불 실패 (보상 트랜잭션 처리)
             throw new BusinessException(OrderErrorCode.REFUND_FAILED);
@@ -337,17 +352,17 @@ public class OrderServiceImpl implements OrderService {
             if (order.isTimeDealOrder()) {
                 // 타임딜 재고만 복구
                 UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealService.restoreTimeDealStock(timeDealId, (long) quantity);
-                log.info("타임딜 재고 복구 완료 - timeDealId: {}, quantity: {}",
+                timeDealClient.restoreTimeDealStock(timeDealId, (long) quantity);
+                log.info("타임딜 재고 복구 완료: timeDealId={}, quantity={}",
                         timeDealId, quantity);
             } else {
                 // 일반 상품 재고만 복구
-                productService.restoreProductStock(productId, quantity);
-                log.info("상품 재고 복구 완료 - productId: {}, quantity: {}",
+                productClient.restoreProductStock(productId, quantity);
+                log.info("상품 재고 복구 완료: productId={}, quantity={}",
                         productId, quantity);
             }
         } catch (Exception e) {
-            log.error("재고 복구 실패 - orderId: {}, productId: {}, isTimeDeal: {}",
+            log.error("재고 복구 실패: orderId={}, productId={}, isTimeDeal={}",
                     order.getOrderId(), productId, order.isTimeDealOrder(), e);
             // TODO: 재고 복구 실패 (보상 트랜젝션 처리)
             throw new BusinessException(OrderErrorCode.INVENTORY_RESTORE_FAILED);
@@ -362,11 +377,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
-            couponService.cancelCoupon(order.getCouponUserId(), order.getOrderId());
-            log.info("쿠폰 복구 완료 - couponUserId: {}, orderId: {}",
+            couponClient.cancelCoupon(order.getCouponUserId(), order.getOrderId());
+            log.info("쿠폰 복구 완료: couponUserId={}, orderId={}",
                     order.getCouponUserId(), order.getOrderId());
         } catch (Exception e) {
-            log.error("쿠폰 복구 실패 - orderId: {}, couponUserId: {}",
+            log.error("쿠폰 복구 실패: orderId={}, couponUserId={}",
                     order.getOrderId(), order.getCouponUserId(), e);
             // TODO: 쿠폰 복구 실패 (보상 트랜젝션 처리)
             throw new BusinessException(OrderErrorCode.COUPON_RESTORE_FAILED);
@@ -382,7 +397,7 @@ public class OrderServiceImpl implements OrderService {
      * - COMPANY_USER: 자신이 판매한 상품의 주문만 조회 가능
      */
     public OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole) {
-        log.info("주문 조회 시작 - orderId: {}, loginId: {}, role: {}",
+        log.info("주문 조회 시작: orderId={}, loginId={}, role={}",
                 orderId, loginId, userRole);
 
         Order order = findOrderWithDetails(orderId);
@@ -396,7 +411,7 @@ public class OrderServiceImpl implements OrderService {
                 authContext.productSellerId()
         );
 
-        log.info("주문 조회 완료 - orderId: {}", orderId);
+        log.info("주문 조회 완료: orderId={}", orderId);
         return OrderDetailRes.from(order);
     }
 
@@ -415,7 +430,7 @@ public class OrderServiceImpl implements OrderService {
             CustomerOrderSearchReq request,
             Pageable pageable
     ) {
-        log.info("고객 주문 목록 조회 시작 - loginId: {}", loginId);
+        log.info("고객 주문 목록 조회 시작: loginId={}", loginId);
 
         Long userId = resolveCustomerId(loginId);
 
@@ -430,7 +445,7 @@ public class OrderServiceImpl implements OrderService {
 
         Page<CustomerOrderSummaryRes> summaryPage = orderPage.map(CustomerOrderSummaryRes::from);
 
-        log.info("고객 주문 목록 조회 완료 - userId: {}, total: {}, size: {}",
+        log.info("고객 주문 목록 조회 완료: userId={}, total={}, size={}",
                 userId, summaryPage.getTotalElements(), summaryPage.getContent().size());
 
         return PageResponse.from(summaryPage);
@@ -498,15 +513,15 @@ public class OrderServiceImpl implements OrderService {
 
     // ===== Private: Utility =====
     private Long resolveCustomerId(String loginId) {
-        return userService.getMyCustomer(loginId).getUserId();
+        return userClient.getMyCustomer(loginId).getUserId();
     }
 
     private UUID resolveCompanyUserId(String loginId) {
-        return userService.getMyCompanyUser(loginId).getCompanyUserId();
+        return userClient.getMyCompanyUser(loginId).getCompanyUserId();
     }
 
     private UUID resolveProductSellerId(UUID productId) {
-        return productService.getProduct(productId).getCompanyUserId();
+        return productClient.getProduct(productId).getCompanyUserId();
     }
 
     // 배송 정보 생성
@@ -525,10 +540,8 @@ public class OrderServiceImpl implements OrderService {
             CustomerUserRes customer,
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
-            Optional<CouponUserDetailRes> coupon,
-            int quantity,
-            String paymentKey,
-            PaymentMethod paymentMethod
+            Optional<CouponUserRes> coupon,
+            int quantity
     ) {}
 
     // 권한 검증 컨텍스트

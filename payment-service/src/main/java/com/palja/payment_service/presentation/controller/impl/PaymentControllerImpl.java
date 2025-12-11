@@ -1,8 +1,11 @@
 package com.palja.payment_service.presentation.controller.impl;
 
+import com.palja.common.annotation.RequiredInternal;
+import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
+import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.CancelPaymentRes;
 import com.palja.payment_service.application.dto.response.CreatePaymentRes;
@@ -32,6 +35,8 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping
+    @RequiredInternal
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CreatePaymentRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
     ) {
@@ -44,6 +49,8 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping("/{paymentId}/cancel")
+    @RequiredInternal
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CancelPaymentRes>> cancelPayment(
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
@@ -56,6 +63,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @GetMapping("/{paymentId}")
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<ReadPaymentDetailRes>> getPayment(@PathVariable UUID paymentId) {
         ReadPaymentDetailRes detail = paymentService.getPayment(paymentId);
 
@@ -65,6 +73,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @GetMapping
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getPayments(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long userId,
@@ -92,7 +101,35 @@ public class PaymentControllerImpl implements PaymentController {
     }
 
     @Override
+    @GetMapping("/me")
+    @RequiredRole({UserRole.CUSTOMER})
+    public ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getMyPayments(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        FindPaymentListByConditionCommand command = new FindPaymentListByConditionCommand(
+                status,
+                null,
+                null,
+                startDate,
+                endDate
+        );
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        var pageResult = paymentService.searchPayments(command, pageRequest);
+
+        PageResponse<ReadPaymentSummaryRes> detail = PageResponse.from(pageResult);
+
+        return ResponseEntity
+                .ok(ApiResponse.success(detail, "내 결제 목록 조회에 성공했습니다."));
+    }
+
+    @Override
     @DeleteMapping("/manager/{paymentId}")
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<String>> deletePayment(
             @PathVariable UUID paymentId
     ){

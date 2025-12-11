@@ -13,6 +13,11 @@ public enum TimeDealStatus {
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return newStatus == OPEN || newStatus == CLOSED;
         }
+
+        @Override
+        public boolean canDelete() {
+            return true;
+        }
     },
 
     OPEN("진행중") {
@@ -24,6 +29,11 @@ public enum TimeDealStatus {
         @Override
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return newStatus == CLOSED;
+        }
+
+        @Override
+        public boolean canDelete() {
+            return false;
         }
     },
 
@@ -37,6 +47,11 @@ public enum TimeDealStatus {
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return false;
         }
+
+        @Override
+        public boolean canDelete() {
+            return false;
+        }
     },
 
     CLOSED("종료") {
@@ -47,6 +62,11 @@ public enum TimeDealStatus {
 
         @Override
         public boolean canTransitTo(TimeDealStatus newStatus) {
+            return false;
+        }
+
+        @Override
+        public boolean canDelete() {
             return false;
         }
     };
@@ -64,4 +84,6 @@ public enum TimeDealStatus {
     public abstract boolean canEditField(TimeDealEditableField field);
 
     public abstract boolean canTransitTo(TimeDealStatus newStatus);
+
+    public abstract boolean canDelete();
 }

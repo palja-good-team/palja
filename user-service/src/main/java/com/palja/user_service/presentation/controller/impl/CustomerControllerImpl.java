@@ -1,9 +1,7 @@
 package com.palja.user_service.presentation.controller.impl;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.palja.common.annotation.RequiredAnonymous;
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -32,6 +31,7 @@ import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.presentation.controller.CustomerController;
 import com.palja.user_service.presentation.dto.request.CreateCustomerReq;
 import com.palja.user_service.presentation.dto.request.UpdateCustomerReq;
+import com.palja.user_service.presentation.util.CookieUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -80,7 +80,7 @@ public class CustomerControllerImpl implements CustomerController {
 	}
 
 	@Override
-	@RequiredRole({UserRole.MANAGER})
+	@RequiredInternal
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(@PathVariable Long userId) {
 		ReadCustomerDetailRes responseDto = customerService.getCustomerByUserId(CurrentUser.getLoginId(), userId);
@@ -135,15 +135,7 @@ public class CustomerControllerImpl implements CustomerController {
 		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
 		customerService.deleteMe(accessToken, CurrentUser.getLoginId());
-
-		ResponseCookie cookie = ResponseCookie
-			.from("refresh_token", "")
-			.path("/")
-			.httpOnly(true)
-			.secure(false)
-			.maxAge(0)
-			.build();
-		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		CookieUtil.addCookieToHeader(response, "refresh_token", "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("일반 사용자가 삭제되었습니다."));
 	}

@@ -91,6 +91,31 @@ services:
     networks:
       - msa-network
 
+  # nGrinder Controller
+  ngrinder-controller:
+    image: ngrinder/controller
+    container_name: ngrinder-controller
+    restart: always
+    ports:
+      - "9000:80"
+      - "16001:16001"
+      - "12000-12009:12000-12009"
+    volumes:
+      - ./ngrinder-controller:/opt/ngrinder-controller
+    networks:
+      - msa-network
+
+  # nGrinder Agent
+  ngrinder-agent:
+    image: ngrinder/agent
+    container_name: ngrinder-agent
+    restart: always
+    depends_on:
+      - ngrinder-controller
+    command: ngrinder-controller:80
+    networks:
+      - msa-network
+
 # 볼륨
 volumes:
   redis_data:

@@ -1,6 +1,7 @@
 package com.palja.timedeal_service.presentation.controller;
 
 import brave.Response;
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -103,7 +104,20 @@ public class TimeDealController {
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상태 변경에 성공했습니다."));
     }
 
+    @DeleteMapping("/{timeDealId}")
+    public ResponseEntity<Void> deleteTimeDeal(@PathVariable UUID timeDealId) {
+        log.info("DELETE api/v1/time-deals/{} 타임딜 삭제 요청", timeDealId);
+
+        DeleteTimeDealCommand command = DeleteTimeDealCommand.of(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
+
+        timeDealService.deleteTimeDeal(command);
+
+        log.info("타임딜 삭제 완료");
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{timeDealId}/stock/decrease")
+    @RequiredInternal
     public ResponseEntity<Void> decreaseRemainingQuantity(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid DecreaseRemainingQuantityReq req
@@ -119,6 +133,7 @@ public class TimeDealController {
     }
 
     @PutMapping("/{timeDealId}/stock/restore")
+    @RequiredInternal
     public ResponseEntity<Void> restoreRemainingQuantity(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid RestoreRemainingQuantityReq req

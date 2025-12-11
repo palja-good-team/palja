@@ -1,5 +1,6 @@
 package com.palja.coupon_service.presentation.controller.impl;
 
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
@@ -43,6 +44,7 @@ public class CouponControllerImpl implements CouponController {
     }
 
     @Override
+    @RequiredInternal
     @PostMapping("/{couponUserId}/use")
     public ResponseEntity<ApiResponse<UsedCouponUserRes>> useCoupon(@PathVariable UUID couponUserId,
                                                                     @Valid @RequestBody UseCouponReq useCouponReq) {
@@ -56,6 +58,7 @@ public class CouponControllerImpl implements CouponController {
     }
 
     @Override
+    @RequiredInternal
     @PutMapping("/{couponUserId}/cancel")
     public ResponseEntity<ApiResponse<CancelCouponUserRes>> cancelCoupon(@PathVariable UUID couponUserId) {
         log.info("PUT /api/v1/coupons/{}/cancel - 쿠폰 취소 요청 userId={}", couponUserId, CurrentUser.getLoginId());
@@ -101,6 +104,7 @@ public class CouponControllerImpl implements CouponController {
     }
 
     @Override
+    @RequiredInternal
     @GetMapping("/me/{couponUserId}")
     public ResponseEntity<ApiResponse<ReadCouponUserDetailRes>> getCouponDetail(@PathVariable UUID couponUserId) {
         log.info("GET /api/v1/coupons/me/{} - 쿠폰 상세 조회 요청", couponUserId);

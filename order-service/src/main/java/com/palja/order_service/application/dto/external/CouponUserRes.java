@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto.response;
+package com.palja.order_service.application.dto.external;
 
 import com.palja.order_service.application.dto.CouponDiscountType;
 import lombok.AccessLevel;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class CouponUserDetailRes {
+public class CouponUserRes {
 
     private UUID couponUserId;
     private final UUID couponId;

@@ -47,6 +47,8 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'io.github.openfeign:feign-micrometer'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -54,7 +56,7 @@ dependencies {
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation 'com.palja:common-module:0.8.1'
+    implementation 'com.palja:common-module:0.8.6'
 }
 
 dependencyManagement {

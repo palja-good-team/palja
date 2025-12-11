@@ -1,10 +1,10 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.response.TimeDealRes;
+import com.palja.order_service.application.dto.external.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.TimeDealService;
-import com.palja.order_service.infrastructure.external.TimeDealClient;
+import com.palja.order_service.application.port.TimeDealClient;
+import com.palja.order_service.infrastructure.external.TimeDealFeignClient;
 import com.palja.order_service.infrastructure.external.dto.request.TimeDealStockDecreaseDTO;
 import com.palja.order_service.infrastructure.external.dto.request.TimeDealStockRestoreDTO;
 import com.palja.order_service.infrastructure.external.dto.response.TimeDealDTO;
@@ -18,15 +18,15 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TimeDealAdapter implements TimeDealService {
+public class TimeDealAdapter implements TimeDealClient {
 
-    private final TimeDealClient timeDealClient;
+    private final TimeDealFeignClient timeDealFeignClient;
 
     @Override
     public TimeDealRes getTimeDeal(UUID timeDealId) {
         log.debug("타임딜 정보 조회 요청: timeDealId={}", timeDealId);
         try {
-            TimeDealDTO dto = timeDealClient.getTimeDeal(timeDealId).data();
+            TimeDealDTO dto = timeDealFeignClient.getTimeDeal(timeDealId).data();
             log.info("타임딜 정보 조회 성공: timeDealId={}", timeDealId);
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
@@ -47,7 +47,7 @@ public class TimeDealAdapter implements TimeDealService {
     public void deductTimeDealStock(UUID timeDealId, Long quantity) {
         log.info("타임딜 재고 차감 요청 시작: timeDealId={}, quantity={}", timeDealId, quantity);
         try {
-            timeDealClient.decreaseTimeDealStock(timeDealId, new TimeDealStockDecreaseDTO(quantity));
+            timeDealFeignClient.decreaseTimeDealStock(timeDealId, new TimeDealStockDecreaseDTO(quantity));
             log.info("타임딜 재고 차감 성공: timeDealId={}, quantity={}", timeDealId, quantity);
         } catch (FeignException e) {
             log.error("타임딜 재고 차감 서비스 호출 실패: timeDealId={}, quantity={}, status={}, message={}",
@@ -65,7 +65,7 @@ public class TimeDealAdapter implements TimeDealService {
     public void restoreTimeDealStock(UUID timeDealId, Long quantity) {
         log.info("타임딜 재고 복구 요청 시작: timeDealId={}, quantity={}", timeDealId, quantity);
         try {
-            timeDealClient.restoreTimeDealStock(timeDealId, new TimeDealStockRestoreDTO(quantity));
+            timeDealFeignClient.restoreTimeDealStock(timeDealId, new TimeDealStockRestoreDTO(quantity));
             log.info("타임딜 재고 복구 성공: timeDealId={}, quantity={}", timeDealId, quantity);
         } catch (FeignException e) {
             log.error("타임딜 재고 복구 서비스 호출 실패: timeDealId={}, quantity={}, status={}, message={}",

@@ -1,10 +1,10 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.CouponService;
-import com.palja.order_service.infrastructure.external.CouponClient;
+import com.palja.order_service.application.port.CouponClient;
+import com.palja.order_service.infrastructure.external.CouponFeignClient;
 import com.palja.order_service.infrastructure.external.dto.request.UseCouponDTO;
 import com.palja.order_service.infrastructure.external.dto.response.*;
 import feign.FeignException;
@@ -18,15 +18,15 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CouponAdapter implements CouponService {
+public class CouponAdapter implements CouponClient {
 
-    private final CouponClient couponClient;
+    private final CouponFeignClient couponFeignClient;
 
     @Override
-    public CouponUserDetailRes getCoupon(UUID couponUserId) {
+    public CouponUserRes getCoupon(UUID couponUserId) {
         log.debug("쿠폰 정보 조회 요청: couponUserId={}", couponUserId);
         try {
-            CouponUserDetailDTO dto = couponClient.getMyCouponDetail(couponUserId).data();
+            CouponUserDetailDTO dto = couponFeignClient.getMyCouponDetail(couponUserId).data();
             log.info("쿠폰 정보 조회 성공: couponUserId={}", couponUserId);
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
@@ -49,7 +49,7 @@ public class CouponAdapter implements CouponService {
                 couponUserId, orderId, couponDiscountAmount);
         try {
             UseCouponDTO request = new UseCouponDTO(orderId, couponDiscountAmount);
-            UsedCouponUserDTO response = couponClient.useCoupon(couponUserId, request).data();
+            UsedCouponUserDTO dto = couponFeignClient.useCoupon(couponUserId, request).data();
             log.info("쿠폰 사용 성공: couponUserId={}, orderId={}", couponUserId, orderId);
         } catch (FeignException e) {
             log.error("쿠폰 사용 서비스 호출 실패: couponUserId={}, orderId={}, status={}, message={}",
@@ -66,7 +66,7 @@ public class CouponAdapter implements CouponService {
     public void cancelCoupon(UUID couponUserId, UUID orderId) {
         log.info("쿠폰 사용 취소 요청 시작: couponUserId={}, orderId={}", couponUserId, orderId);
         try {
-            CancelCouponUserDTO response = couponClient.cancelCoupon(couponUserId).data();
+            CancelCouponUserDTO dto = couponFeignClient.cancelCoupon(couponUserId).data();
             log.info("쿠폰 사용 취소 성공: couponUserId={}", couponUserId);
         } catch (FeignException e) {
             log.error("쿠폰 취소 서비스 호출 실패: couponUserId={}, status={}, message={}",

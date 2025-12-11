@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @FeignClient(name = "product-service", path = "/api/v1/products")
-public interface ProductClient {
+public interface ProductFeignClient {
 
     // 주문 서비스용 상품 정보 조회
     @GetMapping("/order/{productId}")

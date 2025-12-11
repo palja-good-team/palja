@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.application.dto.response.CustomerUserRes;
+import com.palja.order_service.application.dto.external.CustomerUserRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
