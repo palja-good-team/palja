@@ -43,6 +43,8 @@ public enum TimeDealErrorCode implements ErrorCode {
     TIME_DEAL_STATUS_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "현재 상태와 동일한 상태로는 변경할 수 없습니다."),
     TIME_DEAL_INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "허용되지 않은 상태 변경입니다."),
     TIME_DEAL_STATUS_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "상태 변경 사유는 필수입니다."),
+    TIME_DEAL_NOT_DELETABLE_STATUS(HttpStatus.BAD_REQUEST, "현재 상태에서는 타임딜을 삭제할 수 없습니다. PENDING 상태에서만 삭제 가능합니다."),
+    TIME_DEAL_NOT_DELETABLE_PERIOD(HttpStatus.BAD_REQUEST, "타임딜 시작 시간이 지난 이후에는 삭제할 수 없습니다. 시작 전 상태에서만 삭제가 가능합니다."),
 
     // 외부 관련
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),

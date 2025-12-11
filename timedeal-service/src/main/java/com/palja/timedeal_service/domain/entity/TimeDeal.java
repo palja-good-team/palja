@@ -2,6 +2,7 @@ package com.palja.timedeal_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
 import com.palja.common.exception.BusinessException;
+import com.palja.common.exception.ErrorCode;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -170,6 +171,16 @@ public class TimeDeal extends BaseEntity {
         }
     }
 
+    public void softDeleteTimeDeal() {
+        super.softDelete();
+        timeDealStock.softDelete();
+        statusHistories.forEach(TimeDealStatusHistory::softDelete);
+    }
+
+    public long getRestoreQuantityOnDelete() {
+        return timeDealStock.getQuantity().getRemainingQuantity();
+    }
+
     public boolean isClosed() {
         return this.timeDealStatus == TimeDealStatus.CLOSED;
     }
@@ -231,6 +242,18 @@ public class TimeDeal extends BaseEntity {
 
         if (reason == null || reason.isBlank()) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REASON_REQUIRED);
+        }
+    }
+
+    public void validateDeletableStatus() {
+        if (!this.timeDealStatus.canDelete()) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_STATUS);
+        }
+    }
+
+    public void validateDeletablePeriod(LocalDateTime now) {
+        if (!this.period.isBeforeStartAt(now)) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_PERIOD);
         }
     }
 }

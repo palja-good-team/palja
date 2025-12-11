@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -126,6 +127,28 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         log.info("타임딜 상태 수정 완료");
         return TimeDealDetailRes.from(timeDeal);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTimeDeal(DeleteTimeDealCommand command) {
+        log.info("타임딜 삭제 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+
+        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+
+        timeDeal.validateDeletableStatus();
+
+        timeDeal.validateDeletablePeriod(LocalDateTime.now());
+
+        long restoreQuantity = timeDeal.getRestoreQuantityOnDelete();
+
+        timeDeal.softDeleteTimeDeal();
+
+        productClient.restoreStock(timeDeal.getProductId(), restoreQuantity);
+
+        log.info("타임딜 삭제 완료");
     }
 
     @Override
