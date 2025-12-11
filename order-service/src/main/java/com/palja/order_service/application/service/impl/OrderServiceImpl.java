@@ -114,23 +114,12 @@ public class OrderServiceImpl implements OrderService {
             log.debug("쿠폰 검증 완료: couponUserId={}", command.couponUserId());
         }
 
-        // paymentKey 검증
-        if (command.paymentKey() == null || command.paymentKey().isBlank()) {
-            throw new BusinessException(OrderErrorCode.INVALID_PAYMENT_KEY);
-        }
-        log.debug("결제 키 검증 완료: paymentKey={}", command.paymentKey());
-
-        PaymentMethod paymentMethod = PaymentMethod.from(command.paymentMethod());
-        log.debug("결제 수단 검증 완료: paymentMethod={}", paymentMethod);
-
         return new OrderCreationContext(
                 customer,
                 product,
                 timeDeal,
                 coupon,
-                command.quantity(),
-                command.paymentKey(),
-                paymentMethod
+                command.quantity()
         );
     }
 
@@ -193,7 +182,7 @@ public class OrderServiceImpl implements OrderService {
         // TODO: 이벤트 발행으로 대체
         reserveInventory(order, context.timeDeal());
         applyCoupon(order.getCouponUserId(), order.getOrderId(), order.getOrderAmount().getCouponDiscountAmount());
-        executePayment(order, context.customer().getUserId(), context.paymentKey(), context.paymentMethod());
+        executePayment(order, context.customer().getUserId());
     }
 
     /**
@@ -243,10 +232,10 @@ public class OrderServiceImpl implements OrderService {
 
     // 결제 실행
     // TODO: 이벤트 기반 처리
-    private void executePayment(Order order, Long userId, String paymentKey, PaymentMethod paymentMethod) {
+    private void executePayment(Order order, Long userId) {
         try {
             PaymentCreateRes payment = paymentClient.createPayment(
-                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), paymentKey, paymentMethod
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
             );
 
             order.markAsPaid(payment.getPaymentId());
@@ -528,9 +517,7 @@ public class OrderServiceImpl implements OrderService {
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
             Optional<CouponUserRes> coupon,
-            int quantity,
-            String paymentKey,
-            PaymentMethod paymentMethod
+            int quantity
     ) {}
 
     // 권한 검증 컨텍스트
