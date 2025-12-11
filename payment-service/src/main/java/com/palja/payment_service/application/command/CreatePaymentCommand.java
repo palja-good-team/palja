@@ -11,9 +11,6 @@ public record CreatePaymentCommand(
         Long userId,
         String loginId,
         BigDecimal amount,
-        String currency,
-        String paymentMethod,
-        String paymentKey,
         String orderStatus
 ) {
 }
