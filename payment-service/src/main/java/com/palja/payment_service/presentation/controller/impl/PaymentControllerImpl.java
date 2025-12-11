@@ -1,5 +1,6 @@
 package com.palja.payment_service.presentation.controller.impl;
 
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -34,6 +35,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping
+    @RequiredInternal
     @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CreatePaymentRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
@@ -47,6 +49,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping("/{paymentId}/cancel")
+    @RequiredInternal
     @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CancelPaymentRes>> cancelPayment(
             @PathVariable UUID paymentId,

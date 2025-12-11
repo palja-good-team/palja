@@ -38,7 +38,7 @@ ext {
 
 dependencies {
 	// ===== 공통 모듈 =====
-	implementation 'com.palja:common-module:0.8.1'
+	implementation 'com.palja:common-module:0.8.6'
 
 	// ===== Spring Boot Starters =====
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -59,6 +59,7 @@ dependencies {
 	// ===== Observability / Tracing =====
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+	implementation 'io.github.openfeign:feign-micrometer'
 
 	// ===== Querydsl =====
 	implementation "com.querydsl:querydsl-jpa:5.0.0:jakarta"
