@@ -10,12 +10,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "user-service", path = "/api/v1")
 public interface UserFeignClient {
-    @GetMapping("/customers/{loginId}")
-    ApiResponse<CustomerUserDTO> getCustomerUserByLoginId(@PathVariable("loginId") String loginId);
 
-    @GetMapping("/managers/{loginId}")
-    ApiResponse<ManagerUserDTO> getManagerUserByLoginId(@PathVariable("loginId") String loginId);
+    @GetMapping("/customers/me")
+    ApiResponse<CustomerUserDTO> getCustomerUserByLoginId();
 
-    @GetMapping("/company-users/{loginId}")
-    ApiResponse<CompanyUserDTO> getCompanyUserByLoginId(@PathVariable("loginId") String loginId);
+    @GetMapping("/managers/me")
+    ApiResponse<ManagerUserDTO> getManagerUserByLoginId();
+
+    @GetMapping("/company-users/me")
+    ApiResponse<CompanyUserDTO> getCompanyUserByLoginId();
 }

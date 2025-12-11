@@ -74,7 +74,7 @@ public class PaymentValidator {
 
     private void validateOrderExists(OrderRes order) {
         if (order == null) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+            throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
         }
     }
 
@@ -106,13 +106,25 @@ public class PaymentValidator {
     }
 
     private void validateOrderAmount(OrderRes order, BigDecimal paymentAmount) {
-        if (order.getFinalAmount() == null || paymentAmount == null) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        if (paymentAmount == null || paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("결제 금액이 null 이거나 0 이하입니다. paymentAmount={}", paymentAmount);
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
+
+        if (order.getFinalAmount() == null) {
+            log.warn("Order.finalAmount 가 null 입니다. 금액 일치 검증을 스킵합니다. " +
+                            "orderId={}, requestAmount={}",
+                    order.getOrderId(), paymentAmount);
+            return;
+        }
+
         if (order.getFinalAmount().compareTo(paymentAmount) != 0) {
+            log.error("주문 금액과 결제 금액이 일치하지 않습니다. orderId={}, orderFinalAmount={}, paymentAmount={}",
+                    order.getOrderId(), order.getFinalAmount(), paymentAmount);
             throw new BusinessException(PaymentErrorCode.INSUFFICIENT_FUNDS);
         }
     }
+
 
     private void validateOrderUserId(OrderRes order, UserRes user) {
         if (!order.getUserId().equals(user.getUserId())) {
@@ -129,7 +141,7 @@ public class PaymentValidator {
 
     private void validateUserExists(UserRes user) {
         if (user == null) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+            throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
         }
     }
 

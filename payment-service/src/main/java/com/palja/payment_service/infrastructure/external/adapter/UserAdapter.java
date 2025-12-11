@@ -1,8 +1,6 @@
 package com.palja.payment_service.infrastructure.external.adapter;
 
-import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
-import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.exception.PaymentErrorCode;
@@ -24,57 +22,57 @@ public class UserAdapter implements UserClient {
 
     @Override
     public UserRes getUserByLoginId(String loginId) {
-        log.debug("사용자 조회 요청: loginId={}", loginId);
-        
+        log.debug("사용자 조회 요청: loginId={} (/me 엔드포인트 사용)", loginId);
+
+        UserRes userRes = tryGetUserByLoginId(loginId);
+
+        log.info("사용자 조회 성공: loginId={}, userId={}, role={}",
+                loginId, userRes.getUserId(), userRes.getRole());
+        return userRes;
+    }
+
+    private UserRes tryGetUserByLoginId(String loginId) {
         try {
-            UserRole role = CurrentUser.getRole();
-            UserRes userRes;
-            
-            if (UserRole.CUSTOMER.equals(role)) {
-                userRes = getCustomerUser(loginId);
-            } else if (UserRole.MANAGER.equals(role) || UserRole.MASTER.equals(role)) {
-                userRes = getManagerUser(loginId);
-            } else if (UserRole.COMPANY_USER.equals(role)) {
-                userRes = getCompanyUser(loginId);
-            } else {
-                log.error("지원하지 않는 사용자 권한: role={}, loginId={}", role, loginId);
-                throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
+            CustomerUserDTO dto = userFeignClient.getCustomerUserByLoginId().data();
+            if (dto != null) {
+                return toUserRes(dto);
             }
-            
-            log.info("사용자 조회 성공: loginId={}, userId={}, role={}", 
-                    loginId, userRes.getUserId(), userRes.getRole());
-            return userRes;
-            
         } catch (FeignException.NotFound e) {
-            log.error("사용자 정보 없음: loginId={}", loginId, e);
-            throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
-        } catch (FeignException e) {
-            log.error("사용자 서비스 호출 실패: loginId={}, status={}, message={}",
-                    loginId, e.status(), e.getMessage(), e);
-            throw new BusinessException(PaymentErrorCode.USER_SERVICE_UNAVAILABLE);
+            log.debug("Customer 사용자 없음: loginId={}", loginId);
+        } catch (FeignException.Forbidden e) {
+            log.debug("Customer 사용자 접근 거부 (403): loginId={}", loginId);
         } catch (Exception e) {
-            log.error("사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
-                    loginId, e.getClass().getName(), e);
-            throw new BusinessException(PaymentErrorCode.USER_SERVICE_UNAVAILABLE);
+            log.debug("Customer 사용자 조회 실패: loginId={}, error={}", loginId, e.getMessage());
         }
-    }
 
-    private UserRes getCustomerUser(String loginId) {
-        log.debug("고객 사용자 조회: loginId={}", loginId);
-        CustomerUserDTO dto = userFeignClient.getCustomerUserByLoginId(loginId).data();
-        return toUserRes(dto);
-    }
+        try {
+            ManagerUserDTO dto = userFeignClient.getManagerUserByLoginId().data();
+            if (dto != null) {
+                return toUserRes(dto);
+            }
+        } catch (FeignException.NotFound e) {
+            log.debug("Manager 사용자 없음: loginId={}", loginId);
+        } catch (FeignException.Forbidden e) {
+            log.debug("Manager 사용자 접근 거부 (403): loginId={}", loginId);
+        } catch (Exception e) {
+            log.debug("Manager 사용자 조회 실패: loginId={}, error={}", loginId, e.getMessage());
+        }
 
-    private UserRes getManagerUser(String loginId) {
-        log.debug("관리자 사용자 조회: loginId={}", loginId);
-        ManagerUserDTO dto = userFeignClient.getManagerUserByLoginId(loginId).data();
-        return toUserRes(dto);
-    }
+        try {
+            CompanyUserDTO dto = userFeignClient.getCompanyUserByLoginId().data();
+            if (dto != null) {
+                return toUserRes(dto);
+            }
+        } catch (FeignException.NotFound e) {
+            log.debug("CompanyUser 사용자 없음: loginId={}", loginId);
+        } catch (FeignException.Forbidden e) {
+            log.debug("CompanyUser 사용자 접근 거부 (403): loginId={}", loginId);
+        } catch (Exception e) {
+            log.debug("CompanyUser 사용자 조회 실패: loginId={}, error={}", loginId, e.getMessage());
+        }
 
-    private UserRes getCompanyUser(String loginId) {
-        log.debug("업체 사용자 조회: loginId={}", loginId);
-        CompanyUserDTO dto = userFeignClient.getCompanyUserByLoginId(loginId).data();
-        return toUserRes(dto);
+        log.error("사용자 정보를 찾을 수 없습니다: loginId={}", loginId);
+        throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
     }
 
     private UserRes toUserRes(CustomerUserDTO dto) {

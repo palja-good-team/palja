@@ -65,11 +65,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
 
-        if (command.loginId() == null || command.loginId().isBlank()) {
-            log.error("loginId가 없습니다.");
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-
         UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCreatePayment(command, order, user);
@@ -110,13 +105,6 @@ public class PaymentServiceImpl implements PaymentService {
                     payment.getId(), payment.getStatus());
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
-
-        if (command.loginId() == null || command.loginId().isBlank()) {
-            log.error("loginId가 없습니다.");
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-
-        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         // paymentKey 업데이트하고 Toss API 호출해서 결제 확인
         payment.updatePaymentKey(command.paymentKey());
