@@ -30,7 +30,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
-import com.palja.user_service.application.service.ReviewService;
+import com.palja.user_service.application.port.ReviewClient;
 import com.palja.user_service.application.service.impl.CustomerServiceImpl;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
@@ -44,7 +44,7 @@ public class CustomerServiceImplTest {
 
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
-	@Mock private ReviewService reviewService;
+	@Mock private ReviewClient reviewClient;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 

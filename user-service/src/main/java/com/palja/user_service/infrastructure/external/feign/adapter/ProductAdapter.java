@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.ApiResponse;
-import com.palja.user_service.application.service.ProductService;
-import com.palja.user_service.infrastructure.external.feign.ProductClient;
+import com.palja.user_service.application.port.ProductClient;
+import com.palja.user_service.infrastructure.external.feign.ProductFeignClient;
 
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +17,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductAdapter implements ProductService {
+public class ProductAdapter implements ProductClient {
 
-	private final ProductClient productClient;
+	private final ProductFeignClient productFeignClient;
 
 	@Override
 	public void deleteAllProducts(UUID companyUserId) {
 		try {
 			getDummy(companyUserId); // TODO: API 개발 완료 후 실제 호출로 변경
-			// productClient.deleteAllProducts(companyUserId);
+			// productFeignClient.deleteAllProducts(companyUserId);
 		} catch (FeignException e) {
 			log.error("[Feign] status={} url=[{}] {} message={}",
 				e.status(), e.request().httpMethod().name(), e.request().url(), e.contentUTF8());

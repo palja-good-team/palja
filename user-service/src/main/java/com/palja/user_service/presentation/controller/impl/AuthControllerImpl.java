@@ -3,9 +3,7 @@ package com.palja.user_service.presentation.controller.impl;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +22,8 @@ import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.presentation.controller.AuthController;
 import com.palja.user_service.presentation.dto.request.LoginUserReq;
+import com.palja.user_service.presentation.util.CookieUtil;
+import com.palja.user_service.presentation.util.HeaderUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -44,12 +44,12 @@ public class AuthControllerImpl implements AuthController {
 		TokenRes tokenResponse = authService.login(command);
 
 		String accessToken = tokenResponse.getAccessToken();
-		addAccessTokenToHeader(response, accessToken);
+		HeaderUtil.setHeader(response, "Authorization", accessToken);
 
 		String refreshToken = tokenResponse.getRefreshToken();
 		String encodedRefreshToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8).replace("\\+", "%20");
 		long refreshKeyExpirationTime = tokenResponse.getRefreshKeyExpirationTime();
-		addRefreshTokenToCookie(response, encodedRefreshToken, refreshKeyExpirationTime);
+		CookieUtil.addCookieToHeader(response, "refresh_token", encodedRefreshToken, refreshKeyExpirationTime);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그인 되었습니다."));
 	}
@@ -62,7 +62,7 @@ public class AuthControllerImpl implements AuthController {
 		HttpServletResponse response
 	) {
 		String newAccessToken = authService.refreshAccessToken(accessToken, refreshToken);
-		addAccessTokenToHeader(response, newAccessToken);
+		HeaderUtil.setHeader(response, "Authorization", newAccessToken);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("토큰이 재발급 되었습니다."));
 	}
@@ -74,24 +74,9 @@ public class AuthControllerImpl implements AuthController {
 		@RequestHeader(value = "Authorization", required = false) String accessToken, HttpServletResponse response
 	) {
 		authService.logout(CurrentUser.getLoginId(), accessToken);
-		addRefreshTokenToCookie(response, "", 0);
+		CookieUtil.addCookieToHeader(response, "refresh_token", "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
-	}
-
-	private void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
-		response.setHeader("Authorization", accessToken);
-	}
-
-	private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken, long maxAge) {
-		ResponseCookie cookie = ResponseCookie
-			.from("refresh_token", refreshToken)
-			.path("/")
-			.httpOnly(true)
-			.secure(false)
-			.maxAge(maxAge)
-			.build();
-		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 	}
 
 }
