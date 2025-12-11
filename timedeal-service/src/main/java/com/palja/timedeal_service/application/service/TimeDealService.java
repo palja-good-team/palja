@@ -13,6 +13,7 @@ public interface TimeDealService {
     PageResponse<TimeDealDetailRes> getTimeDeals(Pageable pageable);
     TimeDealDetailRes updateTimeDeal(UpdateTimeDealCommand command);
     TimeDealDetailRes changeTimeDealStatus(ChangeTimeDealStatusCommand command);
+    void deleteTimeDeal(DeleteTimeDealCommand command);
     void decreaseRemainingQuantity(DecreaseRemainingQuantityCommand command);
     void restoreRemainingQuantity(RestoreRemainingQuantityCommand command);
 }
