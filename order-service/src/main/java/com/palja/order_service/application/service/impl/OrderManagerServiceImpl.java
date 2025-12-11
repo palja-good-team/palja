@@ -1,6 +1,6 @@
 package com.palja.order_service.application.service.impl;
 
-import com.palja.order_service.application.command.ChangeOrderStatusCommand;
+import com.palja.order_service.application.command.OrderStatusChangeCommand;
 import com.palja.order_service.application.dto.response.OrderStatusChangeRes;
 import com.palja.order_service.application.service.OrderManagerService;
 import com.palja.order_service.application.service.OrderService;
@@ -34,7 +34,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      */
     @Override
     @Transactional
-    public OrderStatusChangeRes changeOrderStatus(ChangeOrderStatusCommand command) {
+    public OrderStatusChangeRes changeOrderStatus(OrderStatusChangeCommand command) {
         log.info("주문 상태 변경 (관리자): orderId={}, targetStatus={}, manager={}",
                 command.orderId(), command.status(), command.managerLoginId());
 
