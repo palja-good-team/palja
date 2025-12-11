@@ -57,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
      * - 데이터 수집 및 검증
      * - 금액 계산
      * - 주문 엔티티 생성
-     * - 외부 시스템 처리 (재고, 쿠폰, 결제)
+     * - 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
      * - 영속화
      */
     // TODO: Kafka Event 기반 비동기 처리 및 Saga 패턴 적용
@@ -74,14 +74,14 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = createOrderEntity(command, context, amountResult);
         orderRepository.save(order);
-        log.info("주문 엔티티 생성 및 임시 저장 완료 (결제 전): orderId={}", order.getOrderId());
+        log.info("주문 엔티티 생성 및 임시 저장 완료 (외부 시스템 처리 전): orderId={}", order.getOrderId());
 
         // TODO: Kafka Event 발행으로 전환
         processOrderCreationExternalEvents(order, context);
 
         orderRepository.save(order);
-        log.info("주문 생성 완료: orderId={}, finalAmount={}",
-                order.getOrderId(), order.getOrderAmount().getFinalAmount());
+        log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
+                order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
 
         return OrderCreateRes.from(order);
     }
@@ -177,12 +177,12 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // 외부 시스템 처리 (재고, 쿠폰, 결제)
+    // 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
     private void processOrderCreationExternalEvents(Order order, OrderCreationContext context) {
         // TODO: 이벤트 발행으로 대체
         reserveInventory(order, context.timeDeal());
         applyCoupon(order.getCouponUserId(), order.getOrderId(), order.getOrderAmount().getCouponDiscountAmount());
-        executePayment(order, context.customer().getUserId());
+        createPayment(order, context.customer().getUserId());
     }
 
     /**
@@ -227,6 +227,30 @@ public class OrderServiceImpl implements OrderService {
             log.error("쿠폰 사용 실패: orderId={}, couponUserId={}", orderId, couponUserId, e);
             // TODO: 보상 트랜잭션 처리 (재고 복구)
             throw new BusinessException(OrderErrorCode.COUPON_APPLICATION_FAILED);
+        }
+    }
+
+    /**
+     * 결제 생성 (결제 완료 아님)
+     * - 결제 엔티티만 생성
+     * - 주문 상태는 CREATED 유지
+     * - 결제 완료는 별도 API를 통해 처리
+     */
+    // TODO: 이벤트 기반 처리
+    private void createPayment(Order order, Long userId) {
+        try {
+            PaymentCreateRes payment = paymentClient.createPayment(
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
+            );
+
+            order.registerPaymentId(payment.getPaymentId());
+            log.info("결제 생성 완료: orderId={}, paymentId={}, amount={}, orderStatus={}",
+                    order.getOrderId(), payment.getPaymentId(), payment.getAmount(), order.getStatus());
+        } catch (Exception e) {
+            log.error("결제 생성 실패: orderId={}, amount={}",
+                    order.getOrderId(), order.getOrderAmount().getFinalAmount(), e);
+            // TODO: 보상 트랜잭션 처리 (재고 복구, 쿠폰 복구)
+            throw new BusinessException(OrderErrorCode.PAYMENT_CREATION_FAILED);
         }
     }
 
