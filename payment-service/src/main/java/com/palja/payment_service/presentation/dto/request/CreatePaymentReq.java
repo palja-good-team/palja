@@ -12,18 +12,28 @@ import java.util.UUID;
 public class CreatePaymentReq {
 
     private UUID orderId;
+    private Long userId;
     private BigDecimal amount;
+    private String orderStatus;
     private String paymentMethod;
     private String currency;
     private String paymentKey;
 
-    public CreatePaymentCommand toCommand(String loginId) {
+    public CreatePaymentCommand toCommand(String loginIdFromContext) {
+        String finalPaymentMethod = (paymentMethod != null && !paymentMethod.isBlank())
+                ? paymentMethod
+                : "CARD";
+        String finalCurrency = (currency != null && !currency.isBlank())
+                ? currency
+                : "KRW";
+
         return CreatePaymentCommand.builder()
                 .orderId(orderId)
-                .loginId(loginId)
+                .userId(userId)
+                .loginId(loginIdFromContext)
                 .amount(amount)
-                .currency(currency)
-                .paymentMethod(paymentMethod)
+                .currency(finalCurrency)
+                .paymentMethod(finalPaymentMethod)
                 .paymentKey(paymentKey)
                 .build();
     }
