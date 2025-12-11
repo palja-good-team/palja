@@ -8,14 +8,14 @@ import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.CancelPaymentRes;
 import com.palja.payment_service.application.dto.response.CreatePaymentRes;
-import com.palja.payment_service.application.dto.response.OrderRes;
+import com.palja.payment_service.application.dto.external.OrderRes;
 import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
-import com.palja.payment_service.application.dto.response.UserRes;
-import com.palja.payment_service.application.service.OrderService;
+import com.palja.payment_service.application.dto.external.UserRes;
+import com.palja.payment_service.application.port.OrderClient;
 import com.palja.payment_service.application.service.PGPaymentService;
-import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
@@ -67,10 +67,10 @@ class PaymentServiceImplTest {
     private PaymentValidator paymentValidator;
 
     @Mock
-    private OrderService orderService;
+    private OrderClient orderClient;
 
     @Mock
-    private UserService userService;
+    private UserClient userClient;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -110,9 +110,9 @@ class PaymentServiceImplTest {
                 "ACTIVE"
         );
 
-        given(orderService.getOrderByOrderId(command.orderId()))
+        given(orderClient.getOrderByOrderId(command.orderId()))
                 .willReturn(orderRes);
-        given(userService.getUserByLoginId(command.loginId()))
+        given(userClient.getUserByLoginId(command.loginId()))
                 .willReturn(userRes);
 
         PGPaymentRes pgRes = PGPaymentRes.builder()
@@ -173,9 +173,9 @@ class PaymentServiceImplTest {
                 "ACTIVE"
         );
 
-        given(orderService.getOrderByOrderId(command.orderId()))
+        given(orderClient.getOrderByOrderId(command.orderId()))
                 .willReturn(orderRes);
-        given(userService.getUserByLoginId(command.loginId()))
+        given(userClient.getUserByLoginId(command.loginId()))
                 .willReturn(userRes);
 
         PGPaymentRes pgRes = PGPaymentRes.builder()
@@ -241,7 +241,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
-        given(userService.getUserByLoginId("testUser"))
+        given(userClient.getUserByLoginId("testUser"))
                 .willReturn(userRes);
 
         PGPaymentRes pgRes = PGPaymentRes.builder()
@@ -299,7 +299,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
-        given(userService.getUserByLoginId("testUser"))
+        given(userClient.getUserByLoginId("testUser"))
                 .willReturn(userRes);
 
         given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
@@ -345,7 +345,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
-        given(userService.getUserByLoginId("testUser"))
+        given(userClient.getUserByLoginId("testUser"))
                 .willReturn(userRes);
 
         given(pgPaymentService.cancelPayment(any(Payment.class), any(), any()))
@@ -392,7 +392,7 @@ class PaymentServiceImplTest {
         );
 
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(payment));
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
 
         ReadPaymentDetailRes result = paymentService.getPayment(paymentId);
 
@@ -443,7 +443,7 @@ class PaymentServiceImplTest {
 
         Page<Payment> paymentPage = new PageImpl<>(List.of(payment1, payment2), pageRequest, 2);
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
         given(paymentRepository.findPayments(
                 PaymentStatus.APPROVED,
                 userId,
@@ -483,7 +483,7 @@ class PaymentServiceImplTest {
 
         Page<Payment> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
         given(paymentRepository.findPayments(
                 null,
                 userId,
@@ -528,7 +528,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(payment.getId()))
                 .willReturn(Optional.of(payment));
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
 
         assertThatThrownBy(() -> paymentService.deletePayment(payment.getId()))
                 .isInstanceOf(BusinessException.class)

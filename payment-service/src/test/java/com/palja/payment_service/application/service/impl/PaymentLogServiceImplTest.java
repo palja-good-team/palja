@@ -5,8 +5,8 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
 import com.palja.payment_service.application.dto.response.ReadPaymentLogRes;
-import com.palja.payment_service.application.dto.response.UserRes;
-import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.dto.external.UserRes;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
@@ -49,7 +49,7 @@ class PaymentLogServiceImplTest {
     private PaymentValidator paymentValidator;
 
     @Mock
-    private UserService userService;
+    private UserClient userClient;
 
     @InjectMocks
     private PaymentLogServiceImpl paymentLogService;
@@ -107,7 +107,7 @@ class PaymentLogServiceImplTest {
                 "ACTIVE"
         );
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findByPaymentId(paymentId))
                 .willReturn(List.of(log1, log2));
 
@@ -133,7 +133,7 @@ class PaymentLogServiceImplTest {
                 "ACTIVE"
         );
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
 
         assertThatThrownBy(() -> paymentLogService.getLogsByPaymentId(paymentId))
                 .isInstanceOf(BusinessException.class)
@@ -156,7 +156,7 @@ class PaymentLogServiceImplTest {
                 "ACTIVE"
         );
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findByPaymentId(paymentId))
                 .willReturn(List.of());
 
@@ -189,7 +189,7 @@ class PaymentLogServiceImplTest {
 
         Page<PaymentLog> page = new PageImpl<>(List.of(log1, log2), pageRequest, 2);
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
         given(paymentLogRepository.findLogs(
                 eq(paymentId),
                 eq((UUID) null),
@@ -231,7 +231,7 @@ class PaymentLogServiceImplTest {
                 "ACTIVE"
         );
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
 
         FindPaymentLogListByConditionCommand command =
                 new FindPaymentLogListByConditionCommand(
@@ -263,7 +263,7 @@ class PaymentLogServiceImplTest {
                 "ACTIVE"
         );
 
-        given(userService.getUserByLoginId(any())).willReturn(userRes);
+        given(userClient.getUserByLoginId(any())).willReturn(userRes);
 
         FindPaymentLogListByConditionCommand command =
                 new FindPaymentLogListByConditionCommand(

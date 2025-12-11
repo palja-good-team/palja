@@ -8,12 +8,14 @@ import com.palja.payment_service.application.command.CancelPaymentCommand;
 import com.palja.payment_service.application.command.CompletePaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
+import com.palja.payment_service.application.dto.external.OrderRes;
+import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.dto.response.*;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
-import com.palja.payment_service.application.service.OrderService;
+import com.palja.payment_service.application.port.OrderClient;
 import com.palja.payment_service.application.service.PGPaymentService;
 import com.palja.payment_service.application.service.PaymentService;
-import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
@@ -41,8 +43,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentLogRepository paymentLogRepository;
     private final PGPaymentService pgPaymentService;
     private final PaymentValidator paymentValidator;
-    private final OrderService orderService;
-    private final UserService userService;
+    private final OrderClient orderClient;
+    private final UserClient userClient;
 
     @Override
     @Transactional
@@ -52,10 +54,10 @@ public class PaymentServiceImpl implements PaymentService {
       - Toss API 호출은 하지 않음
      */
     public CreatePaymentRes createPayment(CreatePaymentCommand command) {
-        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}", 
+        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}",
                 command.orderId(), command.userId(), command.loginId(), command.orderStatus());
 
-        OrderRes order = orderService.getOrderByOrderId(command.orderId());
+        OrderRes order = orderClient.getOrderByOrderId(command.orderId());
 
         if (command.userId() != null && !command.userId().equals(order.getUserId())) {
             log.error("주문의 userId와 요청 userId가 일치하지 않음: orderUserId={}, requestUserId={}",
@@ -67,8 +69,8 @@ public class PaymentServiceImpl implements PaymentService {
             log.error("loginId가 없습니다.");
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
-        
-        UserRes user = userService.getUserByLoginId(command.loginId());
+
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCreatePayment(command, order, user);
 
@@ -83,7 +85,7 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentLog requestLog = createRequestLog(payment);
         paymentLogRepository.save(requestLog);
 
-        log.info("결제 생성 완료 (PENDING 상태): paymentId={}, orderId={}, userId={}", 
+        log.info("결제 생성 완료 (PENDING 상태): paymentId={}, orderId={}, userId={}",
                 payment.getId(), payment.getOrderId(), payment.getUserId());
         return CreatePaymentRes.from(payment);
     }
@@ -97,14 +99,14 @@ public class PaymentServiceImpl implements PaymentService {
       - TODO: 주문 상태를 PAID로 변경하는 API 호출 필요
      */
     public CreatePaymentRes completePayment(CompletePaymentCommand command) {
-        log.info("결제 완료 처리 시작: paymentId={}, paymentKey={}, loginId={}", 
+        log.info("결제 완료 처리 시작: paymentId={}, paymentKey={}, loginId={}",
                 command.paymentId(), command.paymentKey(), command.loginId());
 
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
-            log.error("PENDING 상태가 아닌 결제는 완료 처리할 수 없습니다. paymentId={}, status={}", 
+            log.error("PENDING 상태가 아닌 결제는 완료 처리할 수 없습니다. paymentId={}, status={}",
                     payment.getId(), payment.getStatus());
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
@@ -114,7 +116,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
 
-        UserRes user = userService.getUserByLoginId(command.loginId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         // paymentKey 업데이트하고 Toss API 호출해서 결제 확인
         payment.updatePaymentKey(command.paymentKey());
@@ -123,7 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             pgRes = pgPaymentService.requestPayment(payment);
         } catch (Exception e) {
-            log.error("Toss 결제 확인 API 호출 실패: paymentId={}, paymentKey={}", 
+            log.error("Toss 결제 확인 API 호출 실패: paymentId={}, paymentKey={}",
                     payment.getId(), command.paymentKey(), e);
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
@@ -150,6 +152,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
 
+        log.info("결제 생성 완료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
         return CreatePaymentRes.from(payment);
     }
 
@@ -161,7 +164,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        UserRes user = userService.getUserByLoginId(command.loginId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCancelPayment(payment, command, user);
 
@@ -207,7 +210,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateGetPayment(payment, user);
 
@@ -220,7 +223,7 @@ public class PaymentServiceImpl implements PaymentService {
                                                       PageRequest pageRequest) {
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateSearchPayments(command, user);
 
@@ -257,7 +260,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateDeletePayment(payment, user);
 

@@ -4,9 +4,9 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.command.FindPaymentLogListByConditionCommand;
 import com.palja.payment_service.application.dto.response.ReadPaymentLogRes;
-import com.palja.payment_service.application.dto.response.UserRes;
+import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.service.PaymentLogService;
-import com.palja.payment_service.application.service.UserService;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.PaymentLog;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
@@ -28,14 +28,14 @@ public class PaymentLogServiceImpl implements PaymentLogService {
 
     private final PaymentLogRepository paymentLogRepository;
     private final PaymentValidator paymentValidator;
-    private final UserService userService;
+    private final UserClient userClient;
 
     @Override
     @Transactional(readOnly = true)
     public List<ReadPaymentLogRes> getLogsByPaymentId(UUID paymentId) {
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateGetPaymentLogs(paymentId, user);
 
@@ -54,7 +54,7 @@ public class PaymentLogServiceImpl implements PaymentLogService {
                                               PageRequest pageRequest) {
 
         String loginId = CurrentUser.getLoginId();
-        UserRes user = userService.getUserByLoginId(loginId);
+        UserRes user = userClient.getUserByLoginId(loginId);
 
         paymentValidator.validateSearchPaymentLogs(command.startDate(), command.endDate(), user);
 
