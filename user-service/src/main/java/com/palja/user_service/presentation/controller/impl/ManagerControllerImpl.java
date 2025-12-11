@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -75,7 +76,8 @@ public class ManagerControllerImpl implements ManagerController {
 	}
 
 	@Override
-	@RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	// @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+	@RequiredInternal
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadManagerDetailRes>> getByUserId(@PathVariable Long userId) {
 		ReadManagerDetailRes responseDto = managerService.getManagerByUserId(CurrentUser.getLoginId(), userId);

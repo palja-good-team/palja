@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.palja.common.annotation.RequiredAnonymous;
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -85,7 +86,8 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	}
 
 	@Override
-	@RequiredRole({UserRole.MANAGER})
+	// @RequiredRole({UserRole.MANAGER})
+	@RequiredInternal
 	@GetMapping("/internal/{companyUserId}")
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(@PathVariable UUID companyUserId) {
 		ReadCompanyUserDetailRes responseDto = companyUserService.getCompanyUserByCompanyUserId(CurrentUser.getLoginId(), companyUserId);
