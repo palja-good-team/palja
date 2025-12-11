@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.UUID;
 
 @FeignClient(name = "timedeal-service", path = "/api/v1/time-deals")
-public interface TimeDealClient {
+public interface TimeDealFeignClient {
 
     // 타임딜 단건 조회
     @GetMapping("/{timeDealId}")

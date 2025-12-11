@@ -1,10 +1,10 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.response.ProductRes;
+import com.palja.order_service.application.dto.external.ProductRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.ProductService;
-import com.palja.order_service.infrastructure.external.ProductClient;
+import com.palja.order_service.application.port.ProductClient;
+import com.palja.order_service.infrastructure.external.ProductFeignClient;
 import com.palja.order_service.infrastructure.external.dto.response.ProductDTO;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +17,15 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductAdapter implements ProductService {
+public class ProductAdapter implements ProductClient {
 
-    private final ProductClient productClient;
+    private final ProductFeignClient productFeignClient;
 
     @Override
     public ProductRes getProduct(UUID productId) {
         log.debug("상품 정보 조회 요청: productId={}", productId);
         try {
-            ProductDTO dto = productClient.getProduct(productId).data();
+            ProductDTO dto = productFeignClient.getProduct(productId).data();
             log.info("상품 정보 조회 성공: productId={}", productId);
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
@@ -46,7 +46,7 @@ public class ProductAdapter implements ProductService {
     public void deductProductStock(UUID productId, int quantity) {
         log.info("상품 재고 차감 요청 시작: productId={}, quantity={}", productId, quantity);
         try {
-            productClient.decreaseProductStock(productId, quantity);
+            productFeignClient.decreaseProductStock(productId, quantity);
             log.info("상품 재고 차감 성공: productId={}, quantity={}", productId, quantity);
         } catch (FeignException e) {
             log.error("상품 재고 차감 서비스 호출 실패: productId={}, quantity={}, status={}, message={}",
@@ -63,7 +63,7 @@ public class ProductAdapter implements ProductService {
     public void restoreProductStock(UUID productId, int quantity) {
         log.info("상품 재고 복구 요청 시작: productId={}, quantity={}", productId, quantity);
         try {
-            productClient.restoreProductStock(productId, quantity);
+            productFeignClient.restoreProductStock(productId, quantity);
             log.info("상품 재고 복구 성공: productId={}, quantity={}", productId, quantity);
         } catch (FeignException e) {
             log.error("상품 재고 복구 서비스 호출 실패: productId={}, quantity={}, status={}, message={}",
@@ -81,7 +81,7 @@ public class ProductAdapter implements ProductService {
         log.debug("판매자 상품 목록 조회 요청: companyUserId={}", companyUserId);
         try {
             // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현
-            List<UUID> productIds = productClient.getProductIdsByCompanyUserId(companyUserId);
+            List<UUID> productIds = productFeignClient.getProductIdsByCompanyUserId(companyUserId);
             log.info("판매자 상품 목록 조회 성공: companyUserId={}, count={}",
                     companyUserId, productIds.size());
             return productIds;

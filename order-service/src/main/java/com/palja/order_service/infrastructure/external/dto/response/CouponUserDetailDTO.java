@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
 import com.palja.order_service.application.dto.CouponDiscountType;
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,8 +30,8 @@ public class CouponUserDetailDTO {
     private UUID orderId;
     private Long discountAmount;
 
-    public CouponUserDetailRes toResponse() {
-        return CouponUserDetailRes.builder()
+    public CouponUserRes toResponse() {
+        return CouponUserRes.builder()
                 .couponUserId(couponUserId)
                 .couponId(couponId)
                 .couponName(couponName)

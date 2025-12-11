@@ -1,6 +1,6 @@
 package com.palja.order_service.presentation.dto.request;
 
-import com.palja.order_service.application.command.ChangeOrderStatusCommand;
+import com.palja.order_service.application.command.OrderStatusChangeCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangeOrderStatusReq {
+public class OrderStatusChangeReq {
 
     @NotBlank(message = "변경할 상태는 필수입니다.")
     private String status;
@@ -22,8 +22,8 @@ public class ChangeOrderStatusReq {
     @Size(max = 500, message = "변경 사유는 500자 이하로 입력해주세요.")
     private String reason;
 
-    public ChangeOrderStatusCommand toCommand(UUID orderId, String loginId) {
-        return ChangeOrderStatusCommand.builder()
+    public OrderStatusChangeCommand toCommand(UUID orderId, String loginId) {
+        return OrderStatusChangeCommand.builder()
                 .orderId(orderId)
                 .managerLoginId(loginId)
                 .status(status)

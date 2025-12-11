@@ -1,9 +1,9 @@
 package com.palja.order_service.application.service.calculator;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.response.CouponUserDetailRes;
-import com.palja.order_service.application.dto.response.ProductRes;
-import com.palja.order_service.application.dto.response.TimeDealRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
+import com.palja.order_service.application.dto.external.ProductRes;
+import com.palja.order_service.application.dto.external.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,7 +29,7 @@ public class OrderPriceCalculator {
         BigDecimal unitPrice = resolveUnitPrice(product, timeDeal);
         BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-        log.debug("상품 총액 계산 완료 - unitPrice: {}, quantity: {}, total: {}",
+        log.debug("상품 총액 계산 완료: unitPrice={}, quantity={}, total={}",
                 unitPrice, quantity, total);
 
         return total;
@@ -44,9 +44,9 @@ public class OrderPriceCalculator {
 
     // ===== Coupon Discount Calculation =====
     // 쿠폰 할인액 계산
-    public BigDecimal calculateCouponDiscount(CouponUserDetailRes coupon, BigDecimal orderAmount) {
+    public BigDecimal calculateCouponDiscount(CouponUserRes coupon, BigDecimal orderAmount) {
         if (coupon == null || orderAmount == null) {
-            log.warn("쿠폰 할인 계산 입력값 null - coupon: {}, orderAmount: {}",
+            log.warn("쿠폰 할인 계산 입력값 null: coupon={}, orderAmount={}",
                     coupon, orderAmount);
             return BigDecimal.ZERO;
         }
@@ -58,7 +58,7 @@ public class OrderPriceCalculator {
                 orderAmount
         );
 
-        log.debug("쿠폰 할인 계산 완료 - couponUserId: {}, type: {}, value: {}, raw: {}, final: {}",
+        log.debug("쿠폰 할인 계산 완료: couponUserId={}, type={}, value={}, raw={}, final={}",
                 coupon.getCouponUserId(), coupon.getDiscountType(), coupon.getDiscountValue(),
                 rawDiscount, finalDiscount);
 
@@ -66,7 +66,7 @@ public class OrderPriceCalculator {
     }
 
     // 할인 타입별 원시 할인액 계산 (비즈니스 제약이 걸리기 전에 순수 계산 결과)
-    private BigDecimal calculateRawDiscount(CouponUserDetailRes coupon, BigDecimal orderAmount) {
+    private BigDecimal calculateRawDiscount(CouponUserRes coupon, BigDecimal orderAmount) {
         return switch (coupon.getDiscountType()) {
             case FIXED -> calculateFixedDiscount(coupon.getDiscountValue());
             case PERCENTAGE -> calculatePercentageDiscount(coupon.getDiscountValue(), orderAmount);
@@ -108,21 +108,21 @@ public class OrderPriceCalculator {
 
         // 1. 최대 할인액 제한
         if (maxDiscount != null && limited.compareTo(maxDiscount) > 0) {
-            log.debug("할인액 최대 금액 제한 적용 - original: {}, max: {}",
+            log.debug("할인액 최대 금액 제한 적용: original={}, max={}",
                     limited, maxDiscount);
             limited = maxDiscount;
         }
 
         // 2. 주문 금액 초과 방지
         if (limited.compareTo(orderAmount) > 0) {
-            log.debug("할인액 주문 금액 제한 적용 - original: {}, orderAmount: {}",
+            log.debug("할인액 주문 금액 제한 적용: original={}, orderAmount={}",
                     limited, orderAmount);
             limited = orderAmount;
         }
 
         // 3. 음수 방지 (방어)
         if (limited.compareTo(BigDecimal.ZERO) < 0) {
-            log.warn("음수 할인액 감지, 0으로 초기화 - discount: {}", limited);
+            log.warn("음수 할인액 감지, 0으로 초기화: discount={}", limited);
             limited = BigDecimal.ZERO;
         }
 

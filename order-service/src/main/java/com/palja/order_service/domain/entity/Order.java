@@ -270,4 +270,22 @@ public class Order extends BaseEntity {
         // 직접 상태 변경 (일반 전환 규칙 무시)
         this.status = targetStatus;
     }
+
+    /**
+     * 결제 ID 등록 (결제 생성 시)
+     * - 결제 완료 전 상태
+     */
+    public void registerPaymentId(UUID paymentId) {
+        registerPaymentIdRegistration(paymentId);
+        this.paymentId = paymentId;
+    }
+
+    private void registerPaymentIdRegistration(UUID paymentId) {
+        if (paymentId == null) {
+            throw new IllegalArgumentException("결제 ID는 필수입니다.");
+        }
+        if (this.paymentId != null) {
+            throw new IllegalStateException("이미 결제 ID가 할당된 주문입니다.");
+        }
+    }
 }

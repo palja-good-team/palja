@@ -37,7 +37,8 @@ ext {
 }
 
 dependencies {
-	implementation 'com.palja:common-module:0.8.4'
+	implementation 'com.palja:common-module:0.8.6'
+	implementation 'io.github.openfeign:feign-micrometer'
 	// QueryDSL (jakarta 버전)
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
 	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'

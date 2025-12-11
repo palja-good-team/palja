@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.palja.common.response.ApiResponse;
 
 @FeignClient(name = "review-service", path = "/api/v1/reviews")
-public interface ReviewClient {
+public interface ReviewFeignClient {
 
 	// TODO: 고도화 때 이벤트 기반 비동기 호출로 변경
 	@DeleteMapping("/{userId}")

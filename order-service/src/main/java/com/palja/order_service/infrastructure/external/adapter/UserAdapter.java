@@ -1,12 +1,12 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.response.CompanyUserRes;
-import com.palja.order_service.application.dto.response.CustomerUserRes;
-import com.palja.order_service.application.dto.response.ManagerUserRes;
+import com.palja.order_service.application.dto.external.CompanyUserRes;
+import com.palja.order_service.application.dto.external.CustomerUserRes;
+import com.palja.order_service.application.dto.external.ManagerUserRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.UserService;
-import com.palja.order_service.infrastructure.external.UserClient;
+import com.palja.order_service.application.port.UserClient;
+import com.palja.order_service.infrastructure.external.UserFeignClient;
 import com.palja.order_service.infrastructure.external.dto.response.CompanyUserDTO;
 import com.palja.order_service.infrastructure.external.dto.response.CustomerUserDTO;
 import com.palja.order_service.infrastructure.external.dto.response.ManagerUserDTO;
@@ -18,15 +18,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserAdapter implements UserService {
+public class UserAdapter implements UserClient {
 
-    private final UserClient userClient;
+    private final UserFeignClient userFeignClient;
 
     @Override
     public CustomerUserRes getMyCustomer(String loginId) {
         log.debug("고객 사용자 조회 요청: loginId={}", loginId);
         try {
-            CustomerUserDTO dto = userClient.getMyCustomer().data();
+            CustomerUserDTO dto = userFeignClient.getMyCustomer().data();
             log.info("고객 사용자 조회 성공: userId={}", dto.getUserId());
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
@@ -47,7 +47,7 @@ public class UserAdapter implements UserService {
     public CompanyUserRes getMyCompanyUser(String loginId) {
         log.debug("판매업체 사용자 조회 요청: loginId={}", loginId);
         try {
-            CompanyUserDTO dto = userClient.getMyCompanyUser().data();
+            CompanyUserDTO dto = userFeignClient.getMyCompanyUser().data();
             log.info("판매업체 사용자 조회 성공: companyUserId={}", dto.getCompanyUserId());
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
@@ -68,7 +68,7 @@ public class UserAdapter implements UserService {
     public ManagerUserRes getMyManager(String loginId) {
         log.debug("MANAGER 사용자 조회 요청: loginId={}", loginId);
         try {
-            ManagerUserDTO dto = userClient.getMyManager().data();
+            ManagerUserDTO dto = userFeignClient.getMyManager().data();
             log.info("MANAGER 사용자 조회 성공: userId={}", dto.getUserId());
             return dto.toResponse();
         } catch (FeignException.NotFound e) {

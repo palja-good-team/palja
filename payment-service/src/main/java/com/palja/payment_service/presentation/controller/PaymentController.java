@@ -78,8 +78,28 @@ public interface PaymentController {
     );
 
     @Operation(
+            summary = "내 결제 목록 조회",
+            description = "로그인한 사용자 자신의 결제 목록을 조회합니다."
+    )
+    @GetMapping("/me")
+    ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getMyPayments(
+            @Parameter(description = "결제 상태", example = "APPROVED")
+            @RequestParam(required = false) String status,
+            @Parameter(description = "시작 일시", example = "2025-12-01 00:00:00")
+            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+            @RequestParam(required = false) LocalDateTime startDate,
+            @Parameter(description = "종료 일시", example = "2025-12-31 23:59:59")
+            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+            @RequestParam(required = false) LocalDateTime endDate,
+            @Parameter(description = "페이지 번호(0부터 시작)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(defaultValue = "10") int size
+    );
+
+    @Operation(
             summary = "결제 삭제",
-            description = "(관리자)결제 데이터를 삭제합니다. (마스터 관리자만 삭제가 가능합니다.)"
+            description = "(관리자)결제 데이터를 삭제합니다. (마스터/매니저만 삭제가 가능합니다.)"
     )
     @DeleteMapping("/manager/{paymentId}")
     ResponseEntity<ApiResponse<String>> deletePayment(

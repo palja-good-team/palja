@@ -6,10 +6,9 @@ import com.palja.order_service.infrastructure.external.dto.response.CustomerUser
 import com.palja.order_service.infrastructure.external.dto.response.ManagerUserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "user-service", path = "/api/v1")
-public interface UserClient {
+public interface UserFeignClient {
 
     // customer: 회원 단건 조회 (본인)
     @GetMapping("/customers/me")

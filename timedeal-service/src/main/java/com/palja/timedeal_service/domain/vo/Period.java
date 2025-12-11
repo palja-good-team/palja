@@ -41,8 +41,12 @@ public class Period {
     }
 
     public boolean isNowWithin(LocalDateTime now) {
-        return (now.isEqual(startAt) || now.isAfter(startAt))
-                && (now.isEqual(endAt) || now.isBefore(endAt));
+        return (now.isEqual(this.startAt) || now.isAfter(this.startAt))
+                && (now.isEqual(this.endAt) || now.isBefore(this.endAt));
+    }
+
+    public boolean isBeforeStartAt(LocalDateTime now) {
+        return now.isBefore(this.startAt);
     }
 
     private void validate(LocalDateTime startAt, LocalDateTime endAt) {
