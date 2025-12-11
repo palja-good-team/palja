@@ -18,4 +18,10 @@ public interface UserFeignClient {
 
     @GetMapping("/company-users/{loginId}")
     ApiResponse<CompanyUserDTO> getCompanyUserByLoginId(@PathVariable("loginId") String loginId);
+
+    @GetMapping("/customers/internal/{userId}")
+    ApiResponse<CustomerUserDTO> getCustomerUserByUserId(@PathVariable("userId") Long userId);
+
+    @GetMapping("/managers/internal/{userId}")
+    ApiResponse<ManagerUserDTO> getManagerUserByUserId(@PathVariable("userId") Long userId);
 }

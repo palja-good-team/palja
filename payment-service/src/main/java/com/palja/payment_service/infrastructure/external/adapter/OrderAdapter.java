@@ -56,6 +56,8 @@ public class OrderAdapter implements OrderClient {
     }
 
     private OrderRes toOrderRes(OrderDTO dto) {
+        log.info("OrderAdapter mapping: orderId={}, userId={}, status={}, finalAmount={}",
+                dto.getOrderId(), dto.getUserId(), dto.getStatus(), dto.getFinalAmount());
         return OrderRes.of(
                 dto.getOrderId(),
                 dto.getUserId(),
