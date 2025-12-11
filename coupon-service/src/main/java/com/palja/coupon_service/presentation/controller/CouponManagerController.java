@@ -9,7 +9,10 @@ import com.palja.coupon_service.presentation.dto.request.UpdateCouponReq;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,7 +45,12 @@ public interface CouponManagerController {
             summary = "쿠폰 목록 조회",
             description = "생성된 쿠폰 목록을 조회합니다."
     )
-    ResponseEntity<ApiResponse<PageResponse<ReadCouponRes>>> getCouponList(Pageable pageable);
+    ResponseEntity<ApiResponse<PageResponse<ReadCouponRes>>> getCouponList(@ParameterObject
+                                                                           @PageableDefault(
+                                                                                   size = 20,
+                                                                                   sort = "createdAt",
+                                                                                   direction = Sort.Direction.DESC)
+                                                                           Pageable pageable);
 
     @Operation(
             summary = "쿠폰 상세 조회",
