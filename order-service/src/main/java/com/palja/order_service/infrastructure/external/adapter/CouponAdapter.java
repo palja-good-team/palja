@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.external.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.infrastructure.external.CouponFeignClient;
@@ -23,7 +23,7 @@ public class CouponAdapter implements CouponClient {
     private final CouponFeignClient couponFeignClient;
 
     @Override
-    public CouponUserDetailRes getCoupon(UUID couponUserId) {
+    public CouponUserRes getCoupon(UUID couponUserId) {
         log.debug("쿠폰 정보 조회 요청: couponUserId={}", couponUserId);
         try {
             CouponUserDetailDTO dto = couponFeignClient.getMyCouponDetail(couponUserId).data();

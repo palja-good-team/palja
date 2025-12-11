@@ -106,9 +106,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 쿠폰 조회 및 검증 (선택적)
-        Optional<CouponUserDetailRes> coupon = Optional.empty();
+        Optional<CouponUserRes> coupon = Optional.empty();
         if (command.couponUserId() != null) {
-            CouponUserDetailRes cou = couponClient.getCoupon(command.couponUserId());
+            CouponUserRes cou = couponClient.getCoupon(command.couponUserId());
             orderValidator.validateCouponForOrder(cou);
             coupon = Optional.of(cou);
             log.debug("쿠폰 검증 완료: couponUserId={}", command.couponUserId());
@@ -147,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
         // 쿠폰 할인액 계산
         BigDecimal couponDiscount = BigDecimal.ZERO;
         if (context.coupon().isPresent()) {
-            CouponUserDetailRes coupon = context.coupon().get();
+            CouponUserRes coupon = context.coupon().get();
 
             // 쿠폰 최소 주문 금액 검증
             orderValidator.validateCouponMinimumAmount(coupon, productTotal);
@@ -180,8 +180,8 @@ public class OrderServiceImpl implements OrderService {
                 context.quantity(),
                 context.timeDeal().map(TimeDealRes::getTimeDealId).orElse(null),
                 context.timeDeal().map(TimeDealRes::getTimeDealPrice).orElse(null),
-                context.coupon().map(CouponUserDetailRes::getCouponUserId).orElse(null),
-                context.coupon().map(CouponUserDetailRes::getCouponName).orElse(null),
+                context.coupon().map(CouponUserRes::getCouponUserId).orElse(null),
+                context.coupon().map(CouponUserRes::getCouponName).orElse(null),
                 amount.couponDiscount(),
                 amount.deliveryFee(),
                 recipient
@@ -527,7 +527,7 @@ public class OrderServiceImpl implements OrderService {
             CustomerUserRes customer,
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
-            Optional<CouponUserDetailRes> coupon,
+            Optional<CouponUserRes> coupon,
             int quantity,
             String paymentKey,
             PaymentMethod paymentMethod

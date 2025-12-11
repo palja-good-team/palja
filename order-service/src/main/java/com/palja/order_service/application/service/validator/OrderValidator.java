@@ -6,7 +6,7 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponUserStatus;
-import com.palja.order_service.application.dto.external.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
 import com.palja.order_service.application.dto.external.CustomerUserRes;
 import com.palja.order_service.application.dto.external.ProductRes;
 import com.palja.order_service.application.dto.external.TimeDealRes;
@@ -233,7 +233,7 @@ public class OrderValidator {
 
     // ===== Coupon Validation (쿠폰 검증) =====
     // 쿠폰 사용 자격 검증 (상태, 타입, 기간, 최소 주문 금액)
-    public void validateCouponForOrder(CouponUserDetailRes coupon) {
+    public void validateCouponForOrder(CouponUserRes coupon) {
         log.debug("쿠폰 검증 시작: couponUserId={}, status={}, type={}, value={}",
                 coupon.getCouponUserId(), coupon.getStatus(),
                 coupon.getDiscountType(), coupon.getDiscountValue());
@@ -247,7 +247,7 @@ public class OrderValidator {
     }
 
     // 쿠폰 최소 주문 금액 검증 (금액 계산 완료 후 호출)
-    public void validateCouponMinimumAmount(CouponUserDetailRes coupon, BigDecimal orderAmount) {
+    public void validateCouponMinimumAmount(CouponUserRes coupon, BigDecimal orderAmount) {
         if (coupon.getMinOrderAmount() == null) {
             return;
         }
@@ -257,13 +257,13 @@ public class OrderValidator {
         }
     }
 
-    private void validateCouponNotNull(CouponUserDetailRes coupon) {
+    private void validateCouponNotNull(CouponUserRes coupon) {
         if (coupon == null) {
             throw new BusinessException(OrderErrorCode.COUPON_NOT_AVAILABLE);
         }
     }
 
-    private void validateCouponStatus(CouponUserDetailRes coupon) {
+    private void validateCouponStatus(CouponUserRes coupon) {
 
         CouponUserStatus status = CouponUserStatus.valueOf(coupon.getStatus());
 
@@ -277,7 +277,7 @@ public class OrderValidator {
         }
     }
 
-    private void validateCouponDiscountInfo(CouponUserDetailRes coupon) {
+    private void validateCouponDiscountInfo(CouponUserRes coupon) {
         if (coupon.getDiscountType() == null) {
             throw new BusinessException(OrderErrorCode.INVALID_COUPON_TYPE);
         }
@@ -292,7 +292,7 @@ public class OrderValidator {
         }
     }
 
-    private void validateCouponExpireAt(CouponUserDetailRes coupon) {
+    private void validateCouponExpireAt(CouponUserRes coupon) {
         if (coupon.getExpireAt() != null &&
                 LocalDateTime.now().isAfter(coupon.getExpireAt())) {
             throw new BusinessException(OrderErrorCode.COUPON_EXPIRED);

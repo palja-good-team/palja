@@ -1,7 +1,7 @@
 package com.palja.order_service.application.service.calculator;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.external.CouponUserDetailRes;
+import com.palja.order_service.application.dto.external.CouponUserRes;
 import com.palja.order_service.application.dto.external.ProductRes;
 import com.palja.order_service.application.dto.external.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
@@ -44,7 +44,7 @@ public class OrderPriceCalculator {
 
     // ===== Coupon Discount Calculation =====
     // 쿠폰 할인액 계산
-    public BigDecimal calculateCouponDiscount(CouponUserDetailRes coupon, BigDecimal orderAmount) {
+    public BigDecimal calculateCouponDiscount(CouponUserRes coupon, BigDecimal orderAmount) {
         if (coupon == null || orderAmount == null) {
             log.warn("쿠폰 할인 계산 입력값 null: coupon={}, orderAmount={}",
                     coupon, orderAmount);
@@ -66,7 +66,7 @@ public class OrderPriceCalculator {
     }
 
     // 할인 타입별 원시 할인액 계산 (비즈니스 제약이 걸리기 전에 순수 계산 결과)
-    private BigDecimal calculateRawDiscount(CouponUserDetailRes coupon, BigDecimal orderAmount) {
+    private BigDecimal calculateRawDiscount(CouponUserRes coupon, BigDecimal orderAmount) {
         return switch (coupon.getDiscountType()) {
             case FIXED -> calculateFixedDiscount(coupon.getDiscountValue());
             case PERCENTAGE -> calculatePercentageDiscount(coupon.getDiscountValue(), orderAmount);

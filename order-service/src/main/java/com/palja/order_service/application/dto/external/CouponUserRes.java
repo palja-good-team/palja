@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class CouponUserDetailRes {
+public class CouponUserRes {
 
     private UUID couponUserId;
     private final UUID couponId;
