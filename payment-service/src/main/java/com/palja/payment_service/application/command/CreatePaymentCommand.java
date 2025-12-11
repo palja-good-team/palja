@@ -13,6 +13,7 @@ public record CreatePaymentCommand(
         BigDecimal amount,
         String currency,
         String paymentMethod,
-        String paymentKey
+        String paymentKey,
+        String orderStatus
 ) {
 }

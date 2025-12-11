@@ -35,6 +35,7 @@ public class CreatePaymentReq {
                 .currency(finalCurrency)
                 .paymentMethod(finalPaymentMethod)
                 .paymentKey(paymentKey)
+                .orderStatus(orderStatus)
                 .build();
     }
 }

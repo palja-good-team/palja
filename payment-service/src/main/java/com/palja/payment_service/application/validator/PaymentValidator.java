@@ -35,6 +35,7 @@ public class PaymentValidator {
         validateAmount(command.amount());
         validateCurrency(command.currency());
         validatePaymentMethod(command.paymentMethod());
+        validateOrderStatus(command.orderStatus());
     }
 
     private void validateOrderId(UUID orderId) {
@@ -64,9 +65,18 @@ public class PaymentValidator {
         }
     }
 
+    private void validateOrderStatus(String orderStatus) {
+        if (orderStatus == null || orderStatus.isBlank()) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
+        }
+        if (!"CREATED".equals(orderStatus)) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+    }
+
     private void validateOrderForPayment(OrderRes order, CreatePaymentCommand command, UserRes user) {
         validateOrderExists(order);
-        validateOrderStatusForPayment(order);
+        validateOrderStatusForPayment(order, command.orderStatus());
         validateOrderAmount(order, command.amount());
         validateOrderUserId(order, user);
     }
@@ -77,7 +87,12 @@ public class PaymentValidator {
         }
     }
 
-    private void validateOrderStatusForPayment(OrderRes order) {
+    private void validateOrderStatusForPayment(OrderRes order, String requestedOrderStatus) {
+        if (!order.getStatus().equals(requestedOrderStatus)) {
+            log.warn("주문 상태 불일치: 요청된 상태={}, 실제 주문 상태={}, orderId={}",
+                    requestedOrderStatus, order.getStatus(), order.getOrderId());
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
         if (!"CREATED".equals(order.getStatus())) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }

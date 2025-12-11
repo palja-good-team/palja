@@ -57,8 +57,8 @@ public class PaymentServiceImpl implements PaymentService {
                 Kafka에 order-service가 주문 상태를 그래도 CREATED로 유지, coupon-service 도 미사용으로 유지
      */
     public CreatePaymentRes createPayment(CreatePaymentCommand command) {
-        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}", 
-                command.orderId(), command.userId(), command.loginId());
+        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}", 
+                command.orderId(), command.userId(), command.loginId(), command.orderStatus());
 
         OrderRes order = orderService.getOrderByOrderId(command.orderId());
 
