@@ -47,7 +47,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping("/{paymentId}/cancel")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER})
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CancelPaymentRes>> cancelPayment(
             @PathVariable UUID paymentId,
             @RequestBody CancelPaymentReq req
@@ -60,7 +60,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @GetMapping("/{paymentId}")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER})
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<ReadPaymentDetailRes>> getPayment(@PathVariable UUID paymentId) {
         ReadPaymentDetailRes detail = paymentService.getPayment(paymentId);
 
@@ -70,7 +70,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @GetMapping
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER, UserRole.CUSTOMER})
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getPayments(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long userId,
@@ -126,7 +126,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @DeleteMapping("/manager/{paymentId}")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<String>> deletePayment(
             @PathVariable UUID paymentId
     ){

@@ -28,7 +28,7 @@ public class PaymentLogControllerImpl implements PaymentLogController {
 
     @Override
     @GetMapping("/payments/{paymentId}/logs")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<List<ReadPaymentLogRes>>> getPaymentLogsByPaymentId(
             @PathVariable UUID paymentId
     ) {
@@ -40,7 +40,7 @@ public class PaymentLogControllerImpl implements PaymentLogController {
 
     @Override
     @GetMapping("/payment-logs")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<PageResponse<ReadPaymentLogRes>>> getPaymentLogs(
             @RequestParam(required = false) UUID paymentId,
             @RequestParam(required = false) UUID orderId,
@@ -69,7 +69,7 @@ public class PaymentLogControllerImpl implements PaymentLogController {
 
     @Override
     @PostMapping("/payment-logs/delete")
-    @RequiredRole({UserRole.MASTER, UserRole.MANAGER})
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<String>> deleteOldLogs(){
         paymentLogService.deleteOldLogs();
         return ResponseEntity
