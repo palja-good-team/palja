@@ -8,6 +8,7 @@ import com.palja.product_service.application.dto.res.FindProductListByConditionR
 import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
+import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.vo.Category;
@@ -21,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,8 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -123,10 +122,14 @@ class ProductServiceImplTest {
                 createProductCommand.name(),
                 100L, 10000L, "food", BigDecimal.ZERO, BigDecimal.valueOf(5.0)
         );
+        FindProductListByConditionDto repositoryResultDto = new FindProductListByConditionDto(
+                product.getId(), product.getName(), product.getDescription(),
+                product.getPrice(), product.getCategory(), product.getAvgRating());
+
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        given(productRepository.findProductsToCondition(any(FindListByConditionReq.class), any(Pageable.class)))
-                .willReturn(List.of(product,product));
+        given(productRepository.findProductsToCondition(any(FindListByConditionReq.class), anyLong(), anyInt()))
+                .willReturn(List.of(repositoryResultDto, repositoryResultDto));
 
         //when
         Page<FindProductListByConditionRes> products = productService.findProducts(command, pageRequest);

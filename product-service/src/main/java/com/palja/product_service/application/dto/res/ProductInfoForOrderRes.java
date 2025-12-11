@@ -1,5 +1,6 @@
 package com.palja.product_service.application.dto.res;
 
+import com.palja.product_service.domain.dto.res.ProductInfoForOrderDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,4 +16,15 @@ public class ProductInfoForOrderRes {
     private String productName;
     private BigDecimal price;
     private int stockQuantity;
+
+    public static ProductInfoForOrderRes fromDto(ProductInfoForOrderDto dto) {
+
+        return new ProductInfoForOrderRes(
+                dto.getProductId(),
+                dto.getCompanyUserId(),
+                dto.getProductName(),
+                dto.getPrice(),
+                dto.getStockQuantity()
+        );
+    }
 }

@@ -3,20 +3,25 @@ package com.palja.product_service.infrastructure.repository.impl;
 import com.palja.common.exception.BusinessException;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.dto.req.StockScheduleDto;
+import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
+import com.palja.product_service.domain.dto.res.ProductInfoForOrderDto;
+import com.palja.product_service.domain.dto.res.ProductInfoForTimeDealDto;
 import com.palja.product_service.domain.entity.Product;
+import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.repository.RedisProductRepository;
 import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import com.palja.product_service.infrastructure.repository.JdbcProductRepository;
 import com.palja.product_service.infrastructure.repository.JpaProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -25,6 +30,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     private final JpaProductRepository jpaProductRepository;
     private final DslProductRepository dslProductRepository;
+    private final RedisProductRepository redisRepository;
     private final JdbcProductRepository jdbcProductRepository;
 
     @Override
@@ -33,21 +39,70 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public Boolean isNotUnique(String companyName, Category category, String name) {
+    public Boolean isNotUnique(String companyName,
+                               Category category,
+                               String name) {
+
         return jpaProductRepository.existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(
                 companyName, category, name);
     }
 
     @Override
     public Product findProduct(UUID productId) {
+
         return jpaProductRepository
                 .findByIdFetchStock(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override
-    public List<Product> findProductsToCondition(FindListByConditionReq condition, Pageable pageable) {
-        return dslProductRepository.findProductByCondition(condition, pageable);
+    public ProductStock findProductStock(UUID productId) {
+        return jpaProductRepository
+                .findStockByProductId(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
+    public List<FindProductListByConditionDto> findProductsToCondition(FindListByConditionReq condition,
+                                                                       long offset, int limit) {
+
+        return dslProductRepository.findProductByCondition(condition, offset, limit);
+    }
+
+    @Override
+    public Long getPageCount(FindListByConditionReq req) {
+
+        return dslProductRepository.getPageCount(req);
+    }
+
+    @Override
+    public ProductInfoForTimeDealDto findProductForTimeDeal(UUID productId) {
+
+        return Optional.ofNullable(
+                        dslProductRepository.findProductForTimeDeal(productId))
+                        .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
+    public ProductInfoForOrderDto findProductForOrder(UUID productId) {
+
+        return Optional.ofNullable(
+                        dslProductRepository.findProductForOrder(productId))
+                        .orElseThrow(
+                        () -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
+    public boolean decreaseStockBySale(String hashKey, String productId, Integer stock, Integer quantity) {
+
+        return redisRepository.decreaseStockBySale(hashKey, productId, stock, quantity);
+    }
+
+    @Override
+    public boolean adjustStock(String hashKey, String productId, Integer quantity) {
+
+        return redisRepository.adjustStock(hashKey, productId, quantity);
     }
 
     @Override
@@ -58,13 +113,15 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public void deleteProduct(Product product) {
+    public boolean deleteStockFromRedis(String hashKey, String productId) {
 
-        jpaProductRepository.delete(product);
+        return redisRepository.deleteProductStock(hashKey, productId);
     }
 
     @Override
-    public Product findByIdFetchStockWithLock(UUID productId, Integer quantity) {
+    public Product findByIdFetchStockWithLock(UUID productId,
+                                              Integer quantity) {
+
         return jpaProductRepository
                 .findByIdFetchStockWithLock(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
