@@ -38,7 +38,7 @@ ext {
 
 dependencies {
 	// ===== 공통 모듈 =====
-	implementation 'com.palja:common-module:0.8.1'
+	implementation 'com.palja:common-module:0.8.6'
 
 	// ===== Spring Boot Starters =====
 	implementation 'org.springframework.boot:spring-boot-starter-web'
