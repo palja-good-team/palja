@@ -7,6 +7,7 @@ import com.palja.payment_service.application.dto.response.CreatePaymentRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
+import com.palja.payment_service.presentation.dto.request.CompletePaymentReq;
 import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,11 +26,23 @@ public interface PaymentController {
 
     @Operation(
             summary = "결제 생성",
-            description = "사용자의 주문에 대해 결제 요청하고, PG 승인 결과에 따라 결제 상태를 기록합니다."
+            description = "사용자의 주문에 대해 PENDING 상태로 결제를 생성합니다."
     )
     @PostMapping
     ResponseEntity<ApiResponse<CreatePaymentRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
+    );
+
+    //결제 완료 API 생성
+    @Operation(
+            summary = "결제 완료",
+            description = "paymentKey를 받아서 Toss API를 호출하여 결제를 확인하고, 성공 시 APPROVED 상태로 변경합니다."
+    )
+    @PostMapping("/{paymentId}/complete")
+    ResponseEntity<ApiResponse<CreatePaymentRes>> completePayment(
+            @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
+            @PathVariable UUID paymentId,
+            @Valid @RequestBody CompletePaymentReq req
     );
 
     @Operation(

@@ -11,20 +11,19 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreatePaymentReq {
 
+    //currency, PaymentKey, PaymentMethod 제거
     private UUID orderId;
+    private Long userId;
     private BigDecimal amount;
-    private String paymentMethod;
-    private String currency;
-    private String paymentKey;
+    private String orderStatus;
 
-    public CreatePaymentCommand toCommand(String loginId) {
+    public CreatePaymentCommand toCommand(String loginIdFromContext) {
         return CreatePaymentCommand.builder()
                 .orderId(orderId)
-                .loginId(loginId)
+                .userId(userId)
+                .loginId(loginIdFromContext)
                 .amount(amount)
-                .currency(currency)
-                .paymentMethod(paymentMethod)
-                .paymentKey(paymentKey)
+                .orderStatus(orderStatus)
                 .build();
     }
 }

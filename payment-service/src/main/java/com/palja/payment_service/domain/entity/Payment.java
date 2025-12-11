@@ -72,6 +72,10 @@ public class Payment extends BaseEntity {
         return new Payment(orderId, userId, amount, currency, paymentMethod, paymentKey);
     }
 
+    public static Payment createPending(UUID orderId, Long userId, BigDecimal amount) {
+        return new Payment(orderId, userId, amount, "KRW", PaymentMethod.CARD, null);
+    }
+
     public void approve(String paymentKey) {
         this.status = PaymentStatus.APPROVED;
         this.paymentKey = paymentKey;
@@ -91,5 +95,10 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.CANCELED;
         this.cancelReason = reason;
         this.completedAt = LocalDateTime.now();
+    }
+
+    //paymentKey추가
+    public void updatePaymentKey(String paymentKey) {
+        this.paymentKey = paymentKey;
     }
 }

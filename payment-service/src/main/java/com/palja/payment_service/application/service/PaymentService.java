@@ -1,6 +1,7 @@
 package com.palja.payment_service.application.service;
 
 import com.palja.payment_service.application.command.CancelPaymentCommand;
+import com.palja.payment_service.application.command.CompletePaymentCommand;
 import com.palja.payment_service.application.command.CreatePaymentCommand;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.CancelPaymentRes;
@@ -15,6 +16,8 @@ import java.util.UUID;
 public interface PaymentService {
 
     CreatePaymentRes createPayment(CreatePaymentCommand command);
+
+    CreatePaymentRes completePayment(CompletePaymentCommand command);
 
     CancelPaymentRes cancelPayment(CancelPaymentCommand command);
 

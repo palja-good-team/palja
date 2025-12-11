@@ -15,17 +15,4 @@ public class OrderDTO {
     private Long userId;
     private String status;
     private BigDecimal finalAmount;
-
-    /*
-     TODO: 주문 서비스 연동 전까지 사용하는 더미 데이터
-           order-service 연결 후 삭제 예정
-     */
-    public static OrderDTO dummy(UUID orderId) {
-        return new OrderDTO(
-                orderId,
-                1L,
-                "CREATED",
-                BigDecimal.valueOf(10000)
-        );
-    }
 }
