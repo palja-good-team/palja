@@ -81,7 +81,6 @@ public class CustomerControllerImpl implements CustomerController {
 	}
 
 	@Override
-	// @RequiredRole({UserRole.MANAGER})
 	@RequiredInternal
 	@GetMapping("/internal/{userId}")
 	public ResponseEntity<ApiResponse<ReadCustomerDetailRes>> getByUserId(@PathVariable Long userId) {

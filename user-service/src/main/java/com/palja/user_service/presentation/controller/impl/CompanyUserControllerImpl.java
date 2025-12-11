@@ -86,7 +86,6 @@ public class CompanyUserControllerImpl implements CompanyUserController {
 	}
 
 	@Override
-	// @RequiredRole({UserRole.MANAGER})
 	@RequiredInternal
 	@GetMapping("/internal/{companyUserId}")
 	public ResponseEntity<ApiResponse<ReadCompanyUserDetailRes>> getByCompanyUserId(@PathVariable UUID companyUserId) {
