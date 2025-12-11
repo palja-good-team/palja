@@ -22,7 +22,7 @@ public class UserAdapter implements UserClient {
 
     @Override
     public UserRes getUserByLoginId(String loginId) {
-        log.debug("사용자 조회 요청: loginId={}", loginId);
+        log.debug("사용자 조회 요청: loginId={} (/me 엔드포인트 사용)", loginId);
 
         UserRes userRes = tryGetUserByLoginId(loginId);
 
@@ -31,20 +31,9 @@ public class UserAdapter implements UserClient {
         return userRes;
     }
 
-    @Override
-    public UserRes getUserByUserId(Long userId) {
-        log.debug("사용자 조회 요청: userId={}", userId);
-
-        UserRes userRes = tryGetUserByUserId(userId);
-
-        log.info("사용자 조회 성공: userId={}, loginId={}, role={}",
-                userId, userRes.getLoginId(), userRes.getRole());
-        return userRes;
-    }
-
     private UserRes tryGetUserByLoginId(String loginId) {
         try {
-            CustomerUserDTO dto = userFeignClient.getCustomerUserByLoginId(loginId).data();
+            CustomerUserDTO dto = userFeignClient.getCustomerUserByLoginId().data();
             if (dto != null) {
                 return toUserRes(dto);
             }
@@ -57,7 +46,7 @@ public class UserAdapter implements UserClient {
         }
 
         try {
-            ManagerUserDTO dto = userFeignClient.getManagerUserByLoginId(loginId).data();
+            ManagerUserDTO dto = userFeignClient.getManagerUserByLoginId().data();
             if (dto != null) {
                 return toUserRes(dto);
             }
@@ -70,7 +59,7 @@ public class UserAdapter implements UserClient {
         }
 
         try {
-            CompanyUserDTO dto = userFeignClient.getCompanyUserByLoginId(loginId).data();
+            CompanyUserDTO dto = userFeignClient.getCompanyUserByLoginId().data();
             if (dto != null) {
                 return toUserRes(dto);
             }
@@ -83,37 +72,6 @@ public class UserAdapter implements UserClient {
         }
 
         log.error("사용자 정보를 찾을 수 없습니다: loginId={}", loginId);
-        throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
-    }
-
-    private UserRes tryGetUserByUserId(Long userId) {
-        try {
-            CustomerUserDTO dto = userFeignClient.getCustomerUserByUserId(userId).data();
-            if (dto != null) {
-                return toUserRes(dto);
-            }
-        } catch (FeignException.NotFound e) {
-            log.debug("Customer 사용자 없음: userId={}", userId);
-        } catch (FeignException.Forbidden e) {
-            log.debug("Customer 사용자 접근 거부 (403): userId={}", userId);
-        } catch (Exception e) {
-            log.debug("Customer 사용자 조회 실패: userId={}, error={}", userId, e.getMessage());
-        }
-
-        try {
-            ManagerUserDTO dto = userFeignClient.getManagerUserByUserId(userId).data();
-            if (dto != null) {
-                return toUserRes(dto);
-            }
-        } catch (FeignException.NotFound e) {
-            log.debug("Manager 사용자 없음: userId={}", userId);
-        } catch (FeignException.Forbidden e) {
-            log.debug("Manager 사용자 접근 거부 (403): userId={}", userId);
-        } catch (Exception e) {
-            log.debug("Manager 사용자 조회 실패: userId={}, error={}", userId, e.getMessage());
-        }
-
-        log.error("사용자 정보를 찾을 수 없습니다: userId={}", userId);
         throw new BusinessException(PaymentErrorCode.USER_NOT_FOUND);
     }
 

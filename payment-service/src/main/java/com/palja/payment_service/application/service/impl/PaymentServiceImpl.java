@@ -65,7 +65,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
 
-        UserRes user = userClient.getUserByUserId(order.getUserId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCreatePayment(command, order, user);
 
