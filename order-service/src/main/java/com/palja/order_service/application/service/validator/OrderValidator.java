@@ -119,14 +119,14 @@ public class OrderValidator {
     // ===== Customer Validation (고객 검증) =====
     // 주문 가능한 고객인지 검증
     public void validateCustomerForOrder(CustomerUserRes customer) {
-        log.debug("고객 검증 시작 - userId: {}, status: {}, role: {}",
+        log.debug("고객 검증 시작: userId={}, status={}, role={}",
                 customer.getUserId(), customer.getStatus(), customer.getRole());
 
         validateCustomerNotNull(customer);
         validateCustomerStatus(customer);
         validateCustomerRole(customer);
 
-        log.debug("고객 검증 완료 - userId: {}", customer.getUserId());
+        log.debug("고객 검증 완료: userId={}", customer.getUserId());
     }
     private void validateCustomerNotNull(CustomerUserRes customer) {
         if (customer == null) {
@@ -148,14 +148,14 @@ public class OrderValidator {
     // ===== Product Validation (상품 검증) =====
     // 상품 주문 가능 여부 검증
     public void validateProductForOrder(ProductRes product, int requestedQuantity) {
-        log.debug("상품 검증 시작 - productId: {}, price: {}, stock: {}, requested: {}",
+        log.debug("상품 검증 시작: productId={}, price={}, stock={}, requested={}",
                 product.getProductId(), product.getPrice(), product.getStockQuantity(), requestedQuantity);
 
         validateProductNotNull(product);
         validateProductPrice(product);
         validateProductStock(product, requestedQuantity);
 
-        log.debug("상품 검증 완료 - productId: {}", product.getProductId());
+        log.debug("상품 검증 완료: productId={}", product.getProductId());
     }
 
     private void validateProductNotNull(ProductRes product) {
@@ -172,7 +172,7 @@ public class OrderValidator {
 
     private void validateProductStock(ProductRes product, int requestedQuantity) {
         if (product.getStockQuantity() < requestedQuantity) {
-            log.warn("상품 재고 부족 - productId: {}, available: {}, requested: {}",
+            log.warn("상품 재고 부족: productId={}, available={}, requested={}",
                     product.getProductId(), product.getStockQuantity(), requestedQuantity);
             throw new BusinessException(OrderErrorCode.INSUFFICIENT_STOCK);
         }
@@ -181,7 +181,7 @@ public class OrderValidator {
     // ===== TimeDeal Validation (타임딜 검증) =====
     // 타임딜 주문 자격 검증
     public void validateTimeDealForOrder(TimeDealRes timeDeal, int requestedQuantity) {
-        log.debug("타임딜 검증 시작 - timeDealId: {}, status: {}, stock: {}, requested: {}",
+        log.debug("타임딜 검증 시작: timeDealId={}, status={}, stock={}, requested={}",
                 timeDeal.getTimeDealId(), timeDeal.getStatus(),
                 timeDeal.getTimeDealStockQuantity(), requestedQuantity);
 
@@ -191,7 +191,7 @@ public class OrderValidator {
         validateTimeDealPrice(timeDeal);
         validateTimeDealStock(timeDeal, requestedQuantity);
 
-        log.debug("타임딜 검증 완료 - timeDealId: {}", timeDeal.getTimeDealId());
+        log.debug("타임딜 검증 완료: timeDealId={}", timeDeal.getTimeDealId());
     }
 
     private void validateTimeDealNotNull(TimeDealRes timeDeal) {
@@ -234,7 +234,7 @@ public class OrderValidator {
     // ===== Coupon Validation (쿠폰 검증) =====
     // 쿠폰 사용 자격 검증 (상태, 타입, 기간, 최소 주문 금액)
     public void validateCouponForOrder(CouponUserDetailRes coupon) {
-        log.debug("쿠폰 검증 시작 - couponUserId: {}, status: {}, type: {}, value: {}",
+        log.debug("쿠폰 검증 시작: couponUserId={}, status={}, type={}, value={}",
                 coupon.getCouponUserId(), coupon.getStatus(),
                 coupon.getDiscountType(), coupon.getDiscountValue());
 
@@ -243,7 +243,7 @@ public class OrderValidator {
         validateCouponDiscountInfo(coupon);
         validateCouponExpireAt(coupon);
 
-        log.debug("쿠폰 검증 완료 - couponUserId: {}", coupon.getCouponUserId());
+        log.debug("쿠폰 검증 완료: couponUserId={}", coupon.getCouponUserId());
     }
 
     // 쿠폰 최소 주문 금액 검증 (금액 계산 완료 후 호출)
@@ -321,20 +321,20 @@ public class OrderValidator {
     ) {
         switch (userRole) {
             case MANAGER -> {
-                log.debug("MANAGER 조회 권한 허용 - orderId: {}", order.getOrderId());
+                log.debug("MANAGER 조회 권한 허용: orderId={}", order.getOrderId());
             }
             case CUSTOMER -> {
                 verifyCustomerOwnership(order, customerId);
-                log.debug("고객 조회 권한 허용 - orderId: {}, userId: {}",
+                log.debug("고객 조회 권한 허용: orderId={}, userId={}",
                         order.getOrderId(), customerId);
             }
             case COMPANY_USER -> {
                 verifySellerOwnership(companyUserId, sellerId);
-                log.debug("판매자 조회 권한 허용 - orderId: {}, companyUserId: {}",
+                log.debug("판매자 조회 권한 허용: orderId={}, companyUserId={}",
                         order.getOrderId(), companyUserId);
             }
             default -> {
-                log.warn("잘못된 사용자 권한으로 조회 시도 - role: {}", userRole);
+                log.warn("잘못된 사용자 권한으로 조회 시도: role={}", userRole);
                 throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
             }
         }
@@ -350,28 +350,28 @@ public class OrderValidator {
     ) {
         switch (userRole) {
             case MANAGER -> {
-                log.debug("MANAGER 취소 권한 허용 - orderId: {}", order.getOrderId());
+                log.debug("MANAGER 취소 권한 허용: orderId={}", order.getOrderId());
             }
             case CUSTOMER -> {
                 if (!customerId.equals(order.getUserId())) {
-                    log.warn("고객 취소 권한 거부 - userId: {}, orderUserId: {}",
+                    log.warn("고객 취소 권한 거부: userId={}, orderUserId={}",
                             customerId, order.getUserId());
                     throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
                 }
-                log.debug("고객 취소 권한 허용 - orderId: {}, userId: {}",
+                log.debug("고객 취소 권한 허용: orderId={}, userId={}",
                         order.getOrderId(), customerId);
             }
             case COMPANY_USER -> {
                 if (!companyUserId.equals(sellerId)) {
-                    log.warn("판매자 취소 권한 거부 - companyUserId: {}, sellerId: {}",
+                    log.warn("판매자 취소 권한 거부: companyUserId={}, sellerId={}",
                             companyUserId, sellerId);
                     throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
                 }
-                log.debug("판매자 취소 권한 허용 - orderId: {}, companyUserId: {}",
+                log.debug("판매자 취소 권한 허용: orderId={}, companyUserId={}",
                         order.getOrderId(), companyUserId);
             }
             default -> {
-                log.error("잘못된 사용자 권한으로 취소 시도 - role: {}", userRole);
+                log.error("잘못된 사용자 권한으로 취소 시도: role={}", userRole);
                 throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
             }
         }
@@ -380,7 +380,7 @@ public class OrderValidator {
     // 고객 소유권 검증
     public void verifyCustomerOwnership(Order order, Long customerId) {
         if (!order.getUserId().equals(customerId)) {
-            log.warn("고객 소유권 검증 실패 - customerId: {}, orderUserId: {}",
+            log.warn("고객 소유권 검증 실패: customerId={}, orderUserId={}",
                     customerId, order.getUserId());
             throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
@@ -389,7 +389,7 @@ public class OrderValidator {
     // 판매자 소유권 검증
     public void verifySellerOwnership(UUID companyUserId, UUID sellerId) {
         if (!companyUserId.equals(sellerId)) {
-            log.warn("판매자 소유권 검증 실패 - companyUserId: {}, sellerId: {}",
+            log.warn("판매자 소유권 검증 실패: companyUserId={}, sellerId={}",
                     companyUserId, sellerId);
             throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
@@ -404,10 +404,10 @@ public class OrderValidator {
 
         try {
             OrderStatus status = OrderStatus.valueOf(statusStr.toUpperCase());
-            log.debug("주문 상태 파싱 완료 - status: {}", status);
+            log.debug("주문 상태 파싱 완료: status={}", status);
             return status;
         } catch (IllegalArgumentException e) {
-            log.error("유효하지 않은 주문 상태 - statusStr: {}", statusStr);
+            log.error("유효하지 않은 주문 상태: statusStr={}", statusStr);
             throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS);
         }
     }

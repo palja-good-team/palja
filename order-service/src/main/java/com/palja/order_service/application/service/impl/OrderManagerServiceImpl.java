@@ -35,7 +35,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Override
     @Transactional
     public OrderStatusChangeRes changeOrderStatus(ChangeOrderStatusCommand command) {
-        log.info("주문 상태 변경 (관리자) - orderId: {}, targetStatus: {}, manager: {}",
+        log.info("주문 상태 변경 (관리자): orderId={}, targetStatus={}, manager={}",
                 command.orderId(), command.status(), command.managerLoginId());
 
         orderValidator.validateManager(command.managerLoginId());
@@ -51,7 +51,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         order.changeStatusByManager(targetStatus);
         orderRepository.save(order);
 
-        log.info("주문 상태 변경 완료 - orderId: {}, {} → {}", command.orderId(), previousStatus, targetStatus);
+        log.info("주문 상태 변경 완료: orderId={}, {} → {}", command.orderId(), previousStatus, targetStatus);
 
         return OrderStatusChangeRes.from(order, previousStatus, command.reason(), command.managerLoginId());
     }
