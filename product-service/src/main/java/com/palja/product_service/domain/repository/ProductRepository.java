@@ -1,7 +1,7 @@
 package com.palja.product_service.domain.repository;
 
-import com.palja.product_service.domain.dto.req.StockScheduleDto;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
+import com.palja.product_service.domain.dto.req.StockScheduleDto;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.vo.Category;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +23,6 @@ public interface ProductRepository {
     void stockBulkUpdateForSchedule(Collection<StockScheduleDto> dtos);
 
     void deleteProduct(Product product);
+
+    Product findByIdFetchStockWithLock(UUID productId, Integer quantity);
 }
