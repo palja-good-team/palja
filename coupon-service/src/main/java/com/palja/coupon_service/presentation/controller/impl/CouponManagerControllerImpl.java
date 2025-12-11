@@ -32,6 +32,7 @@ public class CouponManagerControllerImpl implements CouponManagerController {
 
     private final CouponManagerService couponManagerService;
 
+    @Override
     @RequiredRole(UserRole.MANAGER)
     @PostMapping
     public ResponseEntity<ApiResponse<CreateCouponRes>> createCoupon(@Valid @RequestBody CreateCouponReq request) {
@@ -44,6 +45,7 @@ public class CouponManagerControllerImpl implements CouponManagerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "쿠폰이 생성되었습니다."));
     }
 
+    @Override
     @RequiredRole(UserRole.MANAGER)
     @PutMapping("/{couponId}")
     public ResponseEntity<ApiResponse<UpdateCouponRes>> updateCoupon(@PathVariable UUID couponId, @Valid @RequestBody UpdateCouponReq request) {
@@ -56,6 +58,7 @@ public class CouponManagerControllerImpl implements CouponManagerController {
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰이 수정되었습니다."));
     }
 
+    @Override
     @RequiredRole(UserRole.MANAGER)
     @PutMapping("/{couponId}/status")
     public ResponseEntity<ApiResponse<ChangeStatusCouponRes>> changeCouponStatus(@PathVariable UUID couponId,
@@ -69,6 +72,7 @@ public class CouponManagerControllerImpl implements CouponManagerController {
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰 상태가 변경되었습니다."));
     }
 
+    @Override
     @RequiredRole(UserRole.MANAGER)
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ReadCouponRes>>> getCouponList(Pageable pageable) {
@@ -81,6 +85,7 @@ public class CouponManagerControllerImpl implements CouponManagerController {
         return ResponseEntity.ok(ApiResponse.success(response, "쿠폰 목록 조회"));
     }
 
+    @Override
     @RequiredRole(UserRole.MANAGER)
     @GetMapping("/{couponId}")
     public ResponseEntity<ApiResponse<ReadCouponDetailRes>> getCouponDetail(@PathVariable UUID couponId) {
