@@ -14,6 +14,7 @@ import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.application.service.PaymentService;
 import com.palja.payment_service.presentation.controller.PaymentController;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
+import com.palja.payment_service.presentation.dto.request.CompletePaymentReq;
 import com.palja.payment_service.presentation.dto.request.CreatePaymentReq;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,22 @@ public class PaymentControllerImpl implements PaymentController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(detail, "결제가 생성되었습니다."));
+                .body(ApiResponse.success(detail, "결제가 생성되었습니다. (PENDING 상태)"));
+    }
+
+    //결제 완료 API
+    @Override
+    @PostMapping("/{paymentId}/complete")
+    @RequiredInternal
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
+    public ResponseEntity<ApiResponse<CreatePaymentRes>> completePayment(
+            @PathVariable UUID paymentId,
+            @Valid @RequestBody CompletePaymentReq req
+    ) {
+        CreatePaymentRes detail = paymentService.completePayment(req.toCommand(paymentId, CurrentUser.getLoginId()));
+
+        return ResponseEntity
+                .ok(ApiResponse.success(detail, "결제가 완료되었습니다."));
     }
 
     @Override

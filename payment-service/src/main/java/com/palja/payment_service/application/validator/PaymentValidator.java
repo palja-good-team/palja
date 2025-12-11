@@ -30,11 +30,10 @@ public class PaymentValidator {
         validateUserForPayment(user);
     }
 
+    //currency, paymentMethod 제거
     private void validateCreatePaymentCommand(CreatePaymentCommand command) {
         validateOrderId(command.orderId());
         validateAmount(command.amount());
-        validateCurrency(command.currency());
-        validatePaymentMethod(command.paymentMethod());
         validateOrderStatus(command.orderStatus());
     }
 
@@ -50,18 +49,6 @@ public class PaymentValidator {
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-    }
-
-    private void validateCurrency(String currency) {
-        if (currency == null || currency.isBlank()) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-    }
-
-    private void validatePaymentMethod(String paymentMethod) {
-        if (paymentMethod == null || paymentMethod.isBlank()) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_METHOD);
         }
     }
 
@@ -88,13 +75,25 @@ public class PaymentValidator {
     }
 
     private void validateOrderStatusForPayment(OrderRes order, String requestedOrderStatus) {
-        if (!order.getStatus().equals(requestedOrderStatus)) {
-            log.warn("주문 상태 불일치: 요청된 상태={}, 실제 주문 상태={}, orderId={}",
-                    requestedOrderStatus, order.getStatus(), order.getOrderId());
+        String orderStatus = order.getStatus();
+
+        if (orderStatus == null || orderStatus.isBlank()) {
+            log.error("주문 상태가 null이거나 비어있습니다: orderId={}", order.getOrderId());
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
-        if (!"CREATED".equals(order.getStatus())) {
+
+        if (!"CREATED".equalsIgnoreCase(orderStatus)) {
+            log.warn("결제 가능한 주문 상태가 아닙니다: orderId={}, orderStatus={}, requiredStatus=CREATED",
+                    order.getOrderId(), orderStatus);
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+
+        if (requestedOrderStatus != null && !requestedOrderStatus.isBlank()) {
+            if (!"CREATED".equalsIgnoreCase(requestedOrderStatus)) {
+                log.warn("요청된 주문 상태가 CREATED가 아닙니다: orderId={}, requestedOrderStatus={}",
+                        order.getOrderId(), requestedOrderStatus);
+                throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            }
         }
     }
 
