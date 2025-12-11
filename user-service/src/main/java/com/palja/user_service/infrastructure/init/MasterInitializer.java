@@ -1,15 +1,13 @@
 package com.palja.user_service.infrastructure.init;
 
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.domain.entity.User;
 import com.palja.user_service.domain.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
