@@ -171,7 +171,8 @@ public class TimeDeal extends BaseEntity {
         }
     }
 
-    public void softDeleteTimeDeal() {
+    @Override
+    public void softDelete() {
         super.softDelete();
         timeDealStock.softDelete();
         statusHistories.forEach(TimeDealStatusHistory::softDelete);

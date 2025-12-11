@@ -144,7 +144,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         long restoreQuantity = timeDeal.getRestoreQuantityOnDelete();
 
-        timeDeal.softDeleteTimeDeal();
+        timeDeal.softDelete();
 
         productClient.restoreStock(timeDeal.getProductId(), restoreQuantity);
 

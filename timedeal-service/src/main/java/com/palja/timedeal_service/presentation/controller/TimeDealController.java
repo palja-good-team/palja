@@ -103,7 +103,7 @@ public class TimeDealController {
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상태 변경에 성공했습니다."));
     }
 
-    @DeleteMapping("{timeDealId}")
+    @DeleteMapping("/{timeDealId}")
     public ResponseEntity<Void> deleteTimeDeal(@PathVariable UUID timeDealId) {
         log.info("DELETE api/v1/time-deals/{} 타임딜 삭제 요청", timeDealId);
 
