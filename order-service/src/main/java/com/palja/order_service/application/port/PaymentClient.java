@@ -1,13 +1,13 @@
-package com.palja.order_service.application.service;
+package com.palja.order_service.application.port;
 
 import com.palja.order_service.application.dto.PaymentMethod;
-import com.palja.order_service.application.dto.response.PaymentCancelRes;
-import com.palja.order_service.application.dto.response.PaymentCreateRes;
+import com.palja.order_service.application.dto.external.PaymentCancelRes;
+import com.palja.order_service.application.dto.external.PaymentCreateRes;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public interface PaymentService {
+public interface PaymentClient {
 
     PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentKey, PaymentMethod paymentMethod);
 

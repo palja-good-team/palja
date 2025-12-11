@@ -1,6 +1,6 @@
 package com.palja.order_service.infrastructure.external.dto.response;
 
-import com.palja.order_service.application.dto.response.PaymentCreateRes;
+import com.palja.order_service.application.dto.external.PaymentCreateRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

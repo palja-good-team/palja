@@ -6,7 +6,7 @@ import java.util.UUID;
 
 // 주문 상태 변경 Command
 @Builder
-public record ChangeOrderStatusCommand(
+public record OrderStatusChangeCommand(
         UUID orderId,
         String managerLoginId,
         String status,

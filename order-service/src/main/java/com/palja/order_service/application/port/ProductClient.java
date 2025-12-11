@@ -1,11 +1,11 @@
-package com.palja.order_service.application.service;
+package com.palja.order_service.application.port;
 
-import com.palja.order_service.application.dto.response.ProductRes;
+import com.palja.order_service.application.dto.external.ProductRes;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface ProductService {
+public interface ProductClient {
 
     // 상품 정보 조회
     ProductRes getProduct(UUID productId);
