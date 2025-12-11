@@ -1,13 +1,13 @@
-package com.palja.user_service.presentation.util;
+package com.palja.user_service.presentation.aop;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
+import com.palja.common.auditor.AuditorContext;
+import com.palja.common.auditor.CurrentUser;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Aspect
@@ -17,9 +17,7 @@ public class LoggingAspect {
 
 	@Around("@within(org.springframework.web.bind.annotation.RestController)")
 	public Object around(ProceedingJoinPoint pjp) throws Throwable {
-		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
-		String loginId = request.getHeader("X-USER-LOGIN-ID");
-		if (loginId == null) loginId = "ANONYMOUS";
+		String loginId = AuditorContext.get() != null ? CurrentUser.getLoginId() : "ANONYMOUS";
 
 		String className = pjp.getSignature().getDeclaringType().getSimpleName();
 		String methodName = pjp.getSignature().getName();
