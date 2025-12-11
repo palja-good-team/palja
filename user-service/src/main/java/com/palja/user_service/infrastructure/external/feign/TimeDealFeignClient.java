@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.palja.common.response.ApiResponse;
 
-@FeignClient(name = "product-service", path = "/api/v1/products")
-public interface ProductClient {
+@FeignClient(name = "timedeal-service", path = "/api/v1/time-deals")
+public interface TimeDealFeignClient {
 
 	// TODO: 고도화 때 이벤트 기반 비동기 호출로 변경
-	@DeleteMapping("/user/{companyUserId}")
-	ApiResponse<Void> deleteAllProducts(@PathVariable("companyUserId") UUID companyUserId);
+	@DeleteMapping("/{companyUserId}")
+	ApiResponse<Void> deleteAllTimeDeals(@PathVariable("companyUserId") UUID companyUserId);
 
 }
