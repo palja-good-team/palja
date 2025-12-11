@@ -1,11 +1,11 @@
 package com.palja.order_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.dto.PaymentMethod;
 import com.palja.order_service.application.dto.external.PaymentCancelRes;
 import com.palja.order_service.application.dto.external.PaymentCreateRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.PaymentClient;
+import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.infrastructure.external.PaymentFeignClient;
 import com.palja.order_service.infrastructure.external.dto.request.CancelPaymentDTO;
 import com.palja.order_service.infrastructure.external.dto.request.CreatePaymentDTO;
@@ -27,11 +27,11 @@ public class PaymentAdapter implements PaymentClient {
     private final PaymentFeignClient paymentFeignClient;
 
     @Override
-    public PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, String paymentKey, PaymentMethod paymentMethod) {
-        log.debug("결제 생성 요청: orderId={}, userId={}, amount={}, paymentMethod={}",
-                orderId, userId, amount, paymentMethod);
+    public PaymentCreateRes createPayment(UUID orderId, Long userId, BigDecimal amount, OrderStatus orderStatus) {
+        log.debug("결제 생성 요청: orderId={}, userId={}, amount={}, orderStatus={}",
+                orderId, userId, amount, orderStatus);
         try {
-            CreatePaymentDTO request = new CreatePaymentDTO(orderId, amount, paymentMethod, "KRW", paymentKey);
+            CreatePaymentDTO request = new CreatePaymentDTO(orderId, userId, amount, orderStatus);
             PaymentCreateDTO dto = paymentFeignClient.createPayment(request).data();
             log.info("결제 생성 성공: paymentId={}", dto.getPaymentId());
             return dto.toResponse();

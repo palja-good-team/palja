@@ -79,6 +79,7 @@ public enum OrderErrorCode implements ErrorCode {
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "결제 시간이 초과되었습니다."),
     INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 수단입니다."),
     INVALID_PAYMENT_KEY(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 키입니다."),
+    PAYMENT_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결제 생성에 실패했습니다."),
 
     // ===== 권한 관련 =====
     USER_NOT_ALLOWED(HttpStatus.FORBIDDEN, "접근 권한이 없는 사용자입니다."),
