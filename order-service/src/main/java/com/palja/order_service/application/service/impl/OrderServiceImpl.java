@@ -83,8 +83,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("주문 엔티티 저장 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
 
         // TODO: Kafka Event 발행으로 전환
-        // 이벤트 발행 (트랜잭션 커밋 후 실행)
-        publishOrderCreatedEvent(order);
+        processOrderCreationExternalEvents(order, context);
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
                 order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
@@ -211,14 +210,82 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
+    // 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
+    private void processOrderCreationExternalEvents(Order order, OrderCreationContext context) {
+        // TODO: 이벤트 발행으로 대체
+        reserveInventory(order, context.timeDeal());
+        applyCoupon(order.getCouponUserId(), order.getOrderId(), order.getOrderAmount().getCouponDiscountAmount());
+        createPaymentAndRegister(order, context.userId());
+    }
+
     /**
-     * 주문 생성 이벤트 발행
-     * - 트랜잭션이 커밋된 후 리스너가 실행됨
+     * 재고 차감
+     * - 타임딜 주문: 타임딜 재고만 차감
+     * - 일반 주문: 상품 재고만 차감
      */
-    private void publishOrderCreatedEvent(Order order) {
-        OrderCreatedEvent event = OrderCreatedEvent.from(order);
-        eventPublisher.publishEvent(event);
-        log.debug("주문 생성 이벤트 발행 완료: orderId={}", order.getOrderId());
+    // TODO: 이벤트 기반 처리
+    private void reserveInventory(Order order, Optional<TimeDealRes> timeDeal) {
+        UUID productId = order.getOrderItem().getProductId();
+        int quantity = order.getOrderItem().getQuantity();
+
+        try {
+            if (timeDeal.isPresent()) {
+                TimeDealRes deal = timeDeal.get();
+                timeDealClient.deductTimeDealStock(deal.getTimeDealId(), (long) quantity);
+                log.info("타임딜 재고 차감 완료: timeDealId={}, quantity={}",
+                        deal.getTimeDealId(), quantity);
+            } else {
+                productClient.deductProductStock(productId, quantity);
+                log.info("상품 재고 차감 완료: productId={}, quantity={}", productId, quantity);
+            }
+        } catch (Exception e) {
+            log.error("재고 차감 실패: orderId={}, productId={}, isTimeDeal={}",
+                    order.getOrderId(), productId, timeDeal.isPresent(), e);
+            // TODO: 보상 트랜잭션 처리
+            throw new BusinessException(OrderErrorCode.INVENTORY_DEDUCTION_FAILED);
+        }
+    }
+
+    // 쿠폰 사용
+    // TODO: 이벤트 기반 처리
+    private void applyCoupon(UUID couponUserId, UUID orderId, BigDecimal couponDiscountAmount) {
+        if (couponUserId == null) {
+            return;
+        }
+
+        try {
+            couponClient.useCoupon(couponUserId, orderId, couponDiscountAmount);
+            log.info("쿠폰 사용 완료: couponUserId={}, orderId={}", couponUserId, orderId);
+        } catch (Exception e) {
+            log.error("쿠폰 사용 실패: orderId={}, couponUserId={}", orderId, couponUserId, e);
+            // TODO: 보상 트랜잭션 처리 (재고 복구)
+            throw new BusinessException(OrderErrorCode.COUPON_APPLICATION_FAILED);
+        }
+    }
+
+    /**
+     * 결제 생성 (결제 완료 아님)
+     * - 결제 엔티티만 생성
+     * - 주문 상태는 CREATED 유지
+     * - 결제 Id 저장
+     * - 결제 완료는 별도 API를 통해 처리
+     */
+    // TODO: 이벤트 기반 처리
+    private void createPaymentAndRegister(Order order, Long userId) {
+        try {
+            PaymentCreateRes payment = paymentClient.createPayment(
+                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
+            );
+
+            order.registerPaymentId(payment.getPaymentId());
+            log.info("결제 생성 완료: orderId={}, paymentId={}, amount={}, orderStatus={}",
+                    order.getOrderId(), payment.getPaymentId(), payment.getAmount(), order.getStatus());
+        } catch (Exception e) {
+            log.error("결제 생성 실패: orderId={}, amount={}",
+                    order.getOrderId(), order.getOrderAmount().getFinalAmount(), e);
+            // TODO: 보상 트랜잭션 처리 (재고 복구, 쿠폰 복구)
+            throw new BusinessException(OrderErrorCode.PAYMENT_CREATION_FAILED);
+        }
     }
 
     // 결제 실행
