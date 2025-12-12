@@ -85,6 +85,9 @@ public enum OrderErrorCode implements ErrorCode {
     USER_NOT_ALLOWED(HttpStatus.FORBIDDEN, "접근 권한이 없는 사용자입니다."),
     ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "주문에 접근할 권한이 없습니다."),
     ORDER_MODIFICATION_DENIED(HttpStatus.FORBIDDEN, "주문을 수정할 권한이 없습니다."),
+    USER_NOT_ACTIVE(HttpStatus.FORBIDDEN, "비활성 상태의 사용자입니다."),
+    ORDER_CREATION_NOT_ALLOWED_FOR_COMPANY_USER(HttpStatus.FORBIDDEN, "판매업체 사용자는 주문을 생성할 수 없습니다."),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 권한입니다."),
 
     // ===== 외부 서비스 연동 오류 =====
     PRODUCT_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "상품 서비스 연동 중 오류가 발생했습니다."),

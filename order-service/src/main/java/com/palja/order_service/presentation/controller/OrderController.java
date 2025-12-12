@@ -37,10 +37,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderCreateRes>> createOrder(
             @Valid @RequestBody CreateOrderReq request
         ) {
-
-        // Request → Command 변환
-        OrderCreateRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId()));
-
+        OrderCreateRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId(), CurrentUser.getRole()));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "주문이 생성되었습니다."));

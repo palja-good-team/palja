@@ -66,10 +66,10 @@ public class UserAdapter implements UserClient {
 
     @Override
     public ManagerUserRes getMyManager(String loginId) {
-        log.debug("MANAGER 사용자 조회 요청: loginId={}", loginId);
+        log.debug("매니저 사용자 조회 요청: loginId={}", loginId);
         try {
             ManagerUserDTO dto = userFeignClient.getMyManager().data();
-            log.info("MANAGER 사용자 조회 성공: userId={}", dto.getUserId());
+            log.info("매니저 사용자 조회 성공: userId={}", dto.getUserId());
             return dto.toResponse();
         } catch (FeignException.NotFound e) {
             log.error("사용자 정보 없음: loginId={}", loginId, e);
@@ -79,7 +79,7 @@ public class UserAdapter implements UserClient {
                     loginId, e.status(), e.getMessage(), e);
             throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         } catch (Exception e) {
-            log.error("MANAGER 사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
+            log.error("매니저 사용자 조회 중 예상치 못한 오류: loginId={}, error={}",
                     loginId, e.getClass().getName(), e);
             throw new BusinessException(OrderErrorCode.USER_SERVICE_UNAVAILABLE);
         }

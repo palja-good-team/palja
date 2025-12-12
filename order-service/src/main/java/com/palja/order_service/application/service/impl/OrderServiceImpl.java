@@ -83,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("주문 엔티티 저장 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
 
         // TODO: Kafka Event 발행으로 전환
+        // 이벤트 발행 (트랜잭션 커밋 후 실행)
         publishOrderCreatedEvent(order);
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
@@ -93,9 +94,9 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 생성에 필요한 데이터 수집 및 검증
     private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
-        CustomerUserRes customer = userClient.getMyCustomer(command.loginId());
-        orderValidator.validateCustomerForOrder(customer);
-        log.debug("고객 검증 완료: userId={}", customer.getUserId());
+        // 사용자 정보 조회 및 검증 (권한에 따라 다른 API 호출)
+        Long userId = resolveAndValidateUserId(command.loginId(), command.userRole());
+        log.debug("사용자 검증 완료: userId={}, userRole={}", userId, command.userRole());
 
         ProductRes product = productClient.getProduct(command.productId());
         orderValidator.validateProductForOrder(product, command.quantity());
@@ -120,12 +121,40 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return new OrderCreationContext(
-                customer,
+                userId,
                 product,
                 timeDeal,
                 coupon,
                 command.quantity()
         );
+    }
+
+    /**
+     * 사용자 ID 조회 및 검증
+     * - CUSTOMER: 고객 정보 조회 및 검증
+     * - MANAGER: 매니저 정보 조회 및 검증
+     * - COMPANY_USER: 주문 생성 불가
+     */
+    private Long resolveAndValidateUserId(String loginId, UserRole userRole) {
+        switch (userRole) {
+            case CUSTOMER:
+                CustomerUserRes customer = userClient.getMyCustomer(loginId);
+                orderValidator.validateCustomerForOrder(customer);
+                return customer.getUserId();
+
+            case MANAGER:
+                ManagerUserRes manager = userClient.getMyManager(loginId);
+                orderValidator.validateManagerForOrder(manager);
+                return manager.getUserId();
+
+            case COMPANY_USER:
+                throw new BusinessException(
+                        OrderErrorCode.ORDER_CREATION_NOT_ALLOWED_FOR_COMPANY_USER
+                );
+
+            default:
+                throw new BusinessException(OrderErrorCode.INVALID_USER_ROLE);
+        }
     }
 
     // 주문 금액 계산
@@ -167,7 +196,7 @@ public class OrderServiceImpl implements OrderService {
         Recipient recipient = createRecipient(command);
 
         return Order.create(
-                context.customer().getUserId(),
+                context.userId(),
                 command.productId(),
                 context.product().getProductName(),
                 context.product().getPrice(),
@@ -475,7 +504,7 @@ public class OrderServiceImpl implements OrderService {
     // ===== Internal Context Objects =====
     // 주문 생성 컨텍스트
     private record OrderCreationContext(
-            CustomerUserRes customer,
+            Long userId,
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
             Optional<CouponUserRes> coupon,

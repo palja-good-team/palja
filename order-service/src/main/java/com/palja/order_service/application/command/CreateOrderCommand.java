@@ -1,5 +1,6 @@
 package com.palja.order_service.application.command;
 
+import com.palja.common.vo.UserRole;
 import lombok.Builder;
 
 import java.util.UUID;
@@ -9,6 +10,7 @@ import java.util.UUID;
 @Builder
 public record CreateOrderCommand(
         String loginId,
+        UserRole userRole,
         UUID productId,
         int quantity,
         UUID timeDealId,
