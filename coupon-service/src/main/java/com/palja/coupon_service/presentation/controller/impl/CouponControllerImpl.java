@@ -104,6 +104,16 @@ public class CouponControllerImpl implements CouponController {
     }
 
     @Override
+    @DeleteMapping("/me/all")
+    public ResponseEntity<ApiResponse<DeleteAllCouponUserRes>> deleteAllCoupons() {
+        log.info("DELETE /api/v1/coupons/me/all - 전체 쿠폰 삭제 요청 userId={}", CurrentUser.getLoginId());
+
+        DeleteAllCouponUserRes response = couponService.deleteAllCoupons(CurrentUser.getLoginId());
+
+        return ResponseEntity.ok(ApiResponse.success(response, "모든 쿠폰이 삭제되었습니다."));
+    }
+
+    @Override
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<PageResponse<ReadCouponUserRes>>> getCouponList(Pageable pageable) {
         log.info("GET /api/v1/coupons/me - 사용자 쿠폰 목록 조회 요청 userId={}", CurrentUser.getLoginId());

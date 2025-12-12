@@ -22,6 +22,8 @@ public interface CouponService {
 
     DeleteCouponUserRes deleteCoupon(UUID couponUserId, String loginId);
 
+    DeleteAllCouponUserRes deleteAllCoupons(String loginId);
+
     Page<ReadCouponUserRes> getCouponList(String userId, Pageable pageable);
 
     ReadCouponUserDetailRes getCouponDetail(UUID couponUserId, String userId);

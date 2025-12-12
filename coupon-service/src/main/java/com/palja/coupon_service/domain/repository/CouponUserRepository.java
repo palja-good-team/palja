@@ -4,6 +4,7 @@ import com.palja.coupon_service.domain.entity.CouponUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,4 +17,6 @@ public interface CouponUserRepository {
     Page<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId, Pageable pageable);
 
     Optional<CouponUser> findByIdAndUserIdAndDeletedAtIsNull(UUID couponUserId, String userId);
+
+    List<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId);
 }

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -159,15 +160,34 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public DeleteCouponUserRes deleteCoupon(UUID couponUserId, String userId) {
-        log.info("쿠폰 삭제 시작 - couponId={} status={}", couponUserId, userId);
+        log.info("쿠폰 삭제 시작 - couponId={} userId={}", couponUserId, userId);
 
         CouponUser couponUser = couponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId)
                 .orElseThrow(() -> new BusinessException(CouponErrorCode.USER_COUPON_NOT_FOUND));
 
         couponUser.softDelete();
 
-        log.info("쿠폰 삭제 완료 - couponId={} status={}", couponUserId, userId);
+        log.info("쿠폰 삭제 완료 - couponId={} userId={}", couponUserId, userId);
         return DeleteCouponUserRes.from(couponUser);
+    }
+
+    @Override
+    @Transactional
+    public DeleteAllCouponUserRes deleteAllCoupons(String userId) {
+        log.info("쿠폰 전체 삭제 시작 - userId={}", userId);
+
+        List<CouponUser> couponUsers = couponUserRepository.findAllByUserIdAndDeletedAtIsNull(userId);
+
+        List<UUID> deletedCouponUserIds = couponUsers.stream()
+                .map(CouponUser::getId)
+                .toList();
+
+        couponUsers.forEach(CouponUser::softDelete);
+
+        int deleteCount = deletedCouponUserIds.size();
+
+        log.info("쿠폰 전체 삭제 완료 - userId={}", userId);
+        return DeleteAllCouponUserRes.from(deletedCouponUserIds, deleteCount);
     }
 
     @Override

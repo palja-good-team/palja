@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,4 +28,6 @@ public interface JpaCouponUserRepository extends JpaRepository<CouponUser, UUID>
             "AND cu.deletedAt IS NULL " +
             "ORDER BY cu.expireAt")
     Optional<CouponUser> findByIdAndUserIdAndDeletedAtIsNull(UUID couponUserId, String userId);
+
+    List<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId);
 }
