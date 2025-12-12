@@ -57,7 +57,7 @@ public class CouponUser extends BaseEntity {
         this.orderId = orderId;
         this.discountAmount = discountAmount;
         this.usedAt = LocalDateTime.now();
-        this.status = CouponUserStatus.USED;
+        this.status = CouponUserStatus.ISSUED;
     }
 
     public void cancel() {
