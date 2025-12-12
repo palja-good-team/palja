@@ -57,17 +57,17 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}",
                 command.orderId(), command.userId(), command.loginId(), command.orderStatus());
 
-        OrderRes order = orderClient.getOrderByOrderId(command.orderId());
-
-        if (command.userId() != null && !command.userId().equals(order.getUserId())) {
-            log.error("주문의 userId와 요청 userId가 일치하지 않음: orderUserId={}, requestUserId={}",
-                    order.getUserId(), command.userId());
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
+//        OrderRes order = orderClient.getOrderByOrderId(command.orderId());
+//
+//        if (command.userId() != null && !command.userId().equals(order.getUserId())) {
+//            log.error("주문의 userId와 요청 userId가 일치하지 않음: orderUserId={}, requestUserId={}",
+//                    order.getUserId(), command.userId());
+//            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
+//        }
 
         UserRes user = userClient.getUserByLoginId(command.loginId());
 
-        paymentValidator.validateCreatePayment(command, order, user);
+//        paymentValidator.validateCreatePayment(command, order, user);
 
         Payment payment = Payment.createPending(
                 command.orderId(),
