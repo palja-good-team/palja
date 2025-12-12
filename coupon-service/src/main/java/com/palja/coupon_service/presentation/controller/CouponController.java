@@ -29,6 +29,12 @@ public interface CouponController {
     ResponseEntity<ApiResponse<CreateCouponUserRes>> issueCoupon(@PathVariable UUID couponId);
 
     @Operation(
+            summary = "선착순 쿠폰 발급",
+            description = "사용자의 선착순 쿠폰을 발급합니다."
+    )
+    ResponseEntity<ApiResponse<CreateCouponUserRes>> issueFirstComeCoupon(@PathVariable UUID couponId);
+
+    @Operation(
             summary = "쿠폰 사용",
             description = "사용자의 쿠폰을 사용합니다."
     )

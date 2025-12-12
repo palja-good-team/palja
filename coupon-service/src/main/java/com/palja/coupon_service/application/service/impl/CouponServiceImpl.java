@@ -10,16 +10,19 @@ import com.palja.coupon_service.domain.entity.Coupon;
 import com.palja.coupon_service.domain.entity.CouponUser;
 import com.palja.coupon_service.domain.repository.CouponRepository;
 import com.palja.coupon_service.domain.repository.CouponUserRepository;
+import com.palja.coupon_service.domain.repository.RedisRepository;
 import com.palja.coupon_service.domain.vo.CouponUserStatus;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -28,6 +31,7 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final CouponUserRepository couponUserRepository;
+    private final RedisRepository redisRepository;
 
     @Override
     @Transactional
@@ -46,7 +50,66 @@ public class CouponServiceImpl implements CouponService {
         CouponUser issuedCoupon = couponUserRepository.save(couponUser);
 
         log.info("쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
-        return CreateCouponUserRes.from(couponUser);
+        return CreateCouponUserRes.from(issuedCoupon);
+    }
+
+    @Override
+    @Transactional
+    public CreateCouponUserRes issueFirstComeCoupon(IssueCouponCommand command) {
+        log.info("선착순 쿠폰 발급 시작 userId={} couponId={}", command.userId(), command.couponId());
+
+        Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(command.couponId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        validateFirstComeCouponIssue(coupon, command.userId());
+
+        String lockKey = redisRepository.getLockKey(coupon.getId());
+        RLock lock = redisRepository.getLock(lockKey);
+
+        try {
+            boolean locked = lock.tryLock(1, 3, TimeUnit.SECONDS);
+            if (!locked)
+                throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
+
+            // Redis 쿠폰 발급 카운트 초기화
+            redisRepository.initIssuedCount(coupon.getId(), coupon.getIssuedQuantity());
+
+            if (redisRepository.isDuplicated(coupon.getId(), command.userId()))
+                throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_ISSUE);
+
+            Long issuedCount = redisRepository.increaseIssuedQuantity(coupon.getId());
+
+            // 쿠폰 최대 발행 수 검증 (null일 시 무제한)
+            if (coupon.getTotalQuantity() != null && issuedCount > coupon.getTotalQuantity()) {
+                redisRepository.decreaseIssuedQuantity(coupon.getId());
+                throw new BusinessException(CouponErrorCode.COUPON_EXHAUSTED);
+            }
+
+            redisRepository.issued(coupon.getId(), command.userId());
+
+            coupon.increaseIssuedQuantity();
+
+            CouponUser couponUser = CouponUser.issue(coupon, command.userId());
+
+            CouponUser issuedCoupon = couponUserRepository.save(couponUser);
+
+            log.info("선착순 쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
+            return CreateCouponUserRes.from(issuedCoupon);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
+        } catch (BusinessException e) {
+            log.error("선착순 쿠폰 발급 실패 userId={} couponId={}", command.userId(), command.couponId());
+            redisRepository.rollbackQuantity(coupon.getId(), command.userId());
+            throw e;
+        } catch (Exception e) {
+            log.error("선착순 쿠폰 발급 중 예상치 못한 오류 userId={} couponId={}", command.userId(), command.couponId());
+            redisRepository.rollbackQuantity(coupon.getId(), command.userId());
+            throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
+        } finally {
+            if (lock.isHeldByCurrentThread())
+                lock.unlock();
+        }
     }
 
     @Override
@@ -129,11 +192,21 @@ public class CouponServiceImpl implements CouponService {
     // 쿠폰 발급 검증
     private void validateCouponIssue(Coupon coupon, String userId) {
 
+        // 쿠폰 발급 가능 상태 검증
         coupon.validateIssuable();
 
+        // 쿠폰 발행 기간 검증
         coupon.validateIssuePeriod();
 
         if (couponUserRepository.existsByCoupon_IdAndUserIdAndDeletedAtIsNull(coupon.getId(), userId))
             throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_ISSUE);
+    }
+
+    private void validateFirstComeCouponIssue(Coupon coupon, String userId) {
+        // 쿠폰 발급 가능 상태 검증
+        coupon.validateIssuable();
+
+        // 쿠폰 발행 기간 검증
+        coupon.validateIssuePeriod();
     }
 }

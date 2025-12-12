@@ -28,6 +28,7 @@ public enum CouponErrorCode implements ErrorCode {
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "쿠폰 발급 기간이 만료되었습니다."),
     COUPON_NOT_STARTED(HttpStatus.BAD_REQUEST, "쿠폰 발급 시작 전입니다."),
     DUPLICATE_COUPON_ISSUE(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
+    COUPON_ISSUE_LOCK_FAILED(HttpStatus.BAD_REQUEST, "쿠폰 발급 처리가 중단되었습니다."),
 
     // 쿠폰 사용 관련
     USER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."),

@@ -44,6 +44,18 @@ public class CouponControllerImpl implements CouponController {
     }
 
     @Override
+    @PostMapping("/{couponId}/first-come")
+    public ResponseEntity<ApiResponse<CreateCouponUserRes>> issueFirstComeCoupon(@PathVariable UUID couponId) {
+        log.info("POST /api/v1/coupons/{} - 선착순 쿠폰 발급 요청 userId={}", couponId, CurrentUser.getLoginId());
+
+        IssueCouponCommand command = new IssueCouponCommand(couponId, CurrentUser.getLoginId());
+
+        CreateCouponUserRes response = couponService.issueFirstComeCoupon(command);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "선착순 쿠폰이 발급되었습니다."));
+    }
+
+    @Override
     @RequiredInternal
     @PostMapping("/{couponUserId}/use")
     public ResponseEntity<ApiResponse<UsedCouponUserRes>> useCoupon(@PathVariable UUID couponUserId,

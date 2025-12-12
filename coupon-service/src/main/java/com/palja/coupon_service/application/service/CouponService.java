@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface CouponService {
     CreateCouponUserRes issueCoupon(IssueCouponCommand command);
 
+    CreateCouponUserRes issueFirstComeCoupon(IssueCouponCommand command);
+
     UsedCouponUserRes useCoupon(UseCouponCommand command);
 
     CancelCouponUserRes cancelCoupon(UUID couponUserId, String userId);
