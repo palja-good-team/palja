@@ -147,4 +147,15 @@ public class TimeDealController {
         log.info("타임딜 남은 재고 복구 완료");
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/company-users/{companyUserId}")
+    @RequiredInternal
+    public ResponseEntity<Void> deleteByCompanyUser(@PathVariable UUID companyUserId) {
+        log.info("DELETE api/v1/time-deals/{} 업체 판매자 관련 타임딜 삭제 요청", companyUserId);
+
+        timeDealService.deleteByCompanyUser(companyUserId);
+
+        log.info("업체 판매자 관련 타임딜 삭제 완료");
+        return ResponseEntity.noContent().build();
+    }
 }
