@@ -1,6 +1,6 @@
 package com.palja.product_service.domain.repository;
 
-public interface RedisRepository {
+public interface RedisProductRepository {
 
     boolean decreaseStockBySale(String key, String productId, Integer stock, Integer quantity);
 

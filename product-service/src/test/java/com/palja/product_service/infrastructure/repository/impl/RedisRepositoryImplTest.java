@@ -45,7 +45,7 @@ class RedisRepositoryImplTest {
     }
 
     @Autowired
-    private RedisRepositoryImpl redisRepository;
+    private RedisProductRepositoryImpl redisRepository;
 
     @Autowired
     private RedissonClient redissonClient;

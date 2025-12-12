@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -66,22 +65,19 @@ public class Product extends BaseEntity {
 
     public Product updateInfo(String name, String description, Long price, String category) {
 
-        if (Objects.nonNull(name)) {
-            if(name.length() <= 30) this.name = name;
-            else throw new BusinessException(ProductErrorCode.NAME_TOO_LONG);
-        }
 
-        if(Objects.nonNull(description))
-            this.description = description;
+        if(name.length() > 30) throw new BusinessException(ProductErrorCode.NAME_TOO_LONG);
+        this.name = name;
 
-        this.price = Objects.nonNull(price) ? Money.of(price) : this.price;
-        this.category = Objects.nonNull(category) ? Category.fromString(category) : this.category;
+        this.description = description;
+        this.price = Money.of(price);
+        this.category = Category.fromString(category);
 
         return this;
     }
 
     public Product updateStock(Integer stock) {
-        if(Objects.isNull(stock) || stock < 0)
+        if(stock < 0)
             throw new BusinessException(ProductErrorCode.INVALID_STOCK);
 
         this.productStock.updateQuantity(stock);

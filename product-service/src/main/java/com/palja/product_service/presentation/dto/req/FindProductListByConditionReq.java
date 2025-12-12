@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
@@ -34,11 +33,11 @@ public class FindProductListByConditionReq {
     public FindProductListByConditionCommand toCommand(){
         return new FindProductListByConditionCommand(
                 this.name,
-                Objects.isNull(minPrice) ? 0L : minPrice,
-                Objects.isNull(maxPrice) ? Integer.MAX_VALUE : maxPrice,
+                minPrice,
+                maxPrice,
                 this.category,
-                Objects.isNull(minRating) ? BigDecimal.ZERO : minRating,
-                Objects.isNull(maxRating) ? BigDecimal.valueOf(5.0) : maxRating
+                minRating,
+                maxRating
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.palja.product_service.presentation.controller.Impl;
 
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
@@ -56,6 +57,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(PageResponse.from(res), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @GetMapping("/time-deal/{productId}")
     public ResponseEntity<ApiResponse<ProductInfoForTimeDealRes>> provideProductInfoToTimeDeal(@PathVariable UUID productId) {
 
@@ -64,6 +66,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 정보 조회 성공"), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @GetMapping("/order/{productId}")
     public ResponseEntity<ApiResponse<ProductInfoForOrderRes>> provideProductInfoToOrder(@PathVariable UUID productId) {
 
@@ -93,6 +96,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @PutMapping("/order/sale/{productId}")
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
                                                                    @RequestParam Integer quantity) {
@@ -103,6 +107,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "판매 재고 차감 성공"), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @PutMapping("/order/cancel/{productId}")
     public ResponseEntity<ApiResponse<RestoreStockRes>> restoreStockByCancel(@PathVariable UUID productId,
                                                                              @RequestParam Integer quantity) {
@@ -113,18 +118,20 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "취소 수량 복구 성공"), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @PutMapping("/time-deal/decrease/{productId}")
     public ResponseEntity<ApiResponse<DecreaseStockForTimeDealRes>> decreaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                   @RequestParam Integer quantity) {
+                                                                                             @RequestParam Integer quantity) {
 
         DecreaseStockForTimeDealRes res = service.decreaseStockForTimeDeal(productId, quantity);
 
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 차감 성공"), HttpStatus.OK);
     }
 
+    @RequiredInternal
     @PutMapping("/time-deal/increase/{productId}")
     public ResponseEntity<ApiResponse<IncreaseStockForTimeDealRes>> increaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                   @RequestParam Integer quantity) {
+                                                                                             @RequestParam Integer quantity) {
 
         IncreaseStockForTimeDealRes res = service.increaseStockForTimeDeal(productId, quantity);
 

@@ -1,4 +1,4 @@
-package com.palja.product_service.infrastructure.external.adaptor;
+package com.palja.product_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UserServiceAdaptor implements UserClient {
+public class UserClientAdapter implements UserClient {
 
     private final UserFeignClient userFeignClient;
 

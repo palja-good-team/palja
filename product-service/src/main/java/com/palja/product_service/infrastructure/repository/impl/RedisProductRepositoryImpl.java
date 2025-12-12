@@ -1,9 +1,6 @@
 package com.palja.product_service.infrastructure.repository.impl;
 
-import com.palja.common.exception.BusinessException;
-import com.palja.product_service.domain.repository.RedisRepository;
-import com.palja.product_service.exception.ProductErrorCode;
-import lombok.AllArgsConstructor;
+import com.palja.product_service.domain.repository.RedisProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
-public class RedisRepositoryImpl implements RedisRepository {
+public class RedisProductRepositoryImpl implements RedisProductRepository {
 
     private final RedissonClient redissonClient;
 
@@ -98,20 +95,27 @@ public class RedisRepositoryImpl implements RedisRepository {
     public boolean deleteProductStock(String hashKey, String productId) {
 
         RLock lock = redissonClient.getLock(productId);
-
+        RTransaction transaction = null;
         try {
             //락을 10초동안 얻지 못한다면 실패 반환
             if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
                 return false;
             }
 
-            RMap<String, Integer> map = redissonClient.getMap(hashKey);
+            transaction = redissonClient.createTransaction(
+                    TransactionOptions.defaults().timeout(10, TimeUnit.SECONDS));
+
+            RMap<String, Integer> map = transaction.getMap(hashKey);
             RScoredSortedSet<String> set = redissonClient.getScoredSortedSet(hashKey+timeSuffix);
 
             map.fastRemove(productId);
             set.remove(productId);
 
-        } catch (InterruptedException e) {
+            transaction.commit();
+
+        } catch (Exception e) {
+            if(Objects.nonNull(transaction))
+                transaction.rollback();
             return false;
         } finally {
             lock.unlock();
