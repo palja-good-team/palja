@@ -6,10 +6,7 @@ import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponUserStatus;
-import com.palja.order_service.application.dto.external.CouponUserRes;
-import com.palja.order_service.application.dto.external.CustomerUserRes;
-import com.palja.order_service.application.dto.external.ProductRes;
-import com.palja.order_service.application.dto.external.TimeDealRes;
+import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.UserClient;
 import com.palja.order_service.domain.entity.Order;
@@ -135,13 +132,46 @@ public class OrderValidator {
     }
     private void validateCustomerStatus(CustomerUserRes customer) {
         if (!"ACTIVE".equals(customer.getStatus())) {
-            throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
+            throw new BusinessException(OrderErrorCode.USER_NOT_ACTIVE);
         }
     }
 
     private void validateCustomerRole(CustomerUserRes customer) {
         if (UserRole.COMPANY_USER.equals(customer.getRole())) {
             throw new BusinessException(OrderErrorCode.USER_NOT_ALLOWED);
+        }
+    }
+
+// ===== Manager Validation (매니저 검증) =====
+    /**
+     * 주문 가능한 매니저인지 검증
+     */
+    public void validateManagerForOrder(ManagerUserRes manager) {
+        log.debug("매니저 검증 시작: userId={}, status={}, role={}",
+                manager.getUserId(), manager.getStatus(), manager.getRole());
+
+        validateManagerNotNull(manager);
+        validateManagerStatus(manager);
+        validateManagerRole(manager);
+
+        log.debug("매니저 검증 완료: userId={}", manager.getUserId());
+    }
+
+    private void validateManagerNotNull(ManagerUserRes manager) {
+        if (manager == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_USER_ID);
+        }
+    }
+
+    private void validateManagerStatus(ManagerUserRes manager) {
+        if (!"ACTIVE".equals(manager.getStatus())) {
+            throw new BusinessException(OrderErrorCode.USER_NOT_ACTIVE);
+        }
+    }
+
+    private void validateManagerRole(ManagerUserRes manager) {
+        if (!UserRole.MANAGER.equals(manager.getRole())) {
+            throw new BusinessException(OrderErrorCode.INVALID_USER_ROLE);
         }
     }
 

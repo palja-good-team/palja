@@ -1,9 +1,9 @@
 package com.palja.order_service.presentation.dto.request;
 
+import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,9 +33,10 @@ public class CreateOrderReq {
     private DeliveryReq delivery;
 
     // Request → Command 변환
-    public CreateOrderCommand toCommand(String loginId) {
+    public CreateOrderCommand toCommand(String loginId, UserRole userRole) {
         return CreateOrderCommand.builder()
                 .loginId(loginId)
+                .userRole(userRole)
                 .productId(productId)
                 .quantity(quantity)
                 .timeDealId(timeDealId)
