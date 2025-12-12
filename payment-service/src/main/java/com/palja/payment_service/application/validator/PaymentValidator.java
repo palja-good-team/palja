@@ -30,7 +30,6 @@ public class PaymentValidator {
         validateUserForPayment(user);
     }
 
-    //currency, paymentMethod 제거
     private void validateCreatePaymentCommand(CreatePaymentCommand command) {
         validateOrderId(command.orderId());
         validateAmount(command.amount());
@@ -109,13 +108,6 @@ public class PaymentValidator {
         if (paymentAmount == null || paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("결제 금액이 null 이거나 0 이하입니다. paymentAmount={}", paymentAmount);
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
-        }
-
-        if (order.getFinalAmount() == null) {
-            log.warn("Order.finalAmount 가 null 입니다. 금액 일치 검증을 스킵합니다. " +
-                            "orderId={}, requestAmount={}",
-                    order.getOrderId(), paymentAmount);
-            return;
         }
 
         if (order.getFinalAmount().compareTo(paymentAmount) != 0) {

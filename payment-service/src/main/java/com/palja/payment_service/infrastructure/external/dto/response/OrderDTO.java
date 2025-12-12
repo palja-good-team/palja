@@ -14,5 +14,16 @@ public class OrderDTO {
     private UUID orderId;
     private Long userId;
     private String status;
-    private BigDecimal finalAmount;
+    private Pricing pricing;
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Pricing {
+        private BigDecimal finalAmount;
+    }
+
+    public BigDecimal getFinalAmount() {
+        return pricing != null ? pricing.finalAmount : null;
+    }
 }
