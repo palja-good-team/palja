@@ -33,7 +33,6 @@ public interface PaymentController {
             @Valid @RequestBody CreatePaymentReq req
     );
 
-    //결제 완료 API 생성
     @Operation(
             summary = "결제 완료",
             description = "paymentKey를 받아서 Toss API를 호출하여 결제를 확인하고, 성공 시 APPROVED 상태로 변경합니다."

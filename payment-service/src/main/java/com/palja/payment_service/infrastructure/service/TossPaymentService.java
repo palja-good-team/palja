@@ -49,7 +49,7 @@ public class TossPaymentService implements PGPaymentService {
             } else if (!amountOk) {
                 message = "토스 승인 금액과 요청 금액이 다릅니다. approved=" + approvedAmount + ", requested=" + payment.getAmount();
             } else {
-                message = "토스 결제 조회 성공";
+                message = "토스 결제 성공";
             }
 
             log.info("Toss getPayment response. paymentKey={}, status={}, totalAmount={}",

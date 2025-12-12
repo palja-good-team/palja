@@ -32,6 +32,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -54,18 +55,24 @@ public class PaymentServiceImpl implements PaymentService {
       - Toss API 호출은 하지 않음
      */
     public CreatePaymentRes createPayment(CreatePaymentCommand command) {
-        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}",
-                command.orderId(), command.userId(), command.loginId(), command.orderStatus());
+        log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}, amount={}",
+                command.orderId(), command.userId(), command.loginId(), command.orderStatus(), command.amount());
+
+        Payment existing = paymentRepository.findByOrderId(command.orderId()).orElse(null);
+        if (existing != null) {
+            log.warn("결제 생성 스킵(이미 결제 존재): orderId={}, paymentId={}, status={}, amount={}",
+                    command.orderId(), existing.getId(), existing.getStatus(), command.amount());
+            return CreatePaymentRes.from(existing);
+        }
 
         OrderRes order = orderClient.getOrderByOrderId(command.orderId());
+        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         if (command.userId() != null && !command.userId().equals(order.getUserId())) {
             log.error("주문의 userId와 요청 userId가 일치하지 않음: orderUserId={}, requestUserId={}",
                     order.getUserId(), command.userId());
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
         }
-
-        UserRes user = userClient.getUserByLoginId(command.loginId());
 
         paymentValidator.validateCreatePayment(command, order, user);
 
@@ -76,9 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
         );
 
         paymentRepository.save(payment);
-
-        PaymentLog requestLog = createRequestLog(payment);
-        paymentLogRepository.save(requestLog);
+        paymentLogRepository.save(PaymentLog.createPendingLog(payment));
 
         log.info("결제 생성 완료 (PENDING 상태): paymentId={}, orderId={}, userId={}",
                 payment.getId(), payment.getOrderId(), payment.getUserId());
@@ -90,8 +95,8 @@ public class PaymentServiceImpl implements PaymentService {
     /*
       결제 완료 처리
       - paymentKey를 받아서 Toss API 호출
-      - 결제 확인 후 APPROVED 상태로 변경
-      - TODO: 주문 상태를 PAID로 변경하는 API 호출 필요
+      - Payment 상태를 APPROVED/FAILED로 업데이트
+      - PaymentLog 결과는 상태에 따라 1번 저장
      */
     public CreatePaymentRes completePayment(CompletePaymentCommand command) {
         log.info("결제 완료 처리 시작: paymentId={}, paymentKey={}, loginId={}",
@@ -100,40 +105,42 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        if (payment.getStatus() != PaymentStatus.PENDING) {
-            log.error("PENDING 상태가 아닌 결제는 완료 처리할 수 없습니다. paymentId={}, status={}",
+        if (!payment.isPending()) {
+            log.warn("결제 완료 처리 불가(이미 처리 완료 상태): paymentId={}, status={}",
                     payment.getId(), payment.getStatus());
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            throw new BusinessException(PaymentErrorCode.PAYMENT_ALREADY_PROCESSED);
         }
 
-        // paymentKey 업데이트하고 Toss API 호출해서 결제 확인
         payment.updatePaymentKey(command.paymentKey());
 
         PGPaymentRes pgRes;
         try {
+            log.info("Toss 결제 확인 요청: paymentId={}, orderId={}, amount={}",
+                    payment.getId(), payment.getOrderId(), payment.getAmount());
+
             pgRes = pgPaymentService.requestPayment(payment);
+
+            log.info("Toss 결제 확인 응답: paymentId={}, reason={}, pgMessage={}",
+                    payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
         } catch (Exception e) {
             log.error("Toss 결제 확인 API 호출 실패: paymentId={}, paymentKey={}",
                     payment.getId(), command.paymentKey(), e);
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
 
-        PaymentLog requestLog = createRequestLog(payment);
-        paymentLogRepository.save(requestLog);
-
         if (pgRes.isSuccess()) {
-            approvePayment(payment, pgRes.getPaymentKey());
+            payment.approve(resolvePaymentKey(pgRes, payment));
             log.info("결제 완료 성공: paymentId={}, orderId={}", payment.getId(), payment.getOrderId());
-
-            // TODO: order-service API 호출하여 주문 상태를 PAID로 변경
         } else {
-            failPayment(payment, pgRes.getPgResponseMessage());
+            payment.fail(pgRes.getPgResponseMessage());
             log.warn("결제 완료 실패: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
         }
 
         paymentRepository.save(payment);
 
-        PaymentLog resultLog = createResultLog(payment, pgRes);
+        PaymentLog resultLog = pgRes.isSuccess()
+                ? PaymentLog.createApprovedLog(payment, pgRes)
+                : PaymentLog.createFailedLog(payment, pgRes);
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {
@@ -156,31 +163,40 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentValidator.validateCancelPayment(payment, command, user);
 
-        PaymentLog requestLog = createRequestLog(payment);
-        paymentLogRepository.save(requestLog);
-
         PGPaymentRes pgRes;
         try {
+            log.info("Toss 결제 취소 요청: paymentId={}, cancelAmount={}, reason={}",
+                    payment.getId(), command.cancelAmount(), command.cancelReason());
+
             pgRes = pgPaymentService.cancelPayment(
                     payment,
                     command.cancelAmount(),
                     command.cancelReason()
             );
+
+            log.info("Toss 결제 취소 응답: paymentId={}, reason={}, pgMessage={}",
+                    payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
+
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
+            log.error("Toss 결제 취소 API 호출 실패: paymentId={}", payment.getId(), e);
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
 
         if (pgRes.isSuccess()) {
             payment.cancel(command.cancelReason());
+            log.info("결제 취소 상태 변경 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
         } else {
             payment.fail(pgRes.getPgResponseMessage());
+            log.warn("결제 취소 실패 처리 완료: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
         }
 
         paymentRepository.save(payment);
 
-        PaymentLog resultLog = createResultLog(payment, pgRes);
+        PaymentLog resultLog = pgRes.isSuccess()
+                ? PaymentLog.createCanceledLog(payment, pgRes)
+                : PaymentLog.createFailedLog(payment, pgRes);
         paymentLogRepository.save(resultLog);
 
         if (!pgRes.isSuccess()) {
@@ -252,32 +268,16 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentValidator.validateDeletePayment(payment, user);
 
-        if(payment.getStatus() == PaymentStatus.PENDING) {
+        if (payment.isPending()) {
             payment.softDelete();
             paymentRepository.save(payment);
-        }else {
+            log.info("결제 삭제 완료: paymentId={}", payment.getId());
+        } else {
             throw new BusinessException(PaymentErrorCode.PAYMENT_CANNOT_BE_DELETED);
         }
     }
 
-    private void approvePayment(Payment payment, String paymentKey) {
-        payment.approve(paymentKey);
-    }
-
-    private void failPayment(Payment payment, String reason) {
-        payment.fail(reason);
-    }
-
-    private PaymentLog createRequestLog(Payment payment) {
-        return PaymentLog.createRequestLog(payment);
-    }
-
-    private PaymentLog createResultLog(Payment payment, PGPaymentRes pgRes) {
-        return PaymentLog.createResultLog(
-                payment,
-                pgRes.getPaymentKey(),
-                pgRes.getPgResponseCode(),
-                pgRes.getPgResponseMessage()
-        );
+    private String resolvePaymentKey(PGPaymentRes pgRes, Payment payment) {
+        return Objects.toString(pgRes.getPaymentKey(), Objects.toString(payment.getPaymentKey(), ""));
     }
 }

@@ -11,7 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CompletePaymentReq {
 
-    //toss에서 paymentKey 받아서 결제 완료
     @NotBlank(message = "paymentKey는 필수입니다.")
     private String paymentKey;
 

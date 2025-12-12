@@ -1,6 +1,7 @@
 package com.palja.payment_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
+import com.palja.payment_service.application.dto.response.PGPaymentRes;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -69,34 +70,66 @@ public class PaymentLog extends BaseEntity {
         this.processedAt = processedAt;
     }
 
-    public static PaymentLog createRequestLog(Payment payment) {
+    public static PaymentLog createPendingLog(Payment payment) {
         return PaymentLog.builder()
                 .payment(payment)
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
-                .status(payment.getStatus())
+                .status(PaymentStatus.PENDING)
                 .paymentKey(Objects.toString(payment.getPaymentKey(), ""))
-                .pgResponseCode(null)
-                .pgResponseMessage(null)
+                .pgResponseCode("PENDING")
+                .pgResponseMessage("결제 생성(PENDING), 결제 완료 X")
                 .processedAt(LocalDateTime.now())
                 .build();
     }
 
-    public static PaymentLog createResultLog(Payment payment,
-                                             String paymentKey,
-                                             String pgResponseCode,
-                                             String pgResponseMessage) {
+    public static PaymentLog createApprovedLog(Payment payment, PGPaymentRes pgRes) {
         return PaymentLog.builder()
                 .payment(payment)
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
-                .status(payment.getStatus())
-                .paymentKey(paymentKey != null ? paymentKey : "")
-                .pgResponseCode(pgResponseCode)
-                .pgResponseMessage(pgResponseMessage)
+                .status(PaymentStatus.APPROVED)
+                .paymentKey(resolvePaymentKey(pgRes, payment))
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
                 .processedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public static PaymentLog createFailedLog(Payment payment, PGPaymentRes pgRes) {
+        return PaymentLog.builder()
+                .payment(payment)
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .status(PaymentStatus.FAILED)
+                .paymentKey(resolvePaymentKey(pgRes, payment))
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .processedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static PaymentLog createCanceledLog(Payment payment, PGPaymentRes pgRes) {
+        return PaymentLog.builder()
+                .payment(payment)
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .status(PaymentStatus.CANCELED)
+                .paymentKey(resolvePaymentKey(pgRes, payment))
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .processedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private static String resolvePaymentKey(PGPaymentRes pgRes, Payment payment) {
+        return Objects.toString(
+                pgRes != null ? pgRes.getPaymentKey() : null,
+                Objects.toString(payment.getPaymentKey(), "")
+        );
     }
 }
