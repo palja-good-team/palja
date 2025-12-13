@@ -15,6 +15,8 @@ import java.util.UUID;
 
 public interface JpaOrderRepository extends JpaRepository<Order, UUID> {
 
+    Optional<Order> findByOrderIdAndDeletedAtIsNull(UUID orderId);
+
     @Query("""
         SELECT o
         FROM Order o

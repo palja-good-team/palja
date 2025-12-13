@@ -14,6 +14,8 @@ public interface OrderRepository {
 
     Order save(Order order);
 
+    Optional<Order> findByOrderIdAndDeletedAtIsNull(UUID orderId);
+
     Optional<Order> findOrderByIdWithItemAndDelivery(UUID orderId);
 
     Page<Order> findCustomerOrders(
