@@ -21,10 +21,20 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제를 찾을 수 없습니다."),
     PAYMENT_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 로그를 찾을 수 없습니다."),
 
+    // 권한
+    PAYMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 결제에 접근할 권한이 없습니다."),
+    PAYMENT_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 결제를 취소할 권한이 없습니다."),
+    PAYMENT_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "결제를 삭제할 권한이 없습니다."),
+    PAYMENT_LOG_ACCESS_DENIED(HttpStatus.FORBIDDEN, "결제 로그에 접근할 권한이 없습니다."),
+    USER_INACTIVE(HttpStatus.FORBIDDEN, "비활성화된 사용자입니다."),
+
     // 검증
     INVALID_PAYMENT_INFO(HttpStatus.BAD_REQUEST, "결제 정보가 일치하지 않습니다."),
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 상태입니다."),
     INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 방법입니다."),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "조회 기간이 올바르지 않습니다."),
+    INVALID_CUTOFF_DATE(HttpStatus.BAD_REQUEST, "삭제 기준일이 올바르지 않습니다."),
+
     INSUFFICIENT_FUNDS(HttpStatus.BAD_REQUEST, "결제에 필요한 금액이 부족합니다."),
     PAYMENT_EXCEED_AMOUNT(HttpStatus.BAD_REQUEST, "취소 금액이 결제 금액을 초과할 수 없습니다."),
     PAYMENT_NOT_PARTIAL_REFUND(HttpStatus.BAD_REQUEST, "부분 환불이 불가합니다."),
