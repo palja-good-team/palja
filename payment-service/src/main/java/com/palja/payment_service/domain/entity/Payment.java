@@ -97,6 +97,12 @@ public class Payment extends BaseEntity {
     }
 
     public void updatePaymentKey(String paymentKey) {
+        if(!isPending()){
+            throw new BusinessException(PaymentErrorCode.PAYMENT_ALREADY_PROCESSED);
+        }
+        if (paymentKey == null || paymentKey.isBlank()) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
+        }
         this.paymentKey = paymentKey;
     }
 
