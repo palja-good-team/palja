@@ -18,6 +18,8 @@ import java.util.UUID;
 public interface OrderService {
     OrderCreateRes createOrder(CreateOrderCommand command);
 
+    void registerPaymentId(UUID orderId, UUID paymentId);
+
     OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole);
 
     OrderCancelRes cancelOrder(CancelOrderCommand command);

@@ -10,7 +10,7 @@ import com.palja.order_service.application.dto.response.CustomerOrderSummaryRes;
 import com.palja.order_service.application.dto.response.OrderCancelRes;
 import com.palja.order_service.application.dto.response.OrderCreateRes;
 import com.palja.order_service.application.dto.response.OrderDetailRes;
-import com.palja.order_service.application.event.OrderCreatedEvent;
+import com.palja.order_service.application.dto.event.OrderCreatedEvent;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.*;
 import com.palja.order_service.application.service.OrderService;
@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -240,6 +241,22 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * 주문에 결제 ID 등록
+     * - 결제 생성 완료 후 호출
+     * - 별도 트랜잭션으로 실행 (AFTER_COMMIT 이벤트에서 호출)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registerPaymentId(UUID orderId, UUID paymentId) {
+        log.info("주문 결제 ID 등록 시작: orderId={}, paymentId={}", orderId, paymentId);
+
+        Order order = findByOrderIdAndDeletedAtIsNull(orderId);
+
+        order.registerPaymentId(paymentId);
+
+        log.info("주문 결제 ID 등록 완료: orderId={}, paymentId={}", orderId, paymentId);
+    }
+
     // ====== Order Cancellation Workflow ======
     /**
      * 주문 취소
@@ -313,7 +330,6 @@ public class OrderServiceImpl implements OrderService {
     private void restoreInventory(Order order) {
         UUID productId = order.getOrderItem().getProductId();
         int quantity = order.getOrderItem().getQuantity();
-        UUID paymentId = order.getPaymentId();
 
         try {
             if (order.isTimeDealOrder()) {
@@ -437,6 +453,21 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
+    private LocalDateTime toStartDateTimeOrMin(LocalDate date) {
+        if (date == null) {
+            // 시스템에서 충분히 과거로 잡을 값
+            return LocalDateTime.of(2025, 1, 1, 0, 0);
+        }
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime toEndDateTimeOrMax(LocalDate date) {
+        if (date == null) {
+            return LocalDate.now().atTime(23, 59, 59);
+        }
+        return date.atTime(23, 59, 59);
+    }
+
     // ===== Private: Authorization Context =====
     // 권한 검증을 위한 컨텍스트 구성
     private OrderAuthContext createAuthContext(Order order, String loginId, UserRole userRole) {
@@ -463,21 +494,6 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
-    private LocalDateTime toStartDateTimeOrMin(LocalDate date) {
-        if (date == null) {
-            // 시스템에서 충분히 과거로 잡을 값
-            return LocalDateTime.of(2025, 1, 1, 0, 0);
-        }
-        return date.atStartOfDay();
-    }
-
-    private LocalDateTime toEndDateTimeOrMax(LocalDate date) {
-        if (date == null) {
-            return LocalDate.now().atTime(23, 59, 59);
-        }
-        return date.atTime(23, 59, 59);
-    }
-
     // ===== Private: Utility =====
     private Long resolveCustomerId(String loginId) {
         return userClient.getMyCustomer(loginId).getUserId();
@@ -499,6 +515,11 @@ public class OrderServiceImpl implements OrderService {
                 command.delivery().recipientAddress(),
                 command.delivery().deliveryMessage()
         );
+    }
+
+    private Order findByOrderIdAndDeletedAtIsNull(UUID orderId) {
+        return orderRepository.findByOrderIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
     // ===== Internal Context Objects =====

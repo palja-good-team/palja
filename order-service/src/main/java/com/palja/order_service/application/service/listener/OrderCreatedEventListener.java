@@ -1,13 +1,14 @@
-package com.palja.order_service.application.event.listener;
+package com.palja.order_service.application.service.listener;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.PaymentCreateRes;
-import com.palja.order_service.application.event.OrderCreatedEvent;
+import com.palja.order_service.application.dto.event.OrderCreatedEvent;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.application.port.PaymentClient;
 import com.palja.order_service.application.port.ProductClient;
 import com.palja.order_service.application.port.TimeDealClient;
+import com.palja.order_service.application.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,8 @@ public class OrderCreatedEventListener {
     private final CouponClient couponClient;
     private final PaymentClient paymentClient;
 
+    private final OrderService orderService;
+
     /**
      * 주문 생성 완료 후 외부 시스템 처리
      * - 주문 생성 트랜잭션이 커밋된 후에 실행
@@ -44,8 +47,8 @@ public class OrderCreatedEventListener {
         try {
             reserveInventory(event);
             applyCoupon(event);
-            createPayment(event);
-
+            UUID paymentId = createPayment(event);
+            orderService.registerPaymentId(event.getOrderId(), paymentId);
             log.info("[AFTER_COMMIT] 주문 생성 이벤트 처리 완료: orderId={}", event.getOrderId());
         } catch (Exception e) {
             log.error("[AFTER_COMMIT] 주문 생성 이벤트 처리 실패: orderId={}", event.getOrderId(), e);
@@ -100,7 +103,7 @@ public class OrderCreatedEventListener {
      * - 결제 엔티티만 생성 (paymentId는 결제 완료 시 저장)
      * - 주문 상태는 CREATED 유지
      */
-    private void createPayment(OrderCreatedEvent event) {
+    private UUID createPayment(OrderCreatedEvent event) {
         try {
             PaymentCreateRes payment = paymentClient.createPayment(
                     event.getOrderId(),
@@ -111,6 +114,8 @@ public class OrderCreatedEventListener {
 
             log.info("결제 생성 완료: orderId={}, paymentId={}, amount={}",
                     event.getOrderId(), payment.getPaymentId(), payment.getAmount());
+
+            return payment.getPaymentId();
         } catch (Exception e) {
             log.error("결제 생성 실패: orderId={}, amount={}",
                     event.getOrderId(), event.getFinalAmount(), e);
