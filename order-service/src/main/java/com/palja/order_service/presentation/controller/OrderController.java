@@ -1,16 +1,15 @@
 package com.palja.order_service.presentation.controller;
 
+import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
-import com.palja.order_service.application.dto.response.CustomerOrderSummaryRes;
-import com.palja.order_service.application.dto.response.OrderCancelRes;
-import com.palja.order_service.application.dto.response.OrderCreateRes;
-import com.palja.order_service.application.dto.response.OrderDetailRes;
+import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.presentation.dto.request.CancelOrderReq;
+import com.palja.order_service.presentation.dto.request.CompleteOrderPaymentReq;
 import com.palja.order_service.presentation.dto.request.CreateOrderReq;
 import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
 import jakarta.validation.Valid;
@@ -79,4 +78,14 @@ public class OrderController {
         );
     }
 
+    // 주문 결제 완료
+    @RequiredInternal
+    @PutMapping("/{orderId}/payment/complete")
+    public ResponseEntity<ApiResponse<OrderPaymentCompleteRes>> completeOrderPayment(
+            @PathVariable UUID orderId,
+            @RequestBody @Valid CompleteOrderPaymentReq request
+    ) {
+        OrderPaymentCompleteRes response = orderService.completeOrderPayment(request.toCommand(orderId));
+        return ResponseEntity.ok(ApiResponse.success(response, "주문이 결제 완료되었습니다."));
+    }
 }
