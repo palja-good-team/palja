@@ -17,6 +17,10 @@ public enum OrderStatus {
         public boolean isOrderCancellable() {
             return true;
         }
+        @Override
+        public boolean isCreated() {
+            return true;
+        }
     },
 
     PAID("결제 완료") {
@@ -138,6 +142,11 @@ public enum OrderStatus {
         return false;
     }
 
+    /** 주문 생성 상태인지 */
+    public boolean isCreated() {
+        return false;
+    }
+
     /** 결제 완료 상태인지 */
     public boolean isPaid() {
         return false;
@@ -221,6 +230,7 @@ public enum OrderStatus {
             );
         }
     }
+
     public static OrderStatus from(String status) {
         if (status == null || status.isBlank()) {
             return null;

@@ -31,6 +31,11 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public Optional<Order> findByOrderIdAndDeletedAtIsNull(UUID orderId) {
+        return jpaOrderRepository.findByOrderIdAndDeletedAtIsNull(orderId);
+    }
+
+    @Override
     public Optional<Order> findOrderByIdWithItemAndDelivery(UUID orderId) {
         return jpaOrderRepository.findOrderByIdWithItemAndDelivery(orderId);
     }
