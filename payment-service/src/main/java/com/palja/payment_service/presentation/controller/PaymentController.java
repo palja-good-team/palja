@@ -21,14 +21,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Tag(name = "Payment-Controller", description = "결제 관련 API")
-@RequestMapping("/api/v1/payments")
 public interface PaymentController {
 
     @Operation(
             summary = "결제 생성",
             description = "사용자의 주문에 대해 PENDING 상태로 결제를 생성합니다."
     )
-    @PostMapping
     ResponseEntity<ApiResponse<CreatePaymentRes>> createPayment(
             @Valid @RequestBody CreatePaymentReq req
     );
@@ -37,7 +35,6 @@ public interface PaymentController {
             summary = "결제 완료",
             description = "paymentKey를 받아서 Toss API를 호출하여 결제를 확인하고, 성공 시 APPROVED 상태로 변경합니다."
     )
-    @PostMapping("/{paymentId}/complete")
     ResponseEntity<ApiResponse<CreatePaymentRes>> completePayment(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId,
@@ -48,7 +45,6 @@ public interface PaymentController {
             summary = "결제 취소",
             description = "승인된 결제에 대해 PG 취소 요청을 보내고, 성공 시 결제 상태를 취소로 변경합니다."
     )
-    @PostMapping("/{paymentId}/cancel")
     ResponseEntity<ApiResponse<CancelPaymentRes>> cancelPayment(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId,
@@ -59,7 +55,6 @@ public interface PaymentController {
             summary = "결제 단건 조회",
             description = "특정 결제 ID에 대한 상세 정보를 조회합니다."
     )
-    @GetMapping("/{paymentId}")
     ResponseEntity<ApiResponse<ReadPaymentDetailRes>> getPayment(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId
@@ -69,7 +64,6 @@ public interface PaymentController {
             summary = "결제 목록 조회(검색)",
             description = "결제 상태, 기간, 사용자, 주문ID 등의 조건으로 검색하고, 페이징된 목록을 조회합니다."
     )
-    @GetMapping
     ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getPayments(
             @Parameter(description = "결제 상태", example = "APPROVED")
             @RequestParam(required = false) String status,
@@ -93,7 +87,6 @@ public interface PaymentController {
             summary = "내 결제 목록 조회",
             description = "로그인한 사용자 자신의 결제 목록을 조회합니다."
     )
-    @GetMapping("/me")
     ResponseEntity<ApiResponse<PageResponse<ReadPaymentSummaryRes>>> getMyPayments(
             @Parameter(description = "결제 상태", example = "APPROVED")
             @RequestParam(required = false) String status,
@@ -113,7 +106,6 @@ public interface PaymentController {
             summary = "결제 삭제",
             description = "(관리자)결제 데이터를 삭제합니다. (마스터/매니저만 삭제가 가능합니다.)"
     )
-    @DeleteMapping("/manager/{paymentId}")
     ResponseEntity<ApiResponse<String>> deletePayment(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId
