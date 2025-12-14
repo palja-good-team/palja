@@ -2,6 +2,7 @@ package com.palja.order_service.application.service.validator;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
+import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.command.DeliveryCommand;
 import com.palja.order_service.application.dto.CouponDiscountType;
@@ -464,5 +465,30 @@ public class OrderValidator {
     // 관리자 권한 검증 (유효한 관리자)
     public void validateManager(String loginId) {
         userClient.getMyManager(loginId);
+    }
+
+    // ===== Order Payment Complete Validation (결제 완료 검증) =====
+    // 결제 완료 검증
+    public void validateOrderForPaymentCompletion(Order order, CompleteOrderPaymentCommand command) {
+
+        // 주문 상태 검증
+        if (!order.getStatus().isCreated()) {
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_PAYMENT);
+        }
+        // 결제 ID 일치 검증
+        if (order.getPaymentId() == null) {
+            throw new BusinessException(OrderErrorCode.PAYMENT_NOT_ASSIGNED);
+        }
+        if (!order.getPaymentId().equals(command.paymentId())) {
+            throw new BusinessException(OrderErrorCode.PAYMENT_ID_MISMATCH);
+        }
+        // 결제 금액 일치 검증
+        BigDecimal orderAmount = order.getOrderAmount().getFinalAmount();
+        if (orderAmount.compareTo(command.paidAmount()) != 0) {
+            throw new BusinessException(OrderErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        log.debug("결제 완료 검증 성공: orderId={}, paymentId={}, amount={}",
+                order.getOrderId(), command.paymentId(), command.paidAmount());
     }
 }

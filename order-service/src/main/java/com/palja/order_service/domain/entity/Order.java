@@ -203,15 +203,9 @@ public class Order extends BaseEntity {
         transitionTo(OrderStatus.SHIPPED);
     }
 
+    // 배송 완료로 상태 변경
     public void markAsDelivered() {
         transitionTo(OrderStatus.DELIVERED);
-    }
-
-    // 배송 완료로 상태 변경
-    public void markAsPaid(UUID paymentId) {
-        validatePaymentId(paymentId);
-        this.paymentId = paymentId;
-        transitionTo(OrderStatus.PAID);
     }
 
     // 타임딜 주문인지 확인
@@ -225,7 +219,6 @@ public class Order extends BaseEntity {
     }
 
     // ===== Validation ===== //
-
     private static void validateUserId(Long userId) {
         if (userId == null) {
             throw new IllegalArgumentException("주문자 ID는 필수입니다.");
@@ -276,16 +269,48 @@ public class Order extends BaseEntity {
      * - 결제 완료 전 상태
      */
     public void registerPaymentId(UUID paymentId) {
-        registerPaymentIdRegistration(paymentId);
+        validatePaymentRegistration(paymentId);
         this.paymentId = paymentId;
     }
 
-    private void registerPaymentIdRegistration(UUID paymentId) {
+    private void validatePaymentRegistration(UUID paymentId) {
         if (paymentId == null) {
             throw new IllegalArgumentException("결제 ID는 필수입니다.");
         }
         if (this.paymentId != null) {
             throw new IllegalStateException("이미 결제 ID가 할당된 주문입니다.");
+        }
+    }
+
+    /**
+     * 결제 완료 처리
+     * - 상태를 PAID로 변경
+     */
+    public void completePayment(UUID paymentId, BigDecimal paidAmount) {
+        validatePaymentCompletion(paymentId, paidAmount);
+        transitionTo(OrderStatus.PAID);
+    }
+
+    private void validatePaymentCompletion(UUID paymentId, BigDecimal paidAmount) {
+        if (paymentId == null) {
+            throw new IllegalArgumentException("결제 ID는 필수입니다.");
+        }
+        if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
+        }
+        if (!this.status.isCreated()) {
+            throw new IllegalStateException(
+                    String.format("결제 완료 가능한 상태가 아닙니다. 현재 상태: %s", this.status));
+        }
+        if (!this.paymentId.equals(paymentId)) {
+            throw new IllegalStateException(
+                    String.format("결제 ID가 일치하지 않습니다. 주문 결제 ID: %s, 요청 결제 ID: %s",
+                            this.paymentId, paymentId));
+        }
+        if (this.orderAmount.getFinalAmount().compareTo(paidAmount) != 0) {
+            throw new IllegalStateException(
+                    String.format("결제 금액이 주문 금액과 일치하지 않습니다. 주문 금액: %s, 결제 금액: %s",
+                            this.orderAmount.getFinalAmount(), paidAmount));
         }
     }
 }

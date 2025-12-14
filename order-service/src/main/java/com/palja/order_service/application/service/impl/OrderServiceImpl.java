@@ -4,13 +4,11 @@ import com.palja.common.exception.BusinessException;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
+import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
-import com.palja.order_service.application.dto.external.*;
-import com.palja.order_service.application.dto.response.CustomerOrderSummaryRes;
-import com.palja.order_service.application.dto.response.OrderCancelRes;
-import com.palja.order_service.application.dto.response.OrderCreateRes;
-import com.palja.order_service.application.dto.response.OrderDetailRes;
 import com.palja.order_service.application.dto.event.OrderCreatedEvent;
+import com.palja.order_service.application.dto.external.*;
+import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.*;
 import com.palja.order_service.application.service.OrderService;
@@ -220,25 +218,6 @@ public class OrderServiceImpl implements OrderService {
         OrderCreatedEvent event = OrderCreatedEvent.from(order);
         eventPublisher.publishEvent(event);
         log.debug("주문 생성 이벤트 발행 완료: orderId={}", order.getOrderId());
-    }
-
-    // 결제 실행
-    // TODO: 이벤트 기반 처리
-    private void executePayment(Order order, Long userId) {
-        try {
-            PaymentCreateRes payment = paymentClient.createPayment(
-                    order.getOrderId(), userId, order.getOrderAmount().getFinalAmount(), order.getStatus()
-            );
-
-            order.markAsPaid(payment.getPaymentId());
-            log.info("결제 완료: paymentId={}, amount={}",
-                    payment.getPaymentId(), payment.getAmount());
-        } catch (Exception e) {
-            log.error("결제 실패: orderId={}, amount={}",
-                    order.getOrderId(), order.getOrderAmount().getFinalAmount(), e);
-            // TODO: 보상 트랜잭션 처리 (재고 복구, 쿠폰 복구)
-            throw new BusinessException(OrderErrorCode.PAYMENT_FAILED);
-        }
     }
 
     /**
@@ -466,6 +445,31 @@ public class OrderServiceImpl implements OrderService {
             return LocalDate.now().atTime(23, 59, 59);
         }
         return date.atTime(23, 59, 59);
+    }
+
+    // ====== Order Payment Completion Workflow ======
+    /**
+     * 결제 완료 처리
+     * - 결제 도메인에서 결제 완료 후 호출
+     * - 주문 상태를 CREATED -> PAID로 변경
+     * - 결제 ID 및 금액 검증
+     */
+    @Override
+    @Transactional
+    public OrderPaymentCompleteRes completeOrderPayment(CompleteOrderPaymentCommand command) {
+        log.info("주문 결제 완료 처리 시작: orderId={}, paymentId={}, amount={}",
+                command.orderId(), command.paymentId(), command.paidAmount());
+
+        Order order = findByOrderIdAndDeletedAtIsNull(command.orderId());
+
+        orderValidator.validateOrderForPaymentCompletion(order, command);
+
+        order.completePayment(command.paymentId(), command.paidAmount());
+
+        log.info("주문 결제 완료: orderId={}, paymentId={}, status={}, paidAmount={}",
+                order.getOrderId(), order.getPaymentId(), order.getStatus(), command.paidAmount());
+
+        return OrderPaymentCompleteRes.from(order);
     }
 
     // ===== Private: Authorization Context =====
