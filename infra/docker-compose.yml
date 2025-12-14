@@ -140,6 +140,18 @@ services:
     networks:
       - msa-network
 
+  # Loki
+  loki:
+    image: grafana/loki
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - "./monitor/loki.yml:/etc/loki/loki.yml"
+    restart: always
+    networks:
+      - msa-network
+
 # 볼륨
 volumes:
   redis_data:
