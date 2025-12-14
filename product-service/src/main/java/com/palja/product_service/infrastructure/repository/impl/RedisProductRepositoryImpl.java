@@ -160,7 +160,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
         return true;
     }
 
-    private String createRedisHashKey(String productId) {
+    protected String createRedisHashKey(String productId) {
 
         String substring = productId.substring(0, 8);
         int hash = substring.hashCode();
