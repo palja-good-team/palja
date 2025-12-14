@@ -96,7 +96,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success(res, "상품 재고 수정 성공"), HttpStatus.OK);
     }
 
-//    @RequiredInternal
+    @RequiredInternal
     @PutMapping("/order/sale/{productId}")
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
                                                                    @RequestParam Integer quantity) {
