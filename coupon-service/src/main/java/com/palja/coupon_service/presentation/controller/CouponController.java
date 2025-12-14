@@ -64,6 +64,12 @@ public interface CouponController {
     ResponseEntity<ApiResponse<DeleteCouponUserRes>> deleteCoupon(@PathVariable UUID couponUserId);
 
     @Operation(
+            summary = "쿠폰 전체 삭제",
+            description = "사용자의 쿠폰 전체를 삭제합니다."
+    )
+    ResponseEntity<ApiResponse<DeleteAllCouponUserRes>> deleteAllCoupons();
+
+    @Operation(
             summary = "쿠폰 목록 조회",
             description = "사용자의 보유 쿠폰 목록을 조회합니다."
     )

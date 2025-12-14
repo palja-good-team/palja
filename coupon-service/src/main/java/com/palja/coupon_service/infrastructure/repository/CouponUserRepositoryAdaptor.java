@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,5 +35,10 @@ public class CouponUserRepositoryAdaptor implements CouponUserRepository {
     @Override
     public Optional<CouponUser> findByIdAndUserIdAndDeletedAtIsNull(UUID couponUserId, String userId) {
         return jpaCouponUserRepository.findByIdAndUserIdAndDeletedAtIsNull(couponUserId, userId);
+    }
+
+    @Override
+    public List<CouponUser> findAllByUserIdAndDeletedAtIsNull(String userId) {
+        return jpaCouponUserRepository.findAllByUserIdAndDeletedAtIsNull(userId);
     }
 }
