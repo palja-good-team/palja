@@ -38,4 +38,6 @@ public interface ProductService {
     IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Integer quantity);
 
     void deleteProduct(UUID productId);
+
+    void deleteProductForUser(UUID companyUserId);
 }

@@ -38,13 +38,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final UserClient userClient;
 
-    @Value("${redis-key.map0}")
-    private String map0Key;
-
-    @Value("${redis-key.map1}")
-    private String map1Key;
-
-
     @Override
     @Transactional
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
@@ -114,9 +107,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
-        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
-            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
-        }
+        validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
         if(repository.isNotUnique(
                 product.getCompanyName(),
@@ -141,9 +132,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
-        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
-            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
-        }
+        validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
         if (Objects.isNull(stock)) {
             throw new BusinessException(CommonErrorCode.BAD_REQUEST);
@@ -169,12 +158,10 @@ public class ProductServiceImpl implements ProductService {
     public SaleProductRes saleProduct(UUID productId,
                                       Integer quantity) {
 
-        String hashKey = createRedisHashKey(productId);
-
         ProductStock stock = repository.findProductStock(productId);
 
         boolean result = repository.decreaseStockBySale(
-                hashKey, productId.toString(), stock.getQuantity(), quantity);
+                productId.toString(), stock.getQuantity(), quantity);
         validateRedisOperation(result);
 
         return new SaleProductRes(productId, Boolean.TRUE);
@@ -198,9 +185,8 @@ public class ProductServiceImpl implements ProductService {
 
         ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
 
-        String hashKey = createRedisHashKey(productId);
         boolean result = repository.adjustStock(
-                hashKey, productId.toString(), restoredStock.getQuantity());
+                productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 
         return new RestoreStockRes(productId, Boolean.TRUE);
@@ -214,9 +200,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         product.decreaseStock(quantity);
 
-        String hashKey = createRedisHashKey(productId);
         boolean result = repository.adjustStock(
-                hashKey, productId.toString(), product.getProductStock().getQuantity());
+                productId.toString(), product.getProductStock().getQuantity());
         validateRedisOperation(result);
 
         return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
@@ -230,9 +215,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         product.increaseStock(quantity);
 
-        String hashKey = createRedisHashKey(productId);
         boolean result = repository.adjustStock(
-                hashKey, productId.toString(), product.getProductStock().getQuantity());
+                productId.toString(), product.getProductStock().getQuantity());
         validateRedisOperation(result);
 
         return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
@@ -245,30 +229,32 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
 
-        if (isDifferCompanyUser(product.getCompanyUserId(), myInfo.getCompanyUserId())) {
-            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
-        }
+        validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
         product.delete();
 
-        String hashKey = createRedisHashKey(productId);
-        boolean result = repository.deleteStockFromRedis(hashKey, productId.toString());
+        boolean result = repository.deleteStockFromRedis(productId.toString());
         validateRedisOperation(result);
     }
 
-    private boolean isDifferCompanyUser(UUID productCompanyUserId,
-                                        UUID myId) {
+    @Override
+    @Transactional
+    public void deleteProductForUser(UUID companyUserId) {
 
-        return !productCompanyUserId.equals(myId);
+        List<UUID> idList = repository.findAllIdsByCompanyUserId(companyUserId);
+        repository.deleteProductForUser(companyUserId);
+        boolean result = repository.deleteAllStockFromRedis(idList);
+        validateRedisOperation(result);
+
     }
 
-    private String createRedisHashKey(UUID productId) {
+    private boolean validateIsSameUser(UUID productCompanyUserId,
+                                       UUID myId) {
 
-        String substring = productId.toString().substring(0, 8);
-        int hash = substring.hashCode();
-        if(hash % 2 == 0)
-            return map0Key;
-        else return map1Key;
+        if(!productCompanyUserId.equals(myId)) {
+            throw new BusinessException(ProductErrorCode.FORBIDDEN_REQUEST);
+        }
+        return true;
     }
 
     private void validateRedisOperation(boolean redisResult) {

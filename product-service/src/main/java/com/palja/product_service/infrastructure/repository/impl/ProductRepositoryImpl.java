@@ -94,15 +94,15 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean decreaseStockBySale(String hashKey, String productId, Integer stock, Integer quantity) {
+    public boolean decreaseStockBySale(String productId, Integer stock, Integer quantity) {
 
-        return redisRepository.decreaseStockBySale(hashKey, productId, stock, quantity);
+        return redisRepository.decreaseStockBySale(productId, stock, quantity);
     }
 
     @Override
-    public boolean adjustStock(String hashKey, String productId, Integer quantity) {
+    public boolean adjustStock(String productId, Integer quantity) {
 
-        return redisRepository.adjustStock(hashKey, productId, quantity);
+        return redisRepository.adjustStock(productId, quantity);
     }
 
     @Override
@@ -113,9 +113,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean deleteStockFromRedis(String hashKey, String productId) {
+    public boolean deleteStockFromRedis(String productId) {
 
-        return redisRepository.deleteProductStock(hashKey, productId);
+        return redisRepository.deleteProductStock(productId);
     }
 
     @Override
@@ -125,5 +125,23 @@ public class ProductRepositoryImpl implements ProductRepository {
         return jpaProductRepository
                 .findByIdFetchStockWithLock(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
+    public List<UUID> findAllIdsByCompanyUserId(UUID companyUserId) {
+
+        return jpaProductRepository.findAllIdsByCompanyUserId(companyUserId);
+
+    }
+
+    @Override
+    public boolean deleteAllStockFromRedis(List<UUID> productIds) {
+        return redisRepository.deleteAllStockFromRedis(productIds);
+    }
+
+    @Override
+    public void deleteProductForUser(UUID companyUserId) {
+
+        jpaProductRepository.deleteAllByCompanyUserId(companyUserId);
     }
 }

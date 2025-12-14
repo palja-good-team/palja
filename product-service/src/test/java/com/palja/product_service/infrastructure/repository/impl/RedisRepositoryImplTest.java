@@ -75,7 +75,7 @@ class RedisRepositoryImplTest {
         for (int i = 1; i <= numOfThreads; i++) {
             executorService.submit(() -> {
                 try {
-                    redisRepository.decreaseStockBySale(hashName, productId, dbStock, saleQuantity);
+                    redisRepository.decreaseStockBySale(productId, dbStock, saleQuantity);
                 } finally {
                     latch.countDown();
                 }
@@ -110,8 +110,8 @@ class RedisRepositoryImplTest {
 
         //when
 
-        redisRepository.adjustStock(hashName, productId, afterStock);
-        redisRepository.adjustStock(hashName, productId2, afterStock);
+        redisRepository.adjustStock(productId, afterStock);
+        redisRepository.adjustStock(productId2, afterStock);
 
         //then
         RMap<String, Integer> map = redissonClient.getMap(hashName);

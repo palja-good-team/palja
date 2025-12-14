@@ -31,13 +31,19 @@ public interface ProductRepository {
 
     ProductInfoForOrderDto findProductForOrder(UUID productId);
 
-    boolean decreaseStockBySale(String hashKey, String productId, Integer stock, Integer quantity);
+    boolean decreaseStockBySale(String productId, Integer stock, Integer quantity);
 
-    boolean adjustStock(String hashKey, String productId, Integer quantity);
+    boolean adjustStock(String productId, Integer quantity);
 
     void stockBulkUpdateForSchedule(Collection<StockScheduleDto> dtos);
 
-    boolean deleteStockFromRedis(String hashKey, String productId);
+    boolean deleteStockFromRedis(String productId);
 
     Product findByIdFetchStockWithLock(UUID productId, Integer quantity);
+
+    List<UUID> findAllIdsByCompanyUserId(UUID companyUserId);
+
+    boolean deleteAllStockFromRedis(List<UUID> productIds);
+
+    void deleteProductForUser(UUID companyUserId);
 }
