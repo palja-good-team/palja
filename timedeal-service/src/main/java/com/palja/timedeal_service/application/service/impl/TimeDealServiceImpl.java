@@ -206,6 +206,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         log.info("업체 판매자 관련 타임딜 삭제 완료");
     }
 
+    // TODO. 로직 수정 필요
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
         TimeDealStatus status = timeDeal.getTimeDealStatus();
 
