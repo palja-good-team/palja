@@ -16,4 +16,5 @@ public interface TimeDealService {
     void deleteTimeDeal(DeleteTimeDealCommand command);
     void decreaseRemainingQuantity(DecreaseRemainingQuantityCommand command);
     void restoreRemainingQuantity(RestoreRemainingQuantityCommand command);
+    void deleteByCompanyUser(UUID companyUserId);
 }

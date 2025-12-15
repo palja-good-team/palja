@@ -27,6 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -139,7 +142,6 @@ public class TimeDealServiceImpl implements TimeDealService {
         validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
         timeDeal.validateDeletableStatus();
-
         timeDeal.validateDeletablePeriod(LocalDateTime.now());
 
         long restoreQuantity = timeDeal.getRestoreQuantityOnDelete();
@@ -177,6 +179,36 @@ public class TimeDealServiceImpl implements TimeDealService {
         }
 
         log.info("타임딜 남은 수량 복구 성공");
+    }
+
+    @Override
+    @Transactional
+    public void deleteByCompanyUser(UUID companyUserId) {
+        log.info("업체 판매자 관련 타임딜 삭제 시작");
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Map<UUID, Long> totalRestoreQuantity = new HashMap<>();
+        List<TimeDeal> timeDeals = timeDealRepository.findAllByCompanyUserId(companyUserId, TimeDealStatus.PENDING, now);
+
+        for (TimeDeal timeDeal : timeDeals) {
+            if (!timeDeal.isDeletable(now)) {
+                continue;
+            }
+
+            long restoreQuantity = timeDeal.getRestoreQuantityOnDelete();
+            totalRestoreQuantity.merge(timeDeal.getProductId(), restoreQuantity, Long::sum);
+
+            timeDeal.softDelete();
+        }
+
+        if (!totalRestoreQuantity.isEmpty()) {
+            for (var e : totalRestoreQuantity.entrySet()) {
+                productClient.restoreStock(e.getKey(), e.getValue());
+            }
+        }
+
+        log.info("업체 판매자 관련 타임딜 삭제 완료");
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {

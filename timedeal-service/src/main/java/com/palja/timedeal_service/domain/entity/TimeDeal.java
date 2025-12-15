@@ -2,7 +2,6 @@ package com.palja.timedeal_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
 import com.palja.common.exception.BusinessException;
-import com.palja.common.exception.ErrorCode;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -175,11 +174,16 @@ public class TimeDeal extends BaseEntity {
     public void softDelete() {
         super.softDelete();
         timeDealStock.softDelete();
-        statusHistories.forEach(TimeDealStatusHistory::softDelete);
     }
 
     public long getRestoreQuantityOnDelete() {
         return timeDealStock.getQuantity().getRemainingQuantity();
+    }
+
+    public boolean isDeletable(LocalDateTime now) {
+        validateDeletableStatus();
+        validateDeletablePeriod(now);
+        return true;
     }
 
     public boolean isClosed() {
