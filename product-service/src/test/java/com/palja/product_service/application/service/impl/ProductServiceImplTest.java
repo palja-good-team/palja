@@ -9,9 +9,9 @@ import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
+import com.palja.product_service.domain.entity.Category;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
-import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ class ProductServiceImplTest {
     @BeforeEach
     void init() {
         createProductCommand = new CreateProductCommand(
-                "상품", "설명", 1000L, 100, "FOOD"
+                "상품", "설명", 1000L, 100, "001001001"
         );
 
         companyUserInfo = new CompanyUserInfoRes(
@@ -81,7 +81,7 @@ class ProductServiceImplTest {
         Product expected = product;
 
         given(userService.getMyInfo()).willReturn(companyUserInfo);
-        given(productRepository.isNotUnique(anyString(), any(Category.class), anyString())).willReturn(Boolean.FALSE);
+        given(productRepository.isNotUnique(anyString(), anyString(), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 
         //when
@@ -91,7 +91,7 @@ class ProductServiceImplTest {
         assertThat(result.getName()).isEqualTo(expected.getName());
         assertThat(result.getDescription()).isEqualTo(expected.getDescription());
         assertThat(result.getPrice()).isEqualTo(expected.getPrice().toString());
-        assertThat(result.getCategory()).isEqualTo(expected.getCategory().name());
+        assertThat(result.getCategory()).isEqualTo(expected.getCategory().getCategoryNumber());
         assertThat(result.getCompanyName()).isEqualTo(expected.getCompanyName());
     }
 
@@ -124,7 +124,7 @@ class ProductServiceImplTest {
         );
         FindProductListByConditionDto repositoryResultDto = new FindProductListByConditionDto(
                 product.getId(), product.getName(), product.getDescription(),
-                product.getPrice(), product.getCategory(), product.getAvgRating());
+                product.getPrice(), product.getCategory().getCategoryNumber(), product.getAvgRating());
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 

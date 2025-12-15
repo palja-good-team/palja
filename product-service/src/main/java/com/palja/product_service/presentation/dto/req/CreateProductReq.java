@@ -1,10 +1,7 @@
 package com.palja.product_service.presentation.dto.req;
 
 import com.palja.product_service.application.command.CreateProductCommand;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +24,8 @@ public class CreateProductReq {
     @PositiveOrZero(message = "재고는 양수여야 합니다")
     private Integer stock;
 
-    @NotEmpty(message = "상품의 카테고리는 필수항목이며, FOOD, TOOL, CLOTHING 를 지원합니다")
+    @NotEmpty(message = "상품의 카테고리는 필수항목입니다")
+    @Pattern(regexp = "^\\d{9}$")
     private String category;
 
     public CreateProductCommand toCommand(CreateProductReq req) {

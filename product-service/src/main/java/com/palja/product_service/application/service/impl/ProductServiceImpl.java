@@ -16,10 +16,8 @@ import com.palja.product_service.domain.dto.res.ProductInfoForTimeDealDto;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
-import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -52,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
                 myInfo.getCompanyName(),
                 createCommand.stock());
 
-        if(repository.isNotUnique(product.getCompanyName(), product.getCategory(), product.getName()))
+        if(repository.isNotUnique(product.getCompanyName(), product.getCategory().getCategoryNumber(), product.getName()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
         Product savedProduct = repository.save(product);
@@ -111,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
 
         if(repository.isNotUnique(
                 product.getCompanyName(),
-                Category.fromString(updateCommand.category()),
+                updateCommand.category(),
                 updateCommand.name()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
