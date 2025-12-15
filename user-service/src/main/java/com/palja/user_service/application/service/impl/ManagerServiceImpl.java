@@ -119,11 +119,7 @@ public class ManagerServiceImpl implements ManagerService {
 		User user = getManagerByLoginId(loginId);
 		user.softDelete();
 
-		Cache cache = cacheManager.getCache("user:manager");
-		if (cache != null) {
-			cache.evict("loginId:" + user.getLoginId());
-			cache.evict("userId:" + user.getId());
-		}
+		removeCache(user);
 	}
 
 	private User getUserByLoginId(String loginId) {
@@ -159,6 +155,14 @@ public class ManagerServiceImpl implements ManagerService {
 	private void validateDuplicateEmail(String email) {
 		if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
 			throw new BusinessException(UserErrorCode.DUPLICATED_EMAIL);
+		}
+	}
+
+	private void removeCache(User user) {
+		Cache cache = cacheManager.getCache("user:manager");
+		if (cache != null) {
+			cache.evict("loginId:" + user.getLoginId());
+			cache.evict("userId:" + user.getId());
 		}
 	}
 

@@ -136,11 +136,7 @@ public class CustomerServiceImpl implements CustomerService {
 		user.softDelete();
 		reviewClient.deleteAllReviews(user.getId());
 
-		Cache cache = cacheManager.getCache("user:customer");
-		if (cache != null) {
-			cache.evict("loginId:" + user.getLoginId());
-			cache.evict("userId:" + user.getId());
-		}
+		removeCache(user);
 	}
 
 	@Override
@@ -160,11 +156,7 @@ public class CustomerServiceImpl implements CustomerService {
 		);
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 
-		Cache cache = cacheManager.getCache("user:customer");
-		if (cache != null) {
-			cache.evict("loginId:" + user.getLoginId());
-			cache.evict("userId:" + user.getId());
-		}
+		removeCache(user);
 	}
 
 	private User getCustomerByLoginId(String loginId) {
@@ -200,6 +192,14 @@ public class CustomerServiceImpl implements CustomerService {
 	private void validateTokenIsNotNull(String token) {
 		if (token == null) {
 			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
+		}
+	}
+
+	private void removeCache(User user) {
+		Cache cache = cacheManager.getCache("user:customer");
+		if (cache != null) {
+			cache.evict("loginId:" + user.getLoginId());
+			cache.evict("userId:" + user.getId());
 		}
 	}
 

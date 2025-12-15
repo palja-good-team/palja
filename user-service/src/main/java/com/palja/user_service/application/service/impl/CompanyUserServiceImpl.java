@@ -146,11 +146,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.updateStatus(command.status());
 
-		Cache cache = cacheManager.getCache("user:companyUser");
-		if (cache != null) {
-			cache.evict("loginId:" + companyUser.getUser().getLoginId());
-			cache.evict("companyUserId:" + companyUser.getId());
-		}
+		removeCache(companyUser);
 	}
 
 	@Override
@@ -163,11 +159,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		timeDealClient.deleteAllTimeDeals(companyUser.getId());
 		productClient.deleteAllProducts(companyUser.getId());
 
-		Cache cache = cacheManager.getCache("user:companyUser");
-		if (cache != null) {
-			cache.evict("loginId:" + companyUser.getUser().getLoginId());
-			cache.evict("companyUserId:" + companyUser.getId());
-		}
+		removeCache(companyUser);
 	}
 
 	@Override
@@ -188,11 +180,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		);
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 
-		Cache cache = cacheManager.getCache("user:companyUser");
-		if (cache != null) {
-			cache.evict("loginId:" + companyUser.getUser().getLoginId());
-			cache.evict("companyUserId:" + companyUser.getId());
-		}
+		removeCache(companyUser);
 	}
 
 	@Override
@@ -203,6 +191,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		validateStatusIsPending(companyUser);
 		companyUser.softDelete();
+
+		removeCache(companyUser);
 	}
 
 	private CompanyUser getCompanyUserByLoginId(String loginId) {
@@ -254,6 +244,14 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private void validateTokenIsNotNull(String token) {
 		if (token == null) {
 			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
+		}
+	}
+
+	private void removeCache(CompanyUser companyUser) {
+		Cache cache = cacheManager.getCache("user:companyUser");
+		if (cache != null) {
+			cache.evict("loginId:" + companyUser.getUser().getLoginId());
+			cache.evict("companyUserId:" + companyUser.getId());
 		}
 	}
 
