@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class TimeDealRepositoryAdapter implements TimeDealRepository {
+public class TimeDealRepositoryImpl implements TimeDealRepository {
 
     private final JpaTimeDealRepository jpaTimeDealRepository;
 

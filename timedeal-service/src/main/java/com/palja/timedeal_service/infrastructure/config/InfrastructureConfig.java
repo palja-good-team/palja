@@ -1,14 +1,8 @@
 package com.palja.timedeal_service.infrastructure.config;
 
-import com.palja.timedeal_service.application.port.ProductClient;
-import com.palja.timedeal_service.application.port.UserClient;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
-import com.palja.timedeal_service.infrastructure.external.ProductFeignClient;
-import com.palja.timedeal_service.infrastructure.external.UserFeignClient;
-import com.palja.timedeal_service.infrastructure.external.adapter.ProductClientAdapter;
-import com.palja.timedeal_service.infrastructure.external.adapter.UserClientAdapter;
 import com.palja.timedeal_service.infrastructure.repository.JpaTimeDealRepository;
-import com.palja.timedeal_service.infrastructure.repository.adapter.TimeDealRepositoryAdapter;
+import com.palja.timedeal_service.infrastructure.repository.adapter.TimeDealRepositoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +22,7 @@ public class InfrastructureConfig {
 
     @Bean
     public TimeDealRepository timeDealRepository(JpaTimeDealRepository jpaTimeDealRepository) {
-        return new TimeDealRepositoryAdapter(jpaTimeDealRepository);
+        return new TimeDealRepositoryImpl(jpaTimeDealRepository);
     }
 }
 
