@@ -67,10 +67,10 @@ class ProductServiceImplTest {
         product = Product.create(createProductCommand.name(),
                 createProductCommand.description(),
                 createProductCommand.price(),
-                createProductCommand.category(),
                 companyUserInfo.getCompanyUserId(),
                 companyUserInfo.getCompanyName(),
                 createProductCommand.stock());
+        product.assignCategory(Category.create(createProductCommand.category()));
     }
 
     @Test

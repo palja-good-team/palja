@@ -41,20 +41,19 @@ public class Product extends BaseEntity {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private ProductStock productStock;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
     protected Product() {}
 
-    public static Product create(String name, String description, Long price, String category, UUID companyUserId, String companyName, Integer stock) {
+    public static Product create(String name, String description, Long price, UUID companyUserId, String companyName, Integer stock) {
 
         Product product = new Product();
 
         product.name = name;
         product.description = description;
         product.price = Money.of(price);
-        product.category = new Category(category);
         product.avgRating = BigDecimal.ZERO;
         product.companyName = companyName;
         product.companyUserId = companyUserId;
@@ -63,15 +62,19 @@ public class Product extends BaseEntity {
         return product;
     }
 
-    public Product updateInfo(String name, String description, Long price, String category) {
+    public Product assignCategory(Category category) {
+        this.category = category;
+        return this;
+    }
 
+    public Product updateInfo(String name, String description, Long price, Category category) {
 
         if(name.length() > 30) throw new BusinessException(ProductErrorCode.NAME_TOO_LONG);
         this.name = name;
 
         this.description = description;
         this.price = Money.of(price);
-        this.category = new Category(category);
+        this.category = category;
 
         return this;
     }
