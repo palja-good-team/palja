@@ -51,14 +51,14 @@ public class Period {
             throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
         }
 
-        if (isEndBeforeStart(startAt, endAt)) {
+        if (!isValidRange(startAt, endAt)) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_END_BEFORE_START);
         }
     }
 
     // ========== 조건식 ==========
-    private boolean isEndBeforeStart(LocalDateTime startAt, LocalDateTime endAt) {
-        return endAt.isBefore(startAt);
+    private boolean isValidRange(LocalDateTime startAt, LocalDateTime endAt) {
+        return startAt.isBefore(endAt);
     }
 
     public boolean isBeforeStartAt(LocalDateTime now) {

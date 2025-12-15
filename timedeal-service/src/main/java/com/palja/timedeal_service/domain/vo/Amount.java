@@ -67,7 +67,7 @@ public class Amount {
     }
 
     private void validatePriceOrder(long originalPrice, long timeDealPrice) {
-        if (isTimeDealPriceGreaterThanOriginal(originalPrice, timeDealPrice)) {
+        if (!isTimeDealPriceLessThanOrEqualOriginal(originalPrice, timeDealPrice)) {
             throw new BusinessException(TimeDealErrorCode.TIMEDEAL_PRICE_GREATER_THAN_ORIGINAL);
         }
     }
@@ -77,7 +77,7 @@ public class Amount {
         return price < MIN_PRICE;
     }
 
-    private boolean isTimeDealPriceGreaterThanOriginal(long originalPrice, long timeDealPrice) {
-        return timeDealPrice > originalPrice;
+    private boolean isTimeDealPriceLessThanOrEqualOriginal(long originalPrice, long timeDealPrice) {
+        return timeDealPrice <= originalPrice;
     }
 }

@@ -92,23 +92,22 @@ public class Quantity {
 
     // ========== 검증 ==========
     private void validateTotalQuantity(long totalQuantity) {
-        if (isLessThanMinimumTotal(totalQuantity)) {
+        if (!isValidTotalQuantity(totalQuantity)) {
             throw new BusinessException(TimeDealErrorCode.INVALID_TOTAL_QUANTITY);
         }
     }
 
     private void validateRemainingInRange(long totalQuantity, long remainingQuantity) {
-        if (isRemainingNegative(remainingQuantity) || isRemainingOverTotal(totalQuantity, remainingQuantity)) {
+        if (!isRemainingWithinTotal(totalQuantity, remainingQuantity)) {
             throw new BusinessException(TimeDealErrorCode.INVALID_REMAINING_QUANTITY);
         }
     }
 
     private void validateTotalQuantityUpdate(long newTotalQuantity, long soldQuantity) {
-        if (isLessThanSoldQuantity(newTotalQuantity, soldQuantity)) {
+        if (!canUpdateTotalQuantity(newTotalQuantity, soldQuantity)) {
             throw new BusinessException(TimeDealErrorCode.INVALID_TOTAL_QUANTITY_UPDATE);
         }
     }
-
     private void validateDecreaseRemainingQuantity(long decreaseQuantity) {
         validateDeltaQuantity(decreaseQuantity);
 
@@ -132,20 +131,16 @@ public class Quantity {
     }
 
     // ========== 조건식 ==========
-    private boolean isLessThanMinimumTotal(long totalQuantity) {
-        return totalQuantity < MIN_TOTAL_QUANTITY;
+    private boolean isValidTotalQuantity(long totalQuantity) {
+        return totalQuantity >= MIN_TOTAL_QUANTITY;
     }
 
-    private boolean isRemainingNegative(long remainingQuantity) {
-        return remainingQuantity < 0;
+    private boolean isRemainingWithinTotal(long totalQuantity, long remainingQuantity) {
+        return remainingQuantity >= 0 && remainingQuantity <= totalQuantity;
     }
 
-    private boolean isRemainingOverTotal(long totalQuantity, long remainingQuantity) {
-        return remainingQuantity > totalQuantity;
-    }
-
-    private boolean isLessThanSoldQuantity(long newTotalQuantity, long soldQuantity) {
-        return newTotalQuantity < soldQuantity;
+    private boolean canUpdateTotalQuantity(long newTotalQuantity, long soldQuantity) {
+        return newTotalQuantity >= soldQuantity;
     }
 
     private boolean isLessThanMinimumDelta(long deltaQuantity) {
