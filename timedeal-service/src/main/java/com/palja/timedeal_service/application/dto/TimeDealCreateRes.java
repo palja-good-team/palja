@@ -31,9 +31,9 @@ public class TimeDealCreateRes {
                 .companyUserId(timeDeal.getCompanyUserId())
                 .title(timeDeal.getTitle())
                 .description(timeDeal.getDescription())
-                .period(PeriodRes.from(timeDeal))
-                .amount(AmountRes.from(timeDeal))
-                .quantity(QuantityRes.from(timeDeal))
+                .period(PeriodRes.from(timeDeal.getPeriod()))
+                .amount(AmountRes.from(timeDeal.getAmount()))
+                .quantity(QuantityRes.from(timeDeal.getTimeDealStock().getQuantity()))
                 .timeDealStatus(timeDeal.getTimeDealStatus().name())
                 .build();
     }

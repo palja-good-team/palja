@@ -1,6 +1,6 @@
 package com.palja.timedeal_service.application.dto.common;
 
-import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.vo.Period;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,10 +14,10 @@ public class PeriodRes {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
 
-    public static PeriodRes from(TimeDeal timeDeal) {
+    public static PeriodRes from(Period period) {
         return PeriodRes.builder()
-                .startAt(timeDeal.getPeriod().getStartAt())
-                .endAt(timeDeal.getPeriod().getEndAt())
+                .startAt(period.getStartAt())
+                .endAt(period.getEndAt())
                 .build();
     }
 }
