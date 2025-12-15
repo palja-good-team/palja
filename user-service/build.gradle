@@ -52,7 +52,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'com.palja:common-module:0.8.6'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
@@ -62,6 +63,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.20.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
     implementation 'io.github.openfeign:feign-micrometer'
+    implementation 'com.github.loki4j:loki-logback-appender:2.0.1'
 }
 
 dependencyManagement {
