@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ public class ManagerServiceImplTest {
 
 	@Mock private UserRepository userRepository;
 	@Mock private PasswordEncoder passwordEncoder;
+	@Mock private CacheManager cacheManager;
 
 	private User manager1;
 	private User manager2;

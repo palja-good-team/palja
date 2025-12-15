@@ -1,5 +1,10 @@
 package com.palja.user_service.application.service.impl;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final CacheManager cacheManager;
 
 	@Override
 	@Transactional
@@ -60,6 +66,7 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:manager", key = "'loginId:' + #loginId")
 	public ReadManagerDetailRes getManagerByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -67,6 +74,7 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:manager", key = "'userId:' + #userId")
 	public ReadManagerDetailRes getManagerByUserId(String currentUserLoginId, Long userId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -74,12 +82,17 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:manager", key = "'loginId:' + #currentUserLoginId")
 	public ReadManagerDetailRes getMe(String currentUserLoginId) {
 		return ReadManagerDetailRes.from(getUserByLoginId(currentUserLoginId));
 	}
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:manager", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:manager", key = "'userId:' + #result.userId")
+	})
 	public UpdateManagerDetailRes updateManagerByLoginId(String loginId, UpdateManagerCommand command) {
 		User user = getManagerByLoginId(loginId);
 		user.update(command.address());
@@ -89,6 +102,10 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:manager", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:manager", key = "'userId:' + #result.userId")
+	})
 	public UpdateManagerDetailRes updateMe(String currentUserLoginId, UpdateManagerCommand command) {
 		User user = getUserByLoginId(currentUserLoginId);
 		user.update(command.address());
@@ -101,6 +118,12 @@ public class ManagerServiceImpl implements ManagerService {
 	public void deleteManagerByLoginId(String loginId) {
 		User user = getManagerByLoginId(loginId);
 		user.softDelete();
+
+		Cache cache = cacheManager.getCache("user:manager");
+		if (cache != null) {
+			cache.evict("loginId:" + user.getLoginId());
+			cache.evict("userId:" + user.getId());
+		}
 	}
 
 	private User getUserByLoginId(String loginId) {

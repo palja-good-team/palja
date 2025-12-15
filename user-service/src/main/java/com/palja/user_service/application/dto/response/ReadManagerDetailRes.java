@@ -5,11 +5,15 @@ import java.time.LocalDateTime;
 import com.palja.user_service.domain.entity.User;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ReadManagerDetailRes {
 
 	private Long userId;
