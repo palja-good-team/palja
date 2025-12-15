@@ -76,7 +76,7 @@ public class ProductControllerImpl {
     }
 
     @RequiredRole(UserRole.COMPANY_USER)
-    @PutMapping("/manager/{productId}")
+    @PutMapping("/{productId}")
     public ResponseEntity<ApiResponse<UpdateProductInfoRes>> updateProductInfo(@RequestBody @Valid UpdateProductInfoReq req,
                                                                                @PathVariable UUID productId) {
 
@@ -87,7 +87,7 @@ public class ProductControllerImpl {
     }
 
     @RequiredRole(UserRole.COMPANY_USER)
-    @PutMapping("/manager/modifyStock/{productId}")
+    @PutMapping("/modifyStock/{productId}")
     public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
                                                                           @RequestParam Integer stock) {
 
@@ -101,8 +101,8 @@ public class ProductControllerImpl {
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
                                                                    @RequestParam Integer quantity) {
 
-        SaleProductRes res = service.saleProductV1(productId, quantity);
-//        SaleProductRes res = service.saleProduct(productId, quantity);
+//        SaleProductRes res = service.saleProductV1(productId, quantity);
+        SaleProductRes res = service.saleProduct(productId, quantity);
 
         return new ResponseEntity<>(ApiResponse.success(res, "판매 재고 차감 성공"), HttpStatus.OK);
     }
@@ -139,10 +139,18 @@ public class ProductControllerImpl {
     }
 
     @RequiredRole(UserRole.COMPANY_USER)
-    @DeleteMapping("/manager/{productId}")
+    @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<String>> deleteProduct(@PathVariable UUID productId) {
 
         service.deleteProduct(productId);
+        return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
+    }
+
+    @RequiredInternal
+    @DeleteMapping("/user/{companyUserId}")
+    public ResponseEntity<ApiResponse<String>> deleteProductForUser(@PathVariable UUID companyUserId) {
+
+        service.deleteProductForUser(companyUserId);
         return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
     }
 }

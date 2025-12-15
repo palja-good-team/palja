@@ -17,6 +17,8 @@ import org.testcontainers.junit.jupiter.Container;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +52,7 @@ class RedisRepositoryImplTest {
     @Autowired
     private RedissonClient redissonClient;
 
-    private final String hashKey = "test:stock";
+    private String hashKey;
 
     @AfterEach
     void clean() {
@@ -61,8 +63,8 @@ class RedisRepositoryImplTest {
     @DisplayName("판매에 의한 재고 차감시, 동시성 이슈가 없어야한다")
     void decreaseStockBySale() throws InterruptedException {
         //given
-        String hashName = hashKey;
         String productId = UUID.randomUUID().toString();
+        hashKey = redisRepository.createRedisHashKey(productId);
         Integer dbStock = 100;
         Integer saleQuantity = 1;
         long beforeTime = LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC);
@@ -75,7 +77,7 @@ class RedisRepositoryImplTest {
         for (int i = 1; i <= numOfThreads; i++) {
             executorService.submit(() -> {
                 try {
-                    redisRepository.decreaseStockBySale(hashName, productId, dbStock, saleQuantity);
+                    redisRepository.decreaseStockBySale(productId, dbStock, saleQuantity);
                 } finally {
                     latch.countDown();
                 }
@@ -87,8 +89,8 @@ class RedisRepositoryImplTest {
         long afterTime = LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC);
 
         //then
-        RMap<String, Integer> map = redissonClient.getMap(hashName);
-        RScoredSortedSet<String> timeSet = redissonClient.getScoredSortedSet(hashName + "Time");
+        RMap<String, Integer> map = redissonClient.getMap(hashKey);
+        RScoredSortedSet<String> timeSet = redissonClient.getScoredSortedSet(hashKey + "Time");
 
         assertThat(map.get(productId)).isEqualTo(0);
         assertThat(timeSet.size()).isEqualTo(1);
@@ -100,24 +102,48 @@ class RedisRepositoryImplTest {
     @DisplayName("재고 수량 변경에 성공한다")
     void adjustStock() {
         //given
-        String hashName = hashKey;
         String productId = UUID.randomUUID().toString();
-        String productId2 = UUID.randomUUID().toString();
+        hashKey = redisRepository.createRedisHashKey(productId);
         Integer beforeStock = 100;
         Integer afterStock = 200;
 
-        redissonClient.getMap(hashName).fastPut(productId, beforeStock);
+        redissonClient.getMap(hashKey).fastPut(productId, beforeStock);
 
         //when
-
-        redisRepository.adjustStock(hashName, productId, afterStock);
-        redisRepository.adjustStock(hashName, productId2, afterStock);
+        redisRepository.adjustStock(productId, afterStock);
 
         //then
-        RMap<String, Integer> map = redissonClient.getMap(hashName);
+        RMap<String, Integer> map = redissonClient.getMap(hashKey);
 
-        assertThat(map.size()).isEqualTo(2);
+        assertThat(map.size()).isEqualTo(1);
         assertThat(map.get(productId)).isEqualTo(afterStock);
-        assertThat(map.get(productId2)).isEqualTo(afterStock);
+    }
+
+    @Test
+    @DisplayName("ID리스트에 해당하는 수량데이터를 삭제한다")
+    void deleteAllStockFromRedis() throws InterruptedException {
+        //given
+        List<UUID> ids = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            ids.add(UUID.randomUUID());
+        }
+
+        List<String> hashKeys = new ArrayList<>();
+        for (UUID id : ids) {
+            hashKey = redisRepository.createRedisHashKey(id.toString());
+            hashKeys.add(hashKey);
+            RMap<String, Integer> map = redissonClient.getMap(hashKey);
+            map.fastPut(id.toString(), 100);
+        }
+
+        //when
+        boolean result = redisRepository.deleteAllStockFromRedis(ids);
+
+        //then
+        assertThat(result).isTrue();
+        for (String hashKey : hashKeys) {
+            assertThat(redissonClient.getMap(hashKey)).isEmpty();
+            redissonClient.getMap(hashKey).clear();
+        }
     }
 }

@@ -2,31 +2,42 @@ package com.palja.product_service.infrastructure.repository.impl;
 
 import com.palja.product_service.domain.repository.RedisProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class RedisProductRepositoryImpl implements RedisProductRepository {
 
     private final RedissonClient redissonClient;
 
+    @Value("${redis-key.map0}")
+    private String hashKey0;
+
+    @Value("${redis-key.map1}")
+    private String hashKey1;
+
     @Value("${redis-key.time-suffix}")
     private String timeSuffix;
 
     @Override
-    public boolean decreaseStockBySale(String key, String productId, Integer stock, Integer quantity) {
+    public boolean decreaseStockBySale(String productId, Integer stock, Integer quantity) {
 
         //상품의 아이디의 이름으로 락을 건다.
         RLock lock = redissonClient.getLock(productId);
-
+        String hashKey = createRedisHashKey(productId);
         RTransaction transaction = null;
+
         try {
             //락을 10초동안 얻지 못한다면 실패 반환
             if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
@@ -39,7 +50,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
             );
 
             // 레디스에 key로 매핑된 Hash(자바의 Map)을 가져온다.
-            RMap<String, Integer> map = transaction.getMap(key);
+            RMap<String, Integer> map = transaction.getMap(hashKey);
 
             //값이 있으면 가져오고 없으면 DB의 재고로 잡는다
             Integer remainStock = map.getOrDefault(productId, stock);
@@ -52,7 +63,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
 
             //레디스에 새로운 재고를 넣고, DB 재고차감 스케줄링에 사용할 값을 넣는다.
             map.fastPut(productId, resultStock);
-            setTime(key+timeSuffix, productId);
+            setTime(hashKey+timeSuffix, productId);
 
             //예외 없이 모든 작업이 끝난다면 커밋해 레디스에 적용시킨다
             transaction.commit();
@@ -68,9 +79,10 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
     }
 
     @Override
-    public boolean adjustStock(String hashKey, String productId, Integer quantity) {
+    public boolean adjustStock(String productId, Integer quantity) {
 
         RLock lock = redissonClient.getLock(productId);
+        String hashKey = createRedisHashKey(productId);
 
         try {
             //락을 10초동안 얻지 못한다면 실패 반환
@@ -92,10 +104,12 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
     }
 
     @Override
-    public boolean deleteProductStock(String hashKey, String productId) {
+    public boolean deleteProductStock(String productId) {
 
         RLock lock = redissonClient.getLock(productId);
+        String hashKey = createRedisHashKey(productId);
         RTransaction transaction = null;
+
         try {
             //락을 10초동안 얻지 못한다면 실패 반환
             if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
@@ -121,6 +135,38 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
             lock.unlock();
         }
         return true;
+    }
+
+    @Override
+    public boolean deleteAllStockFromRedis(List<UUID> productIds) {
+
+        for (UUID productId : productIds) {
+            RLock lock = redissonClient.getLock(productId.toString());
+
+            try {
+                if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
+                    continue;
+                }
+
+                RMap<String, Integer> map =
+                        redissonClient.getMap(createRedisHashKey(productId.toString()));
+
+                map.fastRemove(productId.toString());
+
+            } catch (Exception e) {
+                log.error("Please Retry Delete this Id = {}", productId);
+            }
+        }
+        return true;
+    }
+
+    protected String createRedisHashKey(String productId) {
+
+        String substring = productId.substring(0, 8);
+        int hash = substring.hashCode();
+        if(hash % 2 == 0)
+            return hashKey0;
+        else return hashKey1;
     }
 
     private void setTime(String setKey, String productId) {
