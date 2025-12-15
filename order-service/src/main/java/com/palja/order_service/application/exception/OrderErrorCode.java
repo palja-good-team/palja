@@ -92,6 +92,10 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_CREATION_NOT_ALLOWED_FOR_COMPANY_USER(HttpStatus.FORBIDDEN, "판매업체 사용자는 주문을 생성할 수 없습니다."),
     INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 권한입니다."),
 
+    // ===== SAGA 패턴 오류 =====
+    ORDER_SAGA_INCONSISTENT_STATE(HttpStatus.CONFLICT, "주문 SAGA 정합성 오류가 발생했습니다."),
+    ORDER_SAGA_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 SAGA 정보를 찾을 수 없습니다."),
+
     // ===== 외부 서비스 연동 오류 =====
     PRODUCT_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "상품 서비스 연동 중 오류가 발생했습니다."),
     COUPON_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "쿠폰 서비스 연동 중 오류가 발생했습니다."),
@@ -99,7 +103,7 @@ public enum OrderErrorCode implements ErrorCode {
     TIME_DEAL_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "타임딜 서비스 연동 중 오류가 발생했습니다."),
     PAYMENT_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스 연동 중 오류가 발생했습니다."),
 
-    // 조회 실패,
+    // 조회 실패
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 정보를 찾을 수 없습니다."),
     TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "타임딜 정보를 찾을 수 없습니다."),
