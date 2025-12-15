@@ -121,6 +121,18 @@ public class TimeDeal extends BaseEntity {
     }
 
     // ========== 상태 ==========
+    public TimeDealStatusHistory changeStatusBy(TimeDealStatus newStatus, String reason) {
+        if (newStatus == TimeDealStatus.OPEN) {
+            return openNow(reason);
+        }
+
+        if (newStatus == TimeDealStatus.CLOSED) {
+            return closeNow(reason);
+        }
+
+        return changeStatus(newStatus, reason);
+    }
+
     public TimeDealStatusHistory changeStatus(TimeDealStatus newStatus, String reason) {
         validateTimeDealStatusChange(newStatus, reason);
 

@@ -1,6 +1,8 @@
 package com.palja.timedeal_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.timedeal_service.common.TimeDealEditableField;
+import com.palja.timedeal_service.common.TimeDealErrorCode;
 
 public enum TimeDealStatus {
     PENDING("대기중") {
@@ -80,5 +82,13 @@ public enum TimeDealStatus {
 
     public boolean canDelete() {
         return this == PENDING;
+    }
+
+    public static TimeDealStatus from(String status) {
+        try {
+            return TimeDealStatus.valueOf(status.toUpperCase());
+        } catch (Exception e) {
+            throw new BusinessException(TimeDealErrorCode.INVALID_TIME_DEAL_STATUS);
+        }
     }
 }

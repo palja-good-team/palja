@@ -29,7 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -120,19 +119,9 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
-        TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
+        TimeDealStatus newStatus = TimeDealStatus.from(command.newStatus());
 
-        TimeDealStatusHistory timeDealStatusHistory;
-
-        if (newStatus == TimeDealStatus.OPEN) {
-            timeDealStatusHistory = timeDeal.openNow(command.reason());
-        }
-        else if (newStatus == TimeDealStatus.CLOSED) {
-            timeDealStatusHistory = timeDeal.closeNow(command.reason());
-        }
-        else {
-            timeDealStatusHistory = timeDeal.changeStatus(newStatus, command.reason());
-        }
+        TimeDealStatusHistory timeDealStatusHistory = timeDeal.changeStatusBy(newStatus, command.reason());
 
         log.info("타임딜 상태 수정 완료");
         return TimeDealStatusChangeRes.from(timeDeal, timeDealStatusHistory);
@@ -218,35 +207,35 @@ public class TimeDealServiceImpl implements TimeDealService {
     }
 
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
-        TimeDealStatus timeDealStatus = timeDeal.getTimeDealStatus();
+        TimeDealStatus status = timeDeal.getTimeDealStatus();
 
-        if (command.title() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TITLE);
+        if (!command.title().equals(timeDeal.getTitle())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TITLE);
             timeDeal.changeTitle(command.title());
         }
 
-        if (command.description() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.DESCRIPTION);
+        if (!command.description().equals(timeDeal.getDescription())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.DESCRIPTION);
             timeDeal.changeDescription(command.description());
         }
 
-        if (command.startAt() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.START_AT);
+        if (!command.startAt().equals(timeDeal.getPeriod().getStartAt())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.START_AT);
             timeDeal.changeStartAt(command.startAt());
         }
 
-        if (command.endAt() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.END_AT);
+        if (!command.endAt().equals(timeDeal.getPeriod().getEndAt())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.END_AT);
             timeDeal.changeEndAt(command.endAt());
         }
 
-        if (command.timeDealPrice() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TIME_DEAL_PRICE);
+        if (command.timeDealPrice() != timeDeal.getAmount().getTimeDealPrice()) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TIME_DEAL_PRICE);
             timeDeal.changeTimeDealPrice(command.timeDealPrice());
         }
 
-        if (command.totalQuantity() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TOTAL_QUANTITY);
+        if (command.totalQuantity() != timeDeal.getTimeDealStock().getQuantity().getTotalQuantity()) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TOTAL_QUANTITY);
             timeDeal.changeTotalQuantity(command.totalQuantity());
         }
     }
@@ -257,16 +246,8 @@ public class TimeDealServiceImpl implements TimeDealService {
     }
 
     private void validateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
-        if (role.equals(UserRole.COMPANY_USER)) {
+        if (role == UserRole.COMPANY_USER) {
             timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
-        }
-    }
-
-    private TimeDealStatus parseTimeDealStatus(String status) {
-        try {
-            return TimeDealStatus.valueOf(status.toUpperCase());
-        } catch (Exception e) {
-            throw new BusinessException(TimeDealErrorCode.INVALID_TIME_DEAL_STATUS);
         }
     }
 }
