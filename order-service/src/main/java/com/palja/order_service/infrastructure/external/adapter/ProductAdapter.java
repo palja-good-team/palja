@@ -43,7 +43,7 @@ public class ProductAdapter implements ProductClient {
     }
 
     @Override
-    public void deductProductStock(UUID productId, int quantity) {
+    public void deductProductStock(UUID productId, Long quantity) {
         log.info("상품 재고 차감 요청 시작: productId={}, quantity={}", productId, quantity);
         try {
             productFeignClient.decreaseProductStock(productId, quantity);
@@ -60,7 +60,7 @@ public class ProductAdapter implements ProductClient {
     }
 
     @Override
-    public void restoreProductStock(UUID productId, int quantity) {
+    public void restoreProductStock(UUID productId, Long quantity) {
         log.info("상품 재고 복구 요청 시작: productId={}, quantity={}", productId, quantity);
         try {
             productFeignClient.restoreProductStock(productId, quantity);

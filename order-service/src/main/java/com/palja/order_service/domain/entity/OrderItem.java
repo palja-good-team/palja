@@ -38,7 +38,7 @@ public class OrderItem extends BaseEntity {
     private BigDecimal unitPrice;
 
     @Column(name = "quantity", nullable = false)
-    private int quantity;
+    private Long quantity;
 
     @Column(name = "line_total_amount", nullable = false)
     private BigDecimal lineTotalAmount;
@@ -55,7 +55,7 @@ public class OrderItem extends BaseEntity {
             UUID productId,
             String productName,
             BigDecimal unitPrice,
-            int quantity,
+            Long quantity,
             UUID timeDealId,
             BigDecimal timeDealPrice
     ) {
@@ -81,7 +81,7 @@ public class OrderItem extends BaseEntity {
     }
 
     // 할인 전 총 금액 계산
-    private static BigDecimal calculateLineTotalAmount(BigDecimal unitPrice, int quantity) {
+    private static BigDecimal calculateLineTotalAmount(BigDecimal unitPrice, Long quantity) {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 
@@ -89,7 +89,7 @@ public class OrderItem extends BaseEntity {
     private static BigDecimal calculateTimeDealDiscount(
             BigDecimal unitPrice,
             BigDecimal timeDealPrice,
-            int quantity
+            Long quantity
     ) {
         if (timeDealPrice == null) {
             return BigDecimal.ZERO;
@@ -111,7 +111,7 @@ public class OrderItem extends BaseEntity {
     }
 
     // ====== Validation ======
-    private static void validateQuantity(int quantity) {
+    private static void validateQuantity(Long quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
         }

@@ -12,7 +12,7 @@ public record CreateOrderCommand(
         String loginId,
         UserRole userRole,
         UUID productId,
-        int quantity,
+        Long quantity,
         UUID timeDealId,
         UUID couponUserId,
         DeliveryCommand delivery

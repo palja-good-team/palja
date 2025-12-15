@@ -18,7 +18,7 @@ public class OrderItemRes {
     private UUID productId;
     private String productName;
     private BigDecimal unitPrice;
-    private int quantity;
+    private Long quantity;
     private BigDecimal lineTotalAmount;
     private UUID timeDealId;
     private BigDecimal timeDealPrice;

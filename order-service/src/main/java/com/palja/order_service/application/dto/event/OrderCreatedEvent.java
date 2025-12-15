@@ -23,7 +23,7 @@ public class OrderCreatedEvent {
 
     // === 주문 상품 ===
     private UUID productId;
-    private int quantity;
+    private Long quantity;
     private UUID timeDealId;
     private boolean timeDealOrder;
 

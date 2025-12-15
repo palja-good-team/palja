@@ -24,14 +24,14 @@ public interface ProductFeignClient {
     @PutMapping("/order/sale/{productId}")
     ApiResponse<ProductStockDecreaseDTO> decreaseProductStock(
             @PathVariable("productId") UUID productId,
-            @RequestParam("quantity") Integer quantity
+            @RequestParam("quantity") Long quantity
     );
 
     // 주문 취소에 의한 재고 복구
     @PutMapping("/order/cancel/{productId}")
     ApiResponse<ProductStockRestoreDTO> restoreProductStock(
             @PathVariable("productId") UUID productId,
-            @RequestParam("quantity") Integer quantity
+            @RequestParam("quantity") Long quantity
     );
 
     // TODO: 판매자 id로 판매자 상품 목록 API 호출 구현

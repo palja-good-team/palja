@@ -1,10 +1,7 @@
 package com.palja.order_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
-import com.palja.order_service.domain.vo.OrderAmount;
-import com.palja.order_service.domain.vo.OrderCancellation;
-import com.palja.order_service.domain.vo.OrderStatus;
-import com.palja.order_service.domain.vo.Recipient;
+import com.palja.order_service.domain.vo.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -68,7 +65,7 @@ public class Order extends BaseEntity {
             UUID productId,
             String productName,
             BigDecimal unitPrice,
-            int quantity,
+            Long quantity,
             UUID timeDealId,
             BigDecimal timeDealPrice,
             UUID couponUserId,
@@ -112,7 +109,7 @@ public class Order extends BaseEntity {
             UUID productId,
             String productName,
             BigDecimal unitPrice,
-            int quantity,
+            Long quantity,
             UUID timeDealId,
             BigDecimal timeDealPrice
     ) {

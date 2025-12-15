@@ -308,13 +308,13 @@ public class OrderServiceImpl implements OrderService {
     // TODO: 이벤트 기반 처리
     private void restoreInventory(Order order) {
         UUID productId = order.getOrderItem().getProductId();
-        int quantity = order.getOrderItem().getQuantity();
+        Long quantity = order.getOrderItem().getQuantity();
 
         try {
             if (order.isTimeDealOrder()) {
                 // 타임딜 재고만 복구
                 UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealClient.restoreTimeDealStock(timeDealId, (long) quantity);
+                timeDealClient.restoreTimeDealStock(timeDealId, quantity);
                 log.info("타임딜 재고 복구 완료: timeDealId={}, quantity={}",
                         timeDealId, quantity);
             } else {
@@ -533,7 +533,7 @@ public class OrderServiceImpl implements OrderService {
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
             Optional<CouponUserRes> coupon,
-            int quantity
+            Long quantity
     ) {}
 
     // 권한 검증 컨텍스트

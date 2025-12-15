@@ -61,7 +61,7 @@ public class OrderValidator {
         }
     }
 
-    private void validateQuantity(int quantity) {
+    private void validateQuantity(Long quantity) {
         if (quantity <= 0) {
             throw new BusinessException(OrderErrorCode.INVALID_QUANTITY);
         }
@@ -178,7 +178,7 @@ public class OrderValidator {
 
     // ===== Product Validation (상품 검증) =====
     // 상품 주문 가능 여부 검증
-    public void validateProductForOrder(ProductRes product, int requestedQuantity) {
+    public void validateProductForOrder(ProductRes product, Long requestedQuantity) {
         log.debug("상품 검증 시작: productId={}, price={}, stock={}, requested={}",
                 product.getProductId(), product.getPrice(), product.getStockQuantity(), requestedQuantity);
 
@@ -201,7 +201,7 @@ public class OrderValidator {
         }
     }
 
-    private void validateProductStock(ProductRes product, int requestedQuantity) {
+    private void validateProductStock(ProductRes product, Long requestedQuantity) {
         if (product.getStockQuantity() < requestedQuantity) {
             log.warn("상품 재고 부족: productId={}, available={}, requested={}",
                     product.getProductId(), product.getStockQuantity(), requestedQuantity);
@@ -211,7 +211,7 @@ public class OrderValidator {
 
     // ===== TimeDeal Validation (타임딜 검증) =====
     // 타임딜 주문 자격 검증
-    public void validateTimeDealForOrder(TimeDealRes timeDeal, int requestedQuantity) {
+    public void validateTimeDealForOrder(TimeDealRes timeDeal, Long requestedQuantity) {
         log.debug("타임딜 검증 시작: timeDealId={}, status={}, stock={}, requested={}",
                 timeDeal.getTimeDealId(), timeDeal.getStatus(),
                 timeDeal.getTimeDealStockQuantity(), requestedQuantity);
@@ -256,7 +256,7 @@ public class OrderValidator {
         }
     }
 
-    private void validateTimeDealStock(TimeDealRes timeDeal, int requestedQuantity) {
+    private void validateTimeDealStock(TimeDealRes timeDeal, Long requestedQuantity) {
         if (timeDeal.getTimeDealStockQuantity() < requestedQuantity) {
             throw new BusinessException(OrderErrorCode.TIME_DEAL_INSUFFICIENT_STOCK);
         }
