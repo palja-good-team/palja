@@ -16,6 +16,7 @@ import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -121,18 +122,20 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
 
+        TimeDealStatusHistory timeDealStatusHistory;
+
         if (newStatus == TimeDealStatus.OPEN) {
-            timeDeal.openNow(command.reason());
+            timeDealStatusHistory = timeDeal.openNow(command.reason());
         }
         else if (newStatus == TimeDealStatus.CLOSED) {
-            timeDeal.closeNow(command.reason());
+            timeDealStatusHistory = timeDeal.closeNow(command.reason());
         }
         else {
-            timeDeal.changeStatus(newStatus, command.reason());
+            timeDealStatusHistory = timeDeal.changeStatus(newStatus, command.reason());
         }
 
         log.info("타임딜 상태 수정 완료");
-        return TimeDealStatusChangeRes.from(timeDeal);
+        return TimeDealStatusChangeRes.from(timeDeal, timeDealStatusHistory);
     }
 
     @Override

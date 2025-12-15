@@ -3,7 +3,9 @@ package com.palja.timedeal_service.application.dto;
 import com.palja.timedeal_service.application.dto.common.AmountRes;
 import com.palja.timedeal_service.application.dto.common.PeriodRes;
 import com.palja.timedeal_service.application.dto.common.QuantityRes;
+import com.palja.timedeal_service.application.dto.common.TimeDealStatusHistoryRes;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-// TODO. 변경 사유도 같이 내려주기
 public class TimeDealStatusChangeRes {
     private UUID timeDealId;
     private UUID productId;
@@ -24,8 +25,9 @@ public class TimeDealStatusChangeRes {
     private AmountRes amount;
     private QuantityRes quantity;
     private String timeDealStatus;
+    private TimeDealStatusHistoryRes timeDealStatusHistory;
 
-    public static TimeDealStatusChangeRes from(TimeDeal timeDeal) {
+    public static TimeDealStatusChangeRes from(TimeDeal timeDeal, TimeDealStatusHistory timeDealStatusHistory) {
         return TimeDealStatusChangeRes.builder()
                 .timeDealId(timeDeal.getTimeDealId())
                 .productId(timeDeal.getProductId())
@@ -36,6 +38,7 @@ public class TimeDealStatusChangeRes {
                 .amount(AmountRes.from(timeDeal))
                 .quantity(QuantityRes.from(timeDeal))
                 .timeDealStatus(timeDeal.getTimeDealStatus().name())
+                .timeDealStatusHistory(TimeDealStatusHistoryRes.from(timeDealStatusHistory))
                 .build();
     }
 }

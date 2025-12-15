@@ -119,25 +119,31 @@ public class TimeDeal extends BaseEntity {
         this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
 
-    public void changeStatus(TimeDealStatus newStatus, String reason) {
+    public TimeDealStatusHistory changeStatus(TimeDealStatus newStatus, String reason) {
         validateTimeDealStatusChange(newStatus, reason);
 
         TimeDealStatusHistory history = TimeDealStatusHistory.create(this, this.timeDealStatus, newStatus, reason);
 
         this.statusHistories.add(history);
         this.timeDealStatus = newStatus;
+
+        return history;
     }
 
-    public void openNow(String reason) {
+    public TimeDealStatusHistory openNow(String reason) {
         this.period = this.period.updateStartAt(LocalDateTime.now());
 
-        changeStatus(TimeDealStatus.OPEN, reason);
+        TimeDealStatusHistory history = changeStatus(TimeDealStatus.OPEN, reason);
+
+        return history;
     }
 
-    public void closeNow(String reason) {
+    public TimeDealStatusHistory closeNow(String reason) {
         this.period = this.period.updateEndAt(LocalDateTime.now());
 
-        changeStatus(TimeDealStatus.CLOSED, reason);
+        TimeDealStatusHistory history = changeStatus(TimeDealStatus.CLOSED, reason);
+
+        return history;
     }
 
     public void decreaseRemainingQuantity(long decreaseQuantity) {
