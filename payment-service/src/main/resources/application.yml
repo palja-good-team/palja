@@ -11,6 +11,7 @@ spring:
       - zipkin
       - eureka
       - swagger
+      - monitor
 
 toss:
   base-url: https://api.tosspayments.com
