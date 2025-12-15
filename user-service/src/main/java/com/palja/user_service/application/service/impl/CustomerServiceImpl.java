@@ -2,6 +2,11 @@ package com.palja.user_service.application.service.impl;
 
 import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+	private final CacheManager cacheManager;
 
 	@Override
 	@Transactional
@@ -70,6 +76,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:customer", key = "'loginId:' + #loginId")
 	public ReadCustomerDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -77,6 +84,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:customer", key = "'userId:' + #userId")
 	public ReadCustomerDetailRes getCustomerByUserId(String currentUserLoginId, Long userId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -84,12 +92,17 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:customer", key = "'loginId:' + #currentUserLoginId")
 	public ReadCustomerDetailRes getMe(String currentUserLoginId) {
 		return ReadCustomerDetailRes.from(getCustomerByLoginId(currentUserLoginId));
 	}
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:customer", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:customer", key = "'userId:' + #result.userId")
+	})
 	public UpdateCustomerDetailRes updateCustomerByLoginId(
 		String currentUserLoginId, String loginId, UpdateCustomerCommand command
 	) {
@@ -103,6 +116,10 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:customer", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:customer", key = "'userId:' + #result.userId")
+	})
 	public UpdateCustomerDetailRes updateMe(String currentUserLoginId, UpdateCustomerCommand command) {
 		User user = getCustomerByLoginId(currentUserLoginId);
 		user.update(command.address());
@@ -118,6 +135,12 @@ public class CustomerServiceImpl implements CustomerService {
 		User user = getCustomerByLoginId(loginId);
 		user.softDelete();
 		reviewClient.deleteAllReviews(user.getId());
+
+		Cache cache = cacheManager.getCache("user:customer");
+		if (cache != null) {
+			cache.evict("loginId:" + user.getLoginId());
+			cache.evict("userId:" + user.getId());
+		}
 	}
 
 	@Override
@@ -136,6 +159,12 @@ public class CustomerServiceImpl implements CustomerService {
 			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
+
+		Cache cache = cacheManager.getCache("user:customer");
+		if (cache != null) {
+			cache.evict("loginId:" + user.getLoginId());
+			cache.evict("userId:" + user.getId());
+		}
 	}
 
 	private User getCustomerByLoginId(String loginId) {
