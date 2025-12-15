@@ -12,6 +12,7 @@ import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
 import com.palja.product_service.domain.entity.Category;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.repository.ProductRepository;
+import com.palja.product_service.domain.service.ProductCategoryService;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ class ProductServiceImplTest {
     @Mock
     private UserClient userService;
 
+    @Mock
+    private ProductCategoryService productCategoryService;
+
     private CreateProductCommand createProductCommand;
     private CompanyUserInfoRes companyUserInfo;
     private Product product;
@@ -81,6 +85,7 @@ class ProductServiceImplTest {
         Product expected = product;
 
         given(userService.getMyInfo()).willReturn(companyUserInfo);
+        given(productCategoryService.createProductAndCategory(command, companyUserInfo)).willReturn(expected);
         given(productRepository.isNotUnique(anyString(), anyString(), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 
