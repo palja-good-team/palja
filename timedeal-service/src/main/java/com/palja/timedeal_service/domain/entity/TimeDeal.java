@@ -95,12 +95,12 @@ public class TimeDeal extends BaseEntity {
 
     // ========== 변경 ==========
     public void changeTitle(String newTitle) {
-        validateTitle(title);
+        validateTitle(newTitle);
         this.title = newTitle;
     }
 
     public void changeDescription(String newDescription) {
-        validateDescription(description);
+        validateDescription(newDescription);
         this.description = newDescription;
     }
 
