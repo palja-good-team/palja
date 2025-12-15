@@ -77,7 +77,7 @@ public class TimeDeal extends BaseEntity {
             Amount amount,
             Quantity quantity
     ) {
-        validate(productId, companyUserId, title, description, period);
+        validate(productId, companyUserId, title, description, period, LocalDateTime.now());
 
         TimeDeal timeDeal = TimeDeal.builder()
                 .productId(productId)
@@ -93,6 +93,7 @@ public class TimeDeal extends BaseEntity {
         return timeDeal;
     }
 
+    // ========== 변경 ==========
     public void changeTitle(String newTitle) {
         validateTitle(title);
         this.title = newTitle;
@@ -119,6 +120,7 @@ public class TimeDeal extends BaseEntity {
         this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
 
+    // ========== 상태 ==========
     public TimeDealStatusHistory changeStatus(TimeDealStatus newStatus, String reason) {
         validateTimeDealStatusChange(newStatus, reason);
 
@@ -133,27 +135,19 @@ public class TimeDeal extends BaseEntity {
     public TimeDealStatusHistory openNow(String reason) {
         this.period = this.period.updateStartAt(LocalDateTime.now());
 
-        TimeDealStatusHistory history = changeStatus(TimeDealStatus.OPEN, reason);
-
-        return history;
+        return changeStatus(TimeDealStatus.OPEN, reason);
     }
 
     public TimeDealStatusHistory closeNow(String reason) {
         this.period = this.period.updateEndAt(LocalDateTime.now());
 
-        TimeDealStatusHistory history = changeStatus(TimeDealStatus.CLOSED, reason);
-
-        return history;
+        return changeStatus(TimeDealStatus.CLOSED, reason);
     }
 
+    // ========== 재고 ==========
     public void decreaseRemainingQuantity(long decreaseQuantity) {
-        if (this.timeDealStatus != TimeDealStatus.OPEN) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_OPEN);
-        }
-
-        if (!this.period.isNowWithin(LocalDateTime.now())) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_IN_PERIOD);
-        }
+        ensureDecreasableStock();
+        ensureNowWithinPeriod(LocalDateTime.now());
 
         this.timeDealStock.decreaseRemainingQuantity(decreaseQuantity);
 
@@ -163,27 +157,18 @@ public class TimeDeal extends BaseEntity {
     }
 
     public void restoreRemainingQuantity(long restoreQuantity) {
-        if (this.timeDealStatus == TimeDealStatus.PENDING) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_PENDING_CANNOT_RESTORE);
-        }
-
-        if (this.timeDealStatus == TimeDealStatus.OPEN || this.timeDealStatus == TimeDealStatus.SOLD_OUT) {
-            this.timeDealStock.restoreRemainingQuantity(restoreQuantity);
-        }
-
-        if (this.timeDealStatus == TimeDealStatus.CLOSED) {
+        if (!timeDealStatus.canRestoreStock()) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_CLOSED_RESTORE_EXTERNAL);
         }
+
+        timeDealStock.restoreRemainingQuantity(restoreQuantity);
     }
 
+    // ========== 삭제 ==========
     @Override
     public void softDelete() {
         super.softDelete();
         timeDealStock.softDelete();
-    }
-
-    public long getRestoreQuantityOnDelete() {
-        return timeDealStock.getQuantity().getRemainingQuantity();
     }
 
     public boolean isDeletable(LocalDateTime now) {
@@ -192,28 +177,48 @@ public class TimeDeal extends BaseEntity {
         return true;
     }
 
-    public boolean isClosed() {
-        return this.timeDealStatus == TimeDealStatus.CLOSED;
+    public void validateDeletableStatus() {
+        if (!this.timeDealStatus.canDelete()) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_STATUS);
+        }
     }
 
+    public void validateDeletablePeriod(LocalDateTime now) {
+        if (!this.period.isBeforeStartAt(now)) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_PERIOD);
+        }
+    }
+
+    public long getRestoreQuantityOnDelete() {
+        return timeDealStock.getQuantity().getRemainingQuantity();
+    }
+
+    // ========== 검증 ==========
     private static void validate(
             UUID productId,
             UUID companyUserId,
             String title,
             String description,
-            Period period
+            Period period,
+            LocalDateTime now
     ) {
+        validateProductId(productId);
+        validateCompanyUserId(companyUserId);
+        validateTitle(title);
+        validateDescription(description);
+        validateCreatablePeriod(period, now);
+    }
+
+    private static void validateProductId(UUID productId) {
         if (productId == null) {
             throw new BusinessException(TimeDealErrorCode.PRODUCT_ID_REQUIRED);
         }
+    }
 
+    private static void validateCompanyUserId(UUID companyUserId) {
         if (companyUserId == null) {
             throw new BusinessException(TimeDealErrorCode.COMPANY_USER_ID_REQUIRED);
         }
-
-        validateTitle(title);
-        validateDescription(description);
-        validatePeriodForCreate(period);
     }
 
     private static void validateTitle(String title) {
@@ -228,12 +233,8 @@ public class TimeDeal extends BaseEntity {
         }
     }
 
-    private static void validatePeriodForCreate(Period period) {
-        if (period == null) {
-            throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
-        }
-
-        if (!period.getStartAt().isAfter(LocalDateTime.now())) {
+    private static void validateCreatablePeriod(Period period, LocalDateTime now) {
+        if (!period.getStartAt().isAfter(now)) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_START_TIME_INVALID);
         }
     }
@@ -243,6 +244,10 @@ public class TimeDeal extends BaseEntity {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REQUIRED);
         }
 
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REASON_REQUIRED);
+        }
+
         if (this.timeDealStatus == newStatus) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_ALREADY_APPLIED);
         }
@@ -250,21 +255,21 @@ public class TimeDeal extends BaseEntity {
         if (!this.timeDealStatus.canTransitTo(newStatus)) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_INVALID_STATUS_TRANSITION);
         }
+    }
 
-        if (reason == null || reason.isBlank()) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_STATUS_REASON_REQUIRED);
+    private void ensureDecreasableStock(){
+        if (!timeDealStatus.isOpen()) {
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_OPEN);
         }
     }
 
-    public void validateDeletableStatus() {
-        if (!this.timeDealStatus.canDelete()) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_STATUS);
+    private void ensureNowWithinPeriod(LocalDateTime now) {
+        if (!this.period.isNowWithin(now)){
+            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_IN_PERIOD);
         }
     }
 
-    public void validateDeletablePeriod(LocalDateTime now) {
-        if (!this.period.isBeforeStartAt(now)) {
-            throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_PERIOD);
-        }
+    public boolean isClosed() {
+        return timeDealStatus.isClosed();
     }
 }

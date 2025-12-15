@@ -45,17 +45,23 @@ public class Period {
                 && (now.isEqual(this.endAt) || now.isBefore(this.endAt));
     }
 
-    public boolean isBeforeStartAt(LocalDateTime now) {
-        return now.isBefore(this.startAt);
-    }
-
+    // ========== 검증 ==========
     private void validate(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt == null || endAt == null) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_REQUIRED);
         }
 
-        if (endAt.isBefore(startAt)) {
+        if (isEndBeforeStart(startAt, endAt)) {
             throw new BusinessException(TimeDealErrorCode.PERIOD_END_BEFORE_START);
         }
+    }
+
+    // ========== 조건식 ==========
+    private boolean isEndBeforeStart(LocalDateTime startAt, LocalDateTime endAt) {
+        return endAt.isBefore(startAt);
+    }
+
+    public boolean isBeforeStartAt(LocalDateTime now) {
+        return now.isBefore(this.startAt);
     }
 }
