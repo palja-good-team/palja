@@ -12,3 +12,4 @@ spring:
       - eureka
       - redis
       - swagger
+      - monitor
