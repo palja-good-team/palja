@@ -14,7 +14,7 @@ public enum CacheType {
 
 	MANAGER("user:manager", ReadManagerDetailRes.class),
 	CUSTOMER("user:customer", ReadCustomerDetailRes.class),
-	COMPANY_USER("user:company_user", ReadCompanyUserDetailRes.class),
+	COMPANY_USER("user:companyUser", ReadCompanyUserDetailRes.class),
 	;
 
 	private final String cacheName;

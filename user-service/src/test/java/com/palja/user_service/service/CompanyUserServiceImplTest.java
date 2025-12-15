@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +58,7 @@ public class CompanyUserServiceImplTest {
 	@Mock private ProductClient productClient;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
+	@Mock private CacheManager cacheManager;
 
 	private User user1;
 	private User user2;
@@ -485,14 +487,14 @@ public class CompanyUserServiceImplTest {
 		void updateCompanyUserStatus_success() {
 			// given
 			given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-			given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(user1));
+			given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 
 			// when
 			companyUserService.updateCompanyUserStatus(currentUserLoginId, companyUser1.getUser().getLoginId(), command);
 
 			// then
 			assertThat(user1.getStatus()).isEqualTo(UserStatus.ACTIVE);
-			then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
+			then(companyUserRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
 		}
 
 		@Nested
@@ -516,7 +518,7 @@ public class CompanyUserServiceImplTest {
 			void updateCompanyUserStatus_notFoundUser_failure() {
 				// given
 				given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
+				given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
 
 				// when & then
 				assertThatThrownBy(() -> companyUserService.updateCompanyUserStatus(
@@ -528,16 +530,16 @@ public class CompanyUserServiceImplTest {
 			@DisplayName("유효하지 않은 상태 값")
 			void updateCompanyUserStatus_invalidStatus_failure() {
 				// given
-				UpdateCompanyUserStatusCommand command = UpdateCompanyUserStatusCommand.builder()
+				UpdateCompanyUserStatusCommand errorCommand = UpdateCompanyUserStatusCommand.builder()
 					.status("status")
 					.build();
 
 				given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(user1));
+				given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 
 				// when & then
 				assertThatThrownBy(() -> companyUserService.updateCompanyUserStatus(
-					currentUserLoginId, companyUser1.getUser().getLoginId(), command)
+					currentUserLoginId, companyUser1.getUser().getLoginId(), errorCommand)
 				).isInstanceOf(IllegalArgumentException.class).hasMessage("유효하지 않은 상태 값 입니다.");
 			}
 
@@ -550,7 +552,7 @@ public class CompanyUserServiceImplTest {
 					.build();
 
 				given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(user1));
+				given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 
 				// when & then
 				assertThatThrownBy(() -> companyUserService.updateCompanyUserStatus(
@@ -568,7 +570,7 @@ public class CompanyUserServiceImplTest {
 					.build();
 
 				given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(user1));
+				given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 
 				// when & then
 				assertThatThrownBy(() -> companyUserService.updateCompanyUserStatus(
@@ -586,7 +588,7 @@ public class CompanyUserServiceImplTest {
 					.build();
 
 				given(userRepository.existsByLoginIdAndDeletedAtIsNull(anyString())).willReturn(true);
-				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(user1));
+				given(companyUserRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(companyUser1));
 
 				// when & then
 				assertThatThrownBy(() -> companyUserService.updateCompanyUserStatus(

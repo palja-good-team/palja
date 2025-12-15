@@ -4,6 +4,11 @@ import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
 import java.util.UUID;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +53,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+	private final CacheManager cacheManager;
 
 	@Override
 	@Transactional
@@ -81,6 +87,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:companyUser", key = "'loginId:' + #loginId")
 	public ReadCompanyUserDetailRes getCompanyUserByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -88,6 +95,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:companyUser", key = "'companyUserId:' + #companyUserId")
 	public ReadCompanyUserDetailRes getCompanyUserByCompanyUserId(String currentUserLoginId, UUID companyUserId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -95,12 +103,17 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "user:companyUser", key = "'loginId:' + #currentUserLoginId")
 	public ReadCompanyUserDetailRes getMe(String currentUserLoginId) {
 		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(currentUserLoginId));
 	}
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:companyUser", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:companyUser", key = "'companyUserId:' + #result.companyUserId")
+	})
 	public UpdateCompanyUserDetailRes updateCompanyUserByLoginId(
 		String currentUserLoginId, String loginId, UpdateCompanyUserCommand command
 	) {
@@ -114,6 +127,10 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(cacheNames = "user:companyUser", key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = "user:companyUser", key = "'companyUserId:' + #result.companyUserId")
+	})
 	public UpdateCompanyUserDetailRes updateMe(String currentUserLoginId, UpdateCompanyUserCommand command) {
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.update(command.companyName(), command.address());
@@ -126,8 +143,14 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	public void updateCompanyUserStatus(String currentUserLoginId, String loginId, UpdateCompanyUserStatusCommand command) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
-		User companyUser = getUserByLoginId(loginId);
+		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.updateStatus(command.status());
+
+		Cache cache = cacheManager.getCache("user:companyUser");
+		if (cache != null) {
+			cache.evict("loginId:" + companyUser.getUser().getLoginId());
+			cache.evict("companyUserId:" + companyUser.getId());
+		}
 	}
 
 	@Override
@@ -139,6 +162,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		companyUser.softDelete();
 		timeDealClient.deleteAllTimeDeals(companyUser.getId());
 		productClient.deleteAllProducts(companyUser.getId());
+
+		Cache cache = cacheManager.getCache("user:companyUser");
+		if (cache != null) {
+			cache.evict("loginId:" + companyUser.getUser().getLoginId());
+			cache.evict("companyUserId:" + companyUser.getId());
+		}
 	}
 
 	@Override
@@ -158,6 +187,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
+
+		Cache cache = cacheManager.getCache("user:companyUser");
+		if (cache != null) {
+			cache.evict("loginId:" + companyUser.getUser().getLoginId());
+			cache.evict("companyUserId:" + companyUser.getId());
+		}
 	}
 
 	@Override
@@ -168,12 +203,6 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		validateStatusIsPending(companyUser);
 		companyUser.softDelete();
-	}
-
-	private User getUserByLoginId(String loginId) {
-		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
-			() -> new BusinessException(UserErrorCode.USER_NOT_FOUND)
-		);
 	}
 
 	private CompanyUser getCompanyUserByLoginId(String loginId) {
