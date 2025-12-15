@@ -30,11 +30,6 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Page<Payment> findAll(PageRequest pageRequest) {
-        return paymentJpaRepository.findAll(pageRequest);
-    }
-
-    @Override
     public Page<Payment> findPayments(
             PaymentStatus status,
             Long userId,
@@ -49,5 +44,10 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public void deleteById(UUID id) {
         paymentJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<Payment> findByOrderId(UUID orderId) {
+        return paymentJpaRepository.findByOrderId(orderId);
     }
 }

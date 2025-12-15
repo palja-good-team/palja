@@ -8,9 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
@@ -24,7 +22,6 @@ public interface PaymentLogController {
             summary = "결제 로그 단건 조회",
             description = "특정 결제ID에 대한 PG 요청/응답 정보를 조회합니다."
     )
-    @GetMapping("/api/v1/payments/{paymentId}/logs")
     ResponseEntity<ApiResponse<List<ReadPaymentLogRes>>> getPaymentLogsByPaymentId(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId
@@ -34,7 +31,6 @@ public interface PaymentLogController {
             summary = "결제 로그 목록 조회(검색)",
             description = "결제 ID, 기간, 상태 등의 조건으로 결제 로그를 검색 및 조회합니다."
     )
-    @GetMapping("/api/v1/payment-logs")
     ResponseEntity<ApiResponse<PageResponse<ReadPaymentLogRes>>> getPaymentLogs(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @RequestParam(required = false) UUID paymentId,
@@ -58,6 +54,5 @@ public interface PaymentLogController {
             summary = "결제 로그 삭제",
             description = "결제 로그 데이터를 삭제합니다. (스케줄러 사용해서 1년 뒤)"
     )
-    @PostMapping("/api/v1/payment-logs/delete")
     ResponseEntity<ApiResponse<String>> deleteOldLogs();
 }

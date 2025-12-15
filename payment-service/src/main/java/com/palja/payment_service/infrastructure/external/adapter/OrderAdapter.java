@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Slf4j
@@ -56,13 +57,18 @@ public class OrderAdapter implements OrderClient {
     }
 
     private OrderRes toOrderRes(OrderDTO dto) {
+        BigDecimal finalAmount = dto.getPricing() != null
+                ? dto.getPricing().getFinalAmount()
+                : null;
+
         log.info("OrderAdapter mapping: orderId={}, userId={}, status={}, finalAmount={}",
-                dto.getOrderId(), dto.getUserId(), dto.getStatus(), dto.getFinalAmount());
+                dto.getOrderId(), dto.getUserId(), dto.getStatus(), finalAmount);
+
         return OrderRes.of(
                 dto.getOrderId(),
                 dto.getUserId(),
                 dto.getStatus(),
-                dto.getFinalAmount()
+                finalAmount
         );
     }
 }

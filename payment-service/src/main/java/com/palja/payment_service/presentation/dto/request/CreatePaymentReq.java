@@ -11,7 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreatePaymentReq {
 
-    //currency, PaymentKey, PaymentMethod 제거
     private UUID orderId;
     private Long userId;
     private BigDecimal amount;

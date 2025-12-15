@@ -47,7 +47,6 @@ public class PaymentControllerImpl implements PaymentController {
                 .body(ApiResponse.success(detail, "결제가 생성되었습니다. (PENDING 상태)"));
     }
 
-    //결제 완료 API
     @Override
     @PostMapping("/{paymentId}/complete")
     @RequiredInternal

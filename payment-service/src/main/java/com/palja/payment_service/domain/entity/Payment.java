@@ -91,14 +91,22 @@ public class Payment extends BaseEntity {
         if (this.status != PaymentStatus.APPROVED) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_APPROVED);
         }
-
         this.status = PaymentStatus.CANCELED;
         this.cancelReason = reason;
         this.completedAt = LocalDateTime.now();
     }
 
-    //paymentKey추가
     public void updatePaymentKey(String paymentKey) {
+        if(!isPending()){
+            throw new BusinessException(PaymentErrorCode.PAYMENT_ALREADY_PROCESSED);
+        }
+        if (paymentKey == null || paymentKey.isBlank()) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_INFO);
+        }
         this.paymentKey = paymentKey;
+    }
+
+    public boolean isPending() {
+        return this.status == PaymentStatus.PENDING;
     }
 }

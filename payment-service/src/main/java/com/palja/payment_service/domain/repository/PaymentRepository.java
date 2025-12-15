@@ -14,9 +14,9 @@ public interface PaymentRepository {
 
     Optional<Payment> findById(UUID id);
 
-    Page<Payment> findAll(PageRequest pageRequest);
-
     Page<Payment> findPayments(PaymentStatus status, Long userId, UUID orderId, LocalDateTime startDate, LocalDateTime endDate, PageRequest pageRequest);
 
     void deleteById(UUID id);
+
+    Optional<Payment> findByOrderId(UUID orderId);
 }

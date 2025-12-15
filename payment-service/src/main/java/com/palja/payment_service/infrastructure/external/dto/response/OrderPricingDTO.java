@@ -4,14 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDTO {
-    private UUID orderId;
-    private Long userId;
-    private String status;
-    private OrderPricingDTO pricing;
+public class OrderPricingDTO {
+    private BigDecimal finalAmount;
 }

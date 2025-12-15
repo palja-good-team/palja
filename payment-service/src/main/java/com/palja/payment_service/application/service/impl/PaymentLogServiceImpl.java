@@ -13,6 +13,7 @@ import com.palja.payment_service.domain.repository.PaymentLogRepository;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentLogServiceImpl implements PaymentLogService {
@@ -37,12 +39,25 @@ public class PaymentLogServiceImpl implements PaymentLogService {
         String loginId = CurrentUser.getLoginId();
         UserRes user = userClient.getUserByLoginId(loginId);
 
+        log.info("결제 로그 조회 시작: paymentId={}, requestUserId={}, role={}",
+                paymentId,
+                user != null ? user.getUserId() : null,
+                user != null ? user.getRole() : null);
+
         paymentValidator.validateGetPaymentLogs(paymentId, user);
 
         List<PaymentLog> logs = paymentLogRepository.findByPaymentId(paymentId);
         if (logs.isEmpty()) {
+            log.warn("결제 로그 없음: paymentId={}, requestUserId={}",
+                    paymentId,
+                    user != null ? user.getUserId() : null);
             throw new BusinessException(PaymentErrorCode.PAYMENT_LOG_NOT_FOUND);
         }
+        log.info("결제 로그 조회 완료(paymentId 기준): paymentId={}, count={}, requestUserId={}, role={}",
+                paymentId, logs.size(),
+                user != null ? user.getUserId() : null,
+                user != null ? user.getRole() : null);
+
         return logs.stream()
                 .map(ReadPaymentLogRes::from)
                 .toList();
@@ -56,6 +71,17 @@ public class PaymentLogServiceImpl implements PaymentLogService {
         String loginId = CurrentUser.getLoginId();
         UserRes user = userClient.getUserByLoginId(loginId);
 
+        log.info("결제 로그 검색 시작: paymentId={}, orderId={}, status={}, startDate={}, endDate={}, page={}, size={}, requestUserId={}, role={}",
+                command.paymentId(),
+                command.orderId(),
+                command.status(),
+                command.startDate(),
+                command.endDate(),
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                user != null ? user.getUserId() : null,
+                user != null ? user.getRole() : null);
+
         paymentValidator.validateSearchPaymentLogs(command.startDate(), command.endDate(), user);
 
         PaymentStatus status = null;
@@ -63,6 +89,9 @@ public class PaymentLogServiceImpl implements PaymentLogService {
             try {
                 status = PaymentStatus.valueOf(command.status());
             } catch (IllegalArgumentException e) {
+                log.warn("결제 로그 검색 실패: 유효하지 않은 status 값. status={}, paymentId={}, orderId={}, requestUserId={}",
+                        command.status(), command.paymentId(), command.orderId(),
+                        user != null ? user.getUserId() : null);
                 throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
             }
         }
@@ -76,6 +105,10 @@ public class PaymentLogServiceImpl implements PaymentLogService {
                 pageRequest
         );
 
+        log.info("결제 로그 검색 완료: totalElements={}, totalPages={}, page={}, size={}, requestUserId={}",
+                logs.getTotalElements(), logs.getTotalPages(), logs.getNumber(), logs.getSize(),
+                user != null ? user.getUserId() : null);
+
         return logs.map(ReadPaymentLogRes::from);
     }
 
@@ -84,8 +117,11 @@ public class PaymentLogServiceImpl implements PaymentLogService {
     public void deleteOldLogs(){
         LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
 
-        paymentValidator.validateDeleteOldLogs(oneYearAgo);
+        log.info("결제 로그 삭제 시작: cutoffDate={}", oneYearAgo);
 
+        paymentValidator.validateDeleteOldLogs(oneYearAgo);
         paymentLogRepository.deleteLogsOlder(oneYearAgo);
+
+        log.info("결제 로그 삭제 완료: cutoffDate={}", oneYearAgo);
     }
 }
