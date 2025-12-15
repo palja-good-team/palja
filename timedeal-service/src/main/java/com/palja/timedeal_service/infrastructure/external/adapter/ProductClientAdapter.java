@@ -15,7 +15,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ProductClientImpl implements ProductClient {
+public class ProductClientAdapter implements ProductClient {
 
 //    private final ProductFeignClient productFeignClient;
 
