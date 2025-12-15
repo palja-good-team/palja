@@ -249,7 +249,7 @@ public class TimeDealServiceImpl implements TimeDealService {
     }
 
     private TimeDeal getActiveTimeDeal(UUID timeDealId) {
-        return timeDealRepository.findDetailByTimeDealId(timeDealId)
+        return timeDealRepository.findByTimeDealId(timeDealId)
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 

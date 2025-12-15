@@ -22,7 +22,7 @@ public interface JpaTimeDealRepository extends JpaRepository<TimeDeal, UUID> {
         where td.timeDealId = :timeDealId
           and td.deletedAt is null
     """)
-    Optional<TimeDeal> findDetailByTimeDealId(UUID timeDealId);
+    Optional<TimeDeal> findByTimeDealId(UUID timeDealId);
 
     @Query("""
         select td

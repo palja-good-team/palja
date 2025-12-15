@@ -24,8 +24,8 @@ public class TimeDealRepositoryImpl implements TimeDealRepository {
     }
 
     @Override
-    public Optional<TimeDeal> findDetailByTimeDealId(UUID timeDealId) {
-        return jpaTimeDealRepository.findDetailByTimeDealId(timeDealId);
+    public Optional<TimeDeal> findByTimeDealId(UUID timeDealId) {
+        return jpaTimeDealRepository.findByTimeDealId(timeDealId);
     }
 
     @Override
