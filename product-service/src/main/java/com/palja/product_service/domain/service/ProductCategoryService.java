@@ -33,10 +33,6 @@ public class ProductCategoryService {
         return product.assignCategory(Category.create(createCommand.category()));
     }
 
-//    public Product updateProductCategory() {
-//
-//    }
-
     public Optional<Category> findCategory(String categoryNumber) {
 
         return categoryRepository.findByCategoryNumber(categoryNumber);
