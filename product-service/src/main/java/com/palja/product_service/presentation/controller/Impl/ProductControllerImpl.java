@@ -146,7 +146,7 @@ public class ProductControllerImpl {
         return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
     }
 
-    @RequiredRole(UserRole.COMPANY_USER)
+    @RequiredInternal
     @DeleteMapping("/user/{companyUserId}")
     public ResponseEntity<ApiResponse<String>> deleteProductForUser(@PathVariable UUID companyUserId) {
 
