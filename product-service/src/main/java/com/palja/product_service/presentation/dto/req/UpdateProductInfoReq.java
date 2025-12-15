@@ -1,6 +1,7 @@
 package com.palja.product_service.presentation.dto.req;
 
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class UpdateProductInfoReq {
     @Positive
     private Long price;
 
+    @Pattern(regexp = "^\\d{9}$")
     private String category;
 
     public UpdateProductInfoCommand toCommand() {

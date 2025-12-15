@@ -10,7 +10,6 @@ import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
 import com.palja.product_service.domain.repository.RedisProductRepository;
-import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.exception.ProductErrorCode;
 import com.palja.product_service.infrastructure.repository.DslProductRepository;
 import com.palja.product_service.infrastructure.repository.JdbcProductRepository;
@@ -40,10 +39,10 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Boolean isNotUnique(String companyName,
-                               Category category,
+                               String category,
                                String name) {
 
-        return jpaProductRepository.existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(
+        return jpaProductRepository.existsByCompanyNameAndCategory_CategoryNumberAndNameAndDeletedAtIsNull(
                 companyName, category, name);
     }
 

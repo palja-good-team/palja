@@ -24,7 +24,7 @@ public class FindProductListByConditionRes {
         result.description = dto.getDescription().length() > 50 ?
                 dto.getDescription().substring(0, 50)+ "..." : dto.getDescription();
         result.price = dto.getPrice().toString();
-        result.category = dto.getCategory().name();
+        result.category = dto.getCategory();
         result.avgRating = dto.getAvgRating();
 
         return result;

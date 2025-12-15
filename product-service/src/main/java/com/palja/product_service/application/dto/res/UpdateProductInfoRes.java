@@ -21,7 +21,7 @@ public class UpdateProductInfoRes {
         res.name = product.getName();
         res.description = product.getDescription();
         res.price = product.getPrice().toString();
-        res.category = product.getCategory().toString();
+        res.category = product.getCategory().getCategoryNumber();
 
         return res;
     }

@@ -28,7 +28,7 @@ public class CreateProductRes {
         result.name = product.getName();
         result.description = product.getDescription();
         result.price = product.getPrice().toString();
-        result.category = product.getCategory().name();
+        result.category = product.getCategory().getCategoryNumber();
         result.avgRating = product.getAvgRating();
         result.companyName = product.getCompanyName();
         result.stock = product.getProductStock().getQuantity();

@@ -2,7 +2,6 @@ package com.palja.product_service.domain.entity;
 
 import com.palja.common.entity.BaseEntity;
 import com.palja.common.exception.BusinessException;
-import com.palja.product_service.domain.vo.Category;
 import com.palja.product_service.domain.vo.Money;
 import com.palja.product_service.exception.ProductErrorCode;
 import jakarta.persistence.*;
@@ -14,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_product",
         uniqueConstraints = @UniqueConstraint(name = "companyCategoryName",
-                columnNames = {"companyName", "category", "name"}))
+                columnNames = {"companyName", "categoryId", "name"}))
 @Getter
 public class Product extends BaseEntity {
 
@@ -32,9 +31,6 @@ public class Product extends BaseEntity {
     @Embedded
     private Money price;
 
-    @Enumerated(EnumType.STRING)
-    private Category category;
-
     @Column(scale = 1, precision = 2)
     private BigDecimal avgRating;
 
@@ -45,6 +41,10 @@ public class Product extends BaseEntity {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private ProductStock productStock;
 
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     protected Product() {}
 
     public static Product create(String name, String description, Long price, String category, UUID companyUserId, String companyName, Integer stock) {
@@ -54,7 +54,7 @@ public class Product extends BaseEntity {
         product.name = name;
         product.description = description;
         product.price = Money.of(price);
-        product.category = Category.fromString(category);
+        product.category = new Category(category);
         product.avgRating = BigDecimal.ZERO;
         product.companyName = companyName;
         product.companyUserId = companyUserId;
@@ -71,7 +71,7 @@ public class Product extends BaseEntity {
 
         this.description = description;
         this.price = Money.of(price);
-        this.category = Category.fromString(category);
+        this.category = new Category(category);
 
         return this;
     }
