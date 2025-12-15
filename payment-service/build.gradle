@@ -55,6 +55,8 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'com.github.loki4j:loki-logback-appender:2.0.1'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
 	// ===== Observability / Tracing =====
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
