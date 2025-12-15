@@ -13,7 +13,8 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class TimeDealDetailRes {
+// TODO. 변경 사유도 같이 내려주기
+public class TimeDealStatusChangeRes {
     private UUID timeDealId;
     private UUID productId;
     private UUID companyUserId;
@@ -24,8 +25,8 @@ public class TimeDealDetailRes {
     private QuantityRes quantity;
     private String timeDealStatus;
 
-    public static TimeDealDetailRes from(TimeDeal timeDeal) {
-        return TimeDealDetailRes.builder()
+    public static TimeDealStatusChangeRes from(TimeDeal timeDeal) {
+        return TimeDealStatusChangeRes.builder()
                 .timeDealId(timeDeal.getTimeDealId())
                 .productId(timeDeal.getProductId())
                 .companyUserId(timeDeal.getCompanyUserId())

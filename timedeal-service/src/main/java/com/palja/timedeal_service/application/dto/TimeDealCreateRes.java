@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class TimeDealDetailRes {
+public class TimeDealCreateRes {
     private UUID timeDealId;
     private UUID productId;
     private UUID companyUserId;
@@ -24,8 +24,8 @@ public class TimeDealDetailRes {
     private QuantityRes quantity;
     private String timeDealStatus;
 
-    public static TimeDealDetailRes from(TimeDeal timeDeal) {
-        return TimeDealDetailRes.builder()
+    public static TimeDealCreateRes from(TimeDeal timeDeal) {
+        return TimeDealCreateRes.builder()
                 .timeDealId(timeDeal.getTimeDealId())
                 .productId(timeDeal.getProductId())
                 .companyUserId(timeDeal.getCompanyUserId())

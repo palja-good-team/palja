@@ -5,7 +5,10 @@ import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.*;
+import com.palja.timedeal_service.application.dto.TimeDealCreateRes;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
+import com.palja.timedeal_service.application.dto.TimeDealStatusChangeRes;
+import com.palja.timedeal_service.application.dto.TimeDealUpdateRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
@@ -44,7 +47,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     @Transactional
-    public TimeDealDetailRes createTimeDeal(CreateTimeDealCommand command) {
+    public TimeDealCreateRes createTimeDeal(CreateTimeDealCommand command) {
         log.info("타임딜 생성 시작");
 
         ProductInfo product = productClient.getProduct(command.productId());
@@ -70,7 +73,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         TimeDeal savedTimeDeal = timeDealRepository.save(timeDeal);
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
-        return TimeDealDetailRes.from(savedTimeDeal);
+        return TimeDealCreateRes.from(savedTimeDeal);
     }
 
     @Override
@@ -94,7 +97,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     @Transactional
-    public TimeDealDetailRes updateTimeDeal(UpdateTimeDealCommand command) {
+    public TimeDealUpdateRes updateTimeDeal(UpdateTimeDealCommand command) {
         log.info("타임딜 수정 시작");
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
@@ -104,12 +107,12 @@ public class TimeDealServiceImpl implements TimeDealService {
         updateTimeDealFields(timeDeal, command);
 
         log.info("타임딜 수정 완료");
-        return TimeDealDetailRes.from(timeDeal);
+        return TimeDealUpdateRes.from(timeDeal);
     }
 
     @Override
     @Transactional
-    public TimeDealDetailRes changeTimeDealStatus(ChangeTimeDealStatusCommand command) {
+    public TimeDealStatusChangeRes changeTimeDealStatus(ChangeTimeDealStatusCommand command) {
         log.info("타임딜 상태 수정 시작");
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
@@ -129,7 +132,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         }
 
         log.info("타임딜 상태 수정 완료");
-        return TimeDealDetailRes.from(timeDeal);
+        return TimeDealStatusChangeRes.from(timeDeal);
     }
 
     @Override
