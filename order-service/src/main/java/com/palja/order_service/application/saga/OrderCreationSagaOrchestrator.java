@@ -21,7 +21,7 @@ import java.util.UUID;
 public class OrderCreationSagaOrchestrator {
 
     // 총 시도 횟수
-    private static final int MAX_ATTEMPTS = 2;
+    private static final int MAX_ATTEMPTS = 3;
     private static final long BACKOFF_MS = 200;
 
     private final OrderService orderService;
