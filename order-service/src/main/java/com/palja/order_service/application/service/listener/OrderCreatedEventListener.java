@@ -39,7 +39,7 @@ public class OrderCreatedEventListener {
 
     private final OrderCreationSagaOrchestrator sagaOrchestrator;
 
-    @Async
+    //@Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreated(OrderCreatedSagaEvent event) {
         log.info("[EVENT][ORDER_CREATED] orderId={}", event.getOrderId());
