@@ -7,7 +7,9 @@ import com.palja.product_service.application.dto.res.CreateProductRes;
 import com.palja.product_service.application.dto.res.FindProductListByConditionRes;
 import com.palja.product_service.application.dto.res.FindProductRes;
 import com.palja.product_service.application.port.UserClient;
+import com.palja.product_service.domain.dto.req.CreateReq;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
+import com.palja.product_service.domain.dto.req.UserInfo;
 import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
 import com.palja.product_service.domain.entity.Category;
 import com.palja.product_service.domain.entity.Product;
@@ -58,7 +60,7 @@ class ProductServiceImplTest {
     @BeforeEach
     void init() {
         createProductCommand = new CreateProductCommand(
-                "상품", "설명", 1000L, 100, "001001001"
+                "상품", "설명", 1000L, 100L, "001001001"
         );
 
         companyUserInfo = new CompanyUserInfoRes(
@@ -85,7 +87,7 @@ class ProductServiceImplTest {
         Product expected = product;
 
         given(userService.getMyInfo()).willReturn(companyUserInfo);
-        given(productCategoryService.createProductAndCategory(command.toDomainReq(), companyUserInfo)).willReturn(expected);
+        given(productCategoryService.createProductAndCategory(any(CreateReq.class), any(UserInfo.class))).willReturn(expected);
         given(productRepository.isNotUnique(anyString(), anyString(), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 

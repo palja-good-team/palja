@@ -93,13 +93,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean decreaseStockBySale(String productId, Integer stock, Integer quantity) {
+    public boolean decreaseStockBySale(String productId, Long stock, Long quantity) {
 
         return redisRepository.decreaseStockBySale(productId, stock, quantity);
     }
 
     @Override
-    public boolean adjustStock(String productId, Integer quantity) {
+    public boolean adjustStock(String productId, Long quantity) {
 
         return redisRepository.adjustStock(productId, quantity);
     }
@@ -119,7 +119,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Product findByIdFetchStockWithLock(UUID productId,
-                                              Integer quantity) {
+                                              Long quantity) {
 
         return jpaProductRepository
                 .findByIdFetchStockWithLock(productId)

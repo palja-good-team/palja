@@ -6,7 +6,7 @@ public record CreateProductCommand(
         String name,
         String description,
         Long price,
-        Integer stock,
+        Long stock,
         String category
 ) {
 

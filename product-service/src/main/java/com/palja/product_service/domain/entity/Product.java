@@ -47,7 +47,7 @@ public class Product extends BaseEntity {
 
     protected Product() {}
 
-    public static Product create(String name, String description, Long price, UUID companyUserId, String companyName, Integer stock) {
+    public static Product create(String name, String description, Long price, UUID companyUserId, String companyName, Long stock) {
 
         Product product = new Product();
 
@@ -79,7 +79,7 @@ public class Product extends BaseEntity {
         return this;
     }
 
-    public Product updateStock(Integer stock) {
+    public Product updateStock(Long stock) {
         if(stock < 0)
             throw new BusinessException(ProductErrorCode.INVALID_STOCK);
 
@@ -87,12 +87,12 @@ public class Product extends BaseEntity {
         return this;
     }
 
-    public ProductStock increaseStock(Integer quantity) {
+    public ProductStock increaseStock(Long quantity) {
         this.productStock = productStock.increase(quantity);
         return this.productStock;
     }
 
-    public ProductStock decreaseStock(Integer quantity) {
+    public ProductStock decreaseStock(Long quantity) {
         this.productStock = productStock.decrease(quantity);
         return this.productStock;
     }
