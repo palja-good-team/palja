@@ -76,7 +76,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:customer", key = "'loginId:' + #loginId")
+	@Cacheable(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'loginId:' + #loginId")
 	public ReadCustomerDetailRes getCustomerByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -84,7 +84,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:customer", key = "'userId:' + #userId")
+	@Cacheable(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'userId:' + #userId")
 	public ReadCustomerDetailRes getCustomerByUserId(String currentUserLoginId, Long userId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -92,7 +92,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:customer", key = "'loginId:' + #currentUserLoginId")
+	@Cacheable(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'loginId:' + #currentUserLoginId")
 	public ReadCustomerDetailRes getMe(String currentUserLoginId) {
 		return ReadCustomerDetailRes.from(getCustomerByLoginId(currentUserLoginId));
 	}
@@ -100,8 +100,8 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	@Transactional
 	@Caching(evict = {
-		@CacheEvict(cacheNames = "user:customer", key = "'loginId:' + #result.loginId"),
-		@CacheEvict(cacheNames = "user:customer", key = "'userId:' + #result.userId")
+		@CacheEvict(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'userId:' + #result.userId")
 	})
 	public UpdateCustomerDetailRes updateCustomerByLoginId(
 		String currentUserLoginId, String loginId, UpdateCustomerCommand command
@@ -117,8 +117,8 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	@Transactional
 	@Caching(evict = {
-		@CacheEvict(cacheNames = "user:customer", key = "'loginId:' + #result.loginId"),
-		@CacheEvict(cacheNames = "user:customer", key = "'userId:' + #result.userId")
+		@CacheEvict(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = CUSTOMER_CACHE_PREFIX, key = "'userId:' + #result.userId")
 	})
 	public UpdateCustomerDetailRes updateMe(String currentUserLoginId, UpdateCustomerCommand command) {
 		User user = getCustomerByLoginId(currentUserLoginId);
@@ -196,7 +196,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	private void removeCache(User user) {
-		Cache cache = cacheManager.getCache("user:customer");
+		Cache cache = cacheManager.getCache(CUSTOMER_CACHE_PREFIX);
 		if (cache != null) {
 			cache.evict("loginId:" + user.getLoginId());
 			cache.evict("userId:" + user.getId());

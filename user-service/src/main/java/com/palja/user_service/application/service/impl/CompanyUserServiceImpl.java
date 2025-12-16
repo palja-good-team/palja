@@ -87,7 +87,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:companyUser", key = "'loginId:' + #loginId")
+	@Cacheable(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'loginId:' + #loginId")
 	public ReadCompanyUserDetailRes getCompanyUserByLoginId(String currentUserLoginId, String loginId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -95,7 +95,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:companyUser", key = "'companyUserId:' + #companyUserId")
+	@Cacheable(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'companyUserId:' + #companyUserId")
 	public ReadCompanyUserDetailRes getCompanyUserByCompanyUserId(String currentUserLoginId, UUID companyUserId) {
 		validateUserExistsByLoginId(currentUserLoginId);
 
@@ -103,7 +103,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "user:companyUser", key = "'loginId:' + #currentUserLoginId")
+	@Cacheable(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'loginId:' + #currentUserLoginId")
 	public ReadCompanyUserDetailRes getMe(String currentUserLoginId) {
 		return ReadCompanyUserDetailRes.from(getCompanyUserByLoginId(currentUserLoginId));
 	}
@@ -111,8 +111,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	@Override
 	@Transactional
 	@Caching(evict = {
-		@CacheEvict(cacheNames = "user:companyUser", key = "'loginId:' + #result.loginId"),
-		@CacheEvict(cacheNames = "user:companyUser", key = "'companyUserId:' + #result.companyUserId")
+		@CacheEvict(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'companyUserId:' + #result.companyUserId")
 	})
 	public UpdateCompanyUserDetailRes updateCompanyUserByLoginId(
 		String currentUserLoginId, String loginId, UpdateCompanyUserCommand command
@@ -128,8 +128,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	@Override
 	@Transactional
 	@Caching(evict = {
-		@CacheEvict(cacheNames = "user:companyUser", key = "'loginId:' + #result.loginId"),
-		@CacheEvict(cacheNames = "user:companyUser", key = "'companyUserId:' + #result.companyUserId")
+		@CacheEvict(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'loginId:' + #result.loginId"),
+		@CacheEvict(cacheNames = COMPANY_USER_CACHE_PREFIX, key = "'companyUserId:' + #result.companyUserId")
 	})
 	public UpdateCompanyUserDetailRes updateMe(String currentUserLoginId, UpdateCompanyUserCommand command) {
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
@@ -248,7 +248,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	}
 
 	private void removeCache(CompanyUser companyUser) {
-		Cache cache = cacheManager.getCache("user:companyUser");
+		Cache cache = cacheManager.getCache(COMPANY_USER_CACHE_PREFIX);
 		if (cache != null) {
 			cache.evict("loginId:" + companyUser.getUser().getLoginId());
 			cache.evict("companyUserId:" + companyUser.getId());

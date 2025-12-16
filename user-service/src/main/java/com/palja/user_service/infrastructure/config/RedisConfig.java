@@ -23,7 +23,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.palja.user_service.infrastructure.util.CacheType;
+import com.palja.user_service.application.util.CacheType;
 
 @EnableCaching
 @Configuration

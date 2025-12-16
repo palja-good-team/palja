@@ -1,4 +1,6 @@
-package com.palja.user_service.infrastructure.util;
+package com.palja.user_service.application.util;
+
+import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
@@ -12,9 +14,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum CacheType {
 
-	MANAGER("user:manager", ReadManagerDetailRes.class),
-	CUSTOMER("user:customer", ReadCustomerDetailRes.class),
-	COMPANY_USER("user:companyUser", ReadCompanyUserDetailRes.class),
+	MANAGER(MANAGER_CACHE_PREFIX, ReadManagerDetailRes.class),
+	CUSTOMER(CUSTOMER_CACHE_PREFIX, ReadCustomerDetailRes.class),
+	COMPANY_USER(COMPANY_USER_CACHE_PREFIX, ReadCompanyUserDetailRes.class),
 	;
 
 	private final String cacheName;
