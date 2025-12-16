@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository repository;
 
     @Override
+    @Transactional
     public CreateReviewRes create(CreateReviewCommand createCommand) {
 
         /**
