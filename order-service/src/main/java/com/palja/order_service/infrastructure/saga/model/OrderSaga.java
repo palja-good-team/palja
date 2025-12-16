@@ -1,7 +1,5 @@
-package com.palja.order_service.domain.entity;
+package com.palja.order_service.infrastructure.saga.model;
 
-import com.palja.order_service.domain.vo.OrderSagaStatus;
-import com.palja.order_service.domain.vo.OrderSagaStep;
 import jakarta.persistence.*;
 import lombok.*;
 

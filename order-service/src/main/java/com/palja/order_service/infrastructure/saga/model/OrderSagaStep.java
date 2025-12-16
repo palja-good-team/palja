@@ -1,4 +1,4 @@
-package com.palja.order_service.domain.vo;
+package com.palja.order_service.infrastructure.saga.model;
 
 import lombok.Getter;
 

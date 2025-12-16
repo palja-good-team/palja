@@ -1,6 +1,6 @@
 package com.palja.order_service.infrastructure.repository;
 
-import com.palja.order_service.domain.entity.OrderSaga;
+import com.palja.order_service.infrastructure.saga.model.OrderSaga;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

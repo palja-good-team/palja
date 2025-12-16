@@ -7,7 +7,7 @@ import com.palja.order_service.application.port.TimeDealClient;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.entity.OrderItem;
-import com.palja.order_service.domain.vo.OrderSagaStep;
+import com.palja.order_service.infrastructure.saga.model.OrderSagaStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

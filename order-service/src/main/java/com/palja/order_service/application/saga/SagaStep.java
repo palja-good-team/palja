@@ -1,7 +1,7 @@
 package com.palja.order_service.application.saga;
 
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.domain.vo.OrderSagaStep;
+import com.palja.order_service.infrastructure.saga.model.OrderSagaStep;
 
 /**
  * - 모든 Saga 단계가 따라야 함

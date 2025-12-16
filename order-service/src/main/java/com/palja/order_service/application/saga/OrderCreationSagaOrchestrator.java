@@ -4,7 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.domain.entity.OrderSaga;
+import com.palja.order_service.infrastructure.saga.model.OrderSaga;
 import com.palja.order_service.domain.repository.OrderSagaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
