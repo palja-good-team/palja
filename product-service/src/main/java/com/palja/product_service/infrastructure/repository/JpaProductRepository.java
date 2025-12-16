@@ -2,7 +2,6 @@ package com.palja.product_service.infrastructure.repository;
 
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.entity.ProductStock;
-import com.palja.product_service.domain.vo.Category;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -22,7 +21,7 @@ public interface JpaProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT ps FROM ProductStock ps JOIN Product p ON ps.id = :productId AND p.deletedAt IS NULL")
     Optional<ProductStock> findStockByProductId(@Param("productId") UUID productId);
 
-    Boolean existsByCompanyNameAndCategoryAndNameAndDeletedAtIsNull(String companyName, Category category, String name);
+    Boolean existsByCompanyNameAndCategory_CategoryNumberAndNameAndDeletedAtIsNull(String companyName, String category, String name);
 
     @Lock(value = LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")

@@ -13,13 +13,14 @@ import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
 import com.palja.product_service.domain.dto.res.ProductInfoForOrderDto;
 import com.palja.product_service.domain.dto.res.ProductInfoForTimeDealDto;
+import com.palja.product_service.domain.entity.Category;
 import com.palja.product_service.domain.entity.Product;
 import com.palja.product_service.domain.entity.ProductStock;
 import com.palja.product_service.domain.repository.ProductRepository;
-import com.palja.product_service.domain.vo.Category;
+import com.palja.product_service.domain.service.ProductCategoryService;
+import com.palja.product_service.exception.CategoryErrorCode;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +38,7 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
+    private final ProductCategoryService productCategoryService;
     private final UserClient userClient;
 
     @Override
@@ -43,16 +46,10 @@ public class ProductServiceImpl implements ProductService {
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
+        Product product = productCategoryService
+                .createProductAndCategory(createCommand.toDomainReq(), myInfo.toUserInfo());
 
-        Product product = Product.create(createCommand.name(),
-                createCommand.description(),
-                createCommand.price(),
-                createCommand.category(),
-                myInfo.getCompanyUserId(),
-                myInfo.getCompanyName(),
-                createCommand.stock());
-
-        if(repository.isNotUnique(product.getCompanyName(), product.getCategory(), product.getName()))
+        if(repository.isNotUnique(product.getCompanyName(), product.getCategory().getCategoryNumber(), product.getName()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
 
         Product savedProduct = repository.save(product);
@@ -111,15 +108,20 @@ public class ProductServiceImpl implements ProductService {
 
         if(repository.isNotUnique(
                 product.getCompanyName(),
-                Category.fromString(updateCommand.category()),
+                updateCommand.category(),
                 updateCommand.name()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);
+
+        Optional<Category> optionalCategory = productCategoryService.findCategory(updateCommand.category());
+        if (optionalCategory.isEmpty()) {
+            throw new BusinessException(CategoryErrorCode.NOT_FOUND_CATEGORY);
+        }
 
         Product updateProduct = product.updateInfo(
                 updateCommand.name(),
                 updateCommand.description(),
                 updateCommand.price(),
-                updateCommand.category());
+                optionalCategory.get());
 
         return UpdateProductInfoRes.fromEntity(updateProduct);
     }

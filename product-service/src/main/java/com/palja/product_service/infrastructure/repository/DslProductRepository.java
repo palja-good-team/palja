@@ -4,7 +4,6 @@ import com.palja.product_service.domain.dto.req.FindListByConditionReq;
 import com.palja.product_service.domain.dto.res.FindProductListByConditionDto;
 import com.palja.product_service.domain.dto.res.ProductInfoForOrderDto;
 import com.palja.product_service.domain.dto.res.ProductInfoForTimeDealDto;
-import com.palja.product_service.domain.vo.Category;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -102,7 +101,8 @@ public class DslProductRepository {
     }
 
     private BooleanExpression categoryEq(String category) {
-        return category != null ? product.category.eq(Category.fromString(category)) : null;
+//        return category != null ? product.category.eq(Category.fromString(category)) : null;
+        return null;
     }
 
     private BooleanExpression ratingBetween(BigDecimal minRating, BigDecimal maxRating) {
