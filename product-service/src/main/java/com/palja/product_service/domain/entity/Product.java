@@ -98,23 +98,23 @@ public class Product extends BaseEntity {
     }
 
     public Money increaseFixPrice(Long amount) {
-        this.price = price.plus(Money.of(amount));
+        this.price = price.plus(amount);
         return this.price;
     }
 
     public Money increaseRatePrice(Double amount) {
-        BigDecimal rate = BigDecimal.ONE.add(BigDecimal.valueOf(amount));
+        double rate = 1L + amount;
         this.price = price.multiply(rate);
         return this.price;
     }
 
     public Money discountFixPrice(Long amount) {
-        this.price = price.minus(Money.of(amount));
+        this.price = price.minus(amount);
         return this.price;
     }
 
     public Money discountRatePrice(Double amount) {
-        BigDecimal rate = BigDecimal.ONE.subtract(BigDecimal.valueOf(amount));
+        double rate = 1L - amount;
         this.price = price.multiply(rate);
         return this.price;
     }
