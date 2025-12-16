@@ -1,6 +1,6 @@
 package com.palja.order_service.domain.repository;
 
-import com.palja.order_service.infrastructure.saga.model.OrderSaga;
+import com.palja.order_service.application.saga.model.OrderSaga;
 
 import java.util.Optional;
 import java.util.UUID;

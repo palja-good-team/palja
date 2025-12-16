@@ -5,7 +5,7 @@ import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.infrastructure.saga.model.OrderSagaStep;
+import com.palja.order_service.application.saga.model.OrderSagaStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -48,10 +48,6 @@ public class ApplyCouponStep implements SagaStep {
             log.info("[SAGA][{}][SUCCESS] action=use, orderId={}, couponUserId={}, elapsedMs={}",
                     name(), orderId, couponUserId, elapsedMs);
 
-        } catch (BusinessException e) {
-            log.error("[SAGA][{}][FAIL] action=use, orderId={}, couponUserId={}, errorCode={}, msg={}",
-                    name(), orderId, couponUserId, e.getErrorCode(), e.getMessage(), e);
-            throw e;
         } catch (Exception e) {
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             log.error("[SAGA][{}][ERROR] action=use, orderId={}, couponUserId={}, elapsedMs={}, msg={}",

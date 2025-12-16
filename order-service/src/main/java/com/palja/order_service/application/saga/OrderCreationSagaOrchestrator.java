@@ -4,7 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.infrastructure.saga.model.OrderSaga;
+import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.repository.OrderSagaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -142,11 +142,6 @@ public class OrderCreationSagaOrchestrator {
             } catch (ObjectOptimisticLockingFailureException e) {
                 // 낙관적 락 충돌 → 재조회 후 완료 여부 확인
                 handleOptimisticLockConflict(step, orderId, attempt);
-
-            } catch (BusinessException e) {
-                // 비즈니스 예외 → 재시도 안 함
-                throw e;
-
             } catch (Exception e) {
                 // 시스템 예외 → 재시도
                 if (attempt == MAX_ATTEMPTS) {

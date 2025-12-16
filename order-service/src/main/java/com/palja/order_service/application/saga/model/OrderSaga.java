@@ -1,4 +1,4 @@
-package com.palja.order_service.infrastructure.saga.model;
+package com.palja.order_service.application.saga.model;
 
 import jakarta.persistence.*;
 import lombok.*;

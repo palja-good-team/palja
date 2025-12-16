@@ -7,7 +7,7 @@ import com.palja.order_service.application.port.TimeDealClient;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.entity.OrderItem;
-import com.palja.order_service.infrastructure.saga.model.OrderSagaStep;
+import com.palja.order_service.application.saga.model.OrderSagaStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -49,10 +49,6 @@ public class ReserveInventoryStep implements SagaStep {
             } else {
                 deductProductStock(orderId, productId, quantity);
             }
-        } catch (BusinessException e) {
-            log.error("[SAGA][{}][FAIL] orderId={}, productId={}, quantity={}, timeDeal={}, errorCode={}, msg={}",
-                    name(), orderId, productId, quantity, isTimeDeal, e.getErrorCode(), e.getMessage(), e);
-            throw e;
         } catch (Exception e) {
             log.error("[SAGA][{}][ERROR] orderId={}, productId={}, quantity={}, timeDeal={}, msg={}",
                     name(), orderId, productId, quantity, isTimeDeal, e.getMessage(), e);
