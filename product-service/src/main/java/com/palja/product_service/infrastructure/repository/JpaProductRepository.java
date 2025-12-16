@@ -15,8 +15,11 @@ import java.util.UUID;
 
 public interface JpaProductRepository extends JpaRepository<Product, UUID> {
 
-    @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")
-    Optional<Product> findByIdFetchStock(@Param("productId") UUID productId);
+    @Query("SELECT p FROM Product p " +
+            "JOIN FETCH p.productStock " +
+            "JOIN FETCH p.category " +
+            "WHERE p.id = :productId AND p.deletedAt IS null")
+    Optional<Product> findByIdFetchAll(@Param("productId") UUID productId);
 
     @Query("SELECT ps FROM ProductStock ps JOIN Product p ON ps.id = :productId AND p.deletedAt IS NULL")
     Optional<ProductStock> findStockByProductId(@Param("productId") UUID productId);
