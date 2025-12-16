@@ -85,7 +85,7 @@ class ProductServiceImplTest {
         Product expected = product;
 
         given(userService.getMyInfo()).willReturn(companyUserInfo);
-        given(productCategoryService.createProductAndCategory(command, companyUserInfo)).willReturn(expected);
+        given(productCategoryService.createProductAndCategory(command.toDomainReq(), companyUserInfo)).willReturn(expected);
         given(productRepository.isNotUnique(anyString(), anyString(), anyString())).willReturn(Boolean.FALSE);
         given(productRepository.save(any(Product.class))).willReturn(expected);
 

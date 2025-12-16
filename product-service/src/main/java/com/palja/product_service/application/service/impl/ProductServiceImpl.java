@@ -46,7 +46,8 @@ public class ProductServiceImpl implements ProductService {
     public CreateProductRes createProduct(CreateProductCommand createCommand) {
 
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
-        Product product = productCategoryService.createProductAndCategory(createCommand, myInfo);
+        Product product = productCategoryService
+                .createProductAndCategory(createCommand.toDomainReq(), myInfo.toUserInfo());
 
         if(repository.isNotUnique(product.getCompanyName(), product.getCategory().getCategoryNumber(), product.getName()))
             throw new BusinessException(ProductErrorCode.DUPLICATE_PRODUCT);

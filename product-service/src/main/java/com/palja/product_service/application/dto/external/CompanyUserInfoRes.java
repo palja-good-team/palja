@@ -1,5 +1,6 @@
 package com.palja.product_service.application.dto.external;
 
+import com.palja.product_service.domain.dto.req.UserInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -24,4 +25,8 @@ public class CompanyUserInfoRes {
     private String createdBy;
     private LocalDateTime updatedAt;
     private String updatedBy;
+
+    public UserInfo toUserInfo() {
+        return new UserInfo(companyUserId, companyName);
+    }
 }
