@@ -10,6 +10,5 @@ public record ChangeTimeDealStatusCommand(
         UUID timeDealId,
         String newStatus,
         String reason,
-        String loginId,
         UserRole role
 ) {}
