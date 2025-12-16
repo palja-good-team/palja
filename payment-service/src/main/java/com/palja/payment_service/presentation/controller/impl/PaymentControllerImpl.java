@@ -49,7 +49,6 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @PostMapping("/{paymentId}/complete")
-    @RequiredInternal
     @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
     public ResponseEntity<ApiResponse<CreatePaymentRes>> completePayment(
             @PathVariable UUID paymentId,

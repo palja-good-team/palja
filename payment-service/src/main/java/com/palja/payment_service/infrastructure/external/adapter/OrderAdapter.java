@@ -6,6 +6,7 @@ import com.palja.payment_service.application.dto.external.OrderRes;
 import com.palja.payment_service.application.port.OrderClient;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import com.palja.payment_service.infrastructure.external.OrderFeignClient;
+import com.palja.payment_service.infrastructure.external.dto.request.CompleteOrderPaymentDTO;
 import com.palja.payment_service.infrastructure.external.dto.response.OrderDTO;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,25 @@ public class OrderAdapter implements OrderClient {
         } catch (Exception e) {
             log.error("주문 조회 중 예상치 못한 오류: orderId={}, error={}",
                     orderId, e.getClass().getName(), e);
+            throw new BusinessException(PaymentErrorCode.ORDER_SERVICE_UNAVAILABLE);
+        }
+    }
+
+    @Override
+    public void completeOrderPayment(UUID orderId, UUID paymentId, BigDecimal paidAmount) {
+        try {
+            orderFeignClient.completeOrderPayment(
+                    orderId,
+                    CompleteOrderPaymentDTO.builder()
+                            .paymentId(paymentId)
+                            .paidAmount(paidAmount)
+                            .build()
+            );
+            log.info("주문 결제완료 연동 성공: orderId={}, paymentId={}, paidAmount={}",
+                    orderId, paymentId, paidAmount);
+        } catch (FeignException e) {
+            log.error("주문 결제완료 연동 실패: orderId={}, paymentId={}, status={}, msg={}",
+                    orderId, paymentId, e.status(), e.getMessage(), e);
             throw new BusinessException(PaymentErrorCode.ORDER_SERVICE_UNAVAILABLE);
         }
     }

@@ -147,6 +147,12 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
 
+        orderClient.completeOrderPayment(
+                payment.getOrderId(),
+                payment.getId(),
+                payment.getAmount()
+        );
+
         log.info("결제 생성 완료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
         return CreatePaymentRes.from(payment);
     }
