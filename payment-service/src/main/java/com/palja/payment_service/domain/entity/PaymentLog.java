@@ -126,6 +126,20 @@ public class PaymentLog extends BaseEntity {
                 .build();
     }
 
+    public static PaymentLog createCancelFailedLog(Payment payment, PGPaymentRes pgRes) {
+        return PaymentLog.builder()
+                .payment(payment)
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .status(PaymentStatus.APPROVED)
+                .paymentKey(resolvePaymentKey(pgRes, payment))
+                .pgResponseCode(pgRes != null ? pgRes.getPgResponseCode() : null)
+                .pgResponseMessage("[CANCEL_FAILED] " + (pgRes != null ? pgRes.getPgResponseMessage() : "unknown"))
+                .processedAt(LocalDateTime.now())
+                .build();
+    }
+
     private static String resolvePaymentKey(PGPaymentRes pgRes, Payment payment) {
         return Objects.toString(
                 pgRes != null ? pgRes.getPaymentKey() : null,

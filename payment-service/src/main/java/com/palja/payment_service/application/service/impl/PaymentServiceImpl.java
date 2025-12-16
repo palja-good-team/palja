@@ -166,7 +166,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         UserRes user = userClient.getUserByLoginId(command.loginId());
-
         paymentValidator.validateCancelPayment(payment, command, user);
 
         PGPaymentRes pgRes;
@@ -174,13 +173,9 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("Toss 결제 취소 요청: paymentId={}, cancelAmount={}, reason={}",
                     payment.getId(), command.cancelAmount(), command.cancelReason());
 
-            pgRes = pgPaymentService.cancelPayment(
-                    payment,
-                    command.cancelAmount(),
-                    command.cancelReason()
-            );
+            pgRes = pgPaymentService.cancelPayment(payment, command.cancelAmount(), command.cancelReason());
 
-            log.info("Toss 결제 취소 응답: paymentId={}, reason={}, pgMessage={}",
+            log.info("Toss 결제 취소 응답: paymentId={}, success={}, pgMessage={}",
                     payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
 
         } catch (BusinessException e) {
@@ -192,25 +187,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (pgRes.isSuccess()) {
             payment.cancel(command.cancelReason());
-            log.info("결제 취소 상태 변경 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
-        } else {
-            payment.fail(pgRes.getPgResponseMessage());
-            log.warn("결제 취소 실패 처리 완료: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
+            paymentRepository.save(payment);
+
+            log.info("[CANCEL] pgRes.success=false -> save cancelFailedLog start. paymentId={}", payment.getId());
+            paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
+            log.info("[CANCEL] save cancelFailedLog done. paymentId={}", payment.getId());
+
+            log.info("결제 취소 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
+            return CancelPaymentRes.from(payment);
         }
 
-        paymentRepository.save(payment);
+        paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
 
-        PaymentLog resultLog = pgRes.isSuccess()
-                ? PaymentLog.createCanceledLog(payment, pgRes)
-                : PaymentLog.createFailedLog(payment, pgRes);
-        paymentLogRepository.save(resultLog);
-
-        if (!pgRes.isSuccess()) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
-        }
-
-        log.info("결제 취소 완료: paymentId={}", payment.getId());
-        return CancelPaymentRes.from(payment);
+        log.warn("결제 취소 실패: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
+        throw new BusinessException(PaymentErrorCode.PAYMENT_CANCEL_FAILED);
     }
 
     @Override

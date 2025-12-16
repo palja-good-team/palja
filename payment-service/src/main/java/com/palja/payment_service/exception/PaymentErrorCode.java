@@ -44,6 +44,7 @@ public enum PaymentErrorCode implements ErrorCode {
 
     // 결제 처리 실패 & 시스템 오류
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
+    PAYMENT_CANCEL_FAILED(HttpStatus.BAD_REQUEST, "결제 취소에 실패했습니다."),
     PAYMENT_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 시스템 내부 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
