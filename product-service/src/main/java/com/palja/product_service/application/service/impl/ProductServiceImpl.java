@@ -21,6 +21,7 @@ import com.palja.product_service.domain.service.ProductCategoryService;
 import com.palja.product_service.exception.CategoryErrorCode;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(cacheNames = "productForUser", key = "#productId")
     public FindProductRes findProduct(UUID productId) {
 
         Product product = repository.findProduct(productId);
@@ -81,6 +83,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(cacheNames = "productForTimeDeal", key = "#productId")
     public ProductInfoForTimeDealRes findProductForTimeDeal(UUID productId) {
 
         ProductInfoForTimeDealDto dto = repository.findProductForTimeDeal(productId);
@@ -89,6 +92,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(cacheNames = "productForOrder", key = "#productId")
     public ProductInfoForOrderRes findProductForOrder(UUID productId) {
 
         ProductInfoForOrderDto dto = repository.findProductForOrder(productId);

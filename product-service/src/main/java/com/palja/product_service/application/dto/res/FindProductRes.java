@@ -1,13 +1,16 @@
 package com.palja.product_service.application.dto.res;
 
 import com.palja.product_service.domain.entity.Product;
-import com.palja.product_service.domain.vo.Money;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class FindProductRes {
 
     private UUID productId;

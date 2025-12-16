@@ -50,7 +50,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     public Product findProduct(UUID productId) {
 
         return jpaProductRepository
-                .findByIdFetchStock(productId)
+                .findByIdFetchAll(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
     }
 
