@@ -38,7 +38,6 @@ public class OrderCreationSagaOrchestrator {
      * 3. 각 Step 순차 실행
      * 4. 실패 시 보상 트랜잭션
      */
-    @Transactional
     public void run(UUID orderId) {
         // Order 조회 (Step execute/compensate에서 상세 정보 필요지)
         Order order = orderService.findOrderWithDetails(orderId);
