@@ -23,7 +23,7 @@ public class OrderPaymentCompleteRes {
     public static OrderPaymentCompleteRes from(Order order) {
         return OrderPaymentCompleteRes.builder()
                 .orderId(order.getOrderId())
-                .paymentId(order.getPaymentId())
+                .paymentId(order.getOrderId())
                 .status(order.getStatus())
                 .finalAmount(order.getOrderAmount().getFinalAmount())
                 .build();
