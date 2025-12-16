@@ -61,7 +61,7 @@ public class User extends BaseEntity {
 		this.email = email;
 		this.address = address;
 		this.role = role;
-		this.status = UserStatus.ACTIVE;
+		this.status = this.role == UserRole.COMPANY_USER ? UserStatus.PENDING : UserStatus.ACTIVE;
 	}
 
 	public static User create(String loginId, String password, String name, String email, String address, UserRole role) {
