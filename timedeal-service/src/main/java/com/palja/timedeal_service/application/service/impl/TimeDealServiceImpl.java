@@ -5,7 +5,10 @@ import com.palja.common.exception.CommonErrorCode;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.*;
+import com.palja.timedeal_service.application.dto.TimeDealCreateRes;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
+import com.palja.timedeal_service.application.dto.TimeDealStatusChangeRes;
+import com.palja.timedeal_service.application.dto.TimeDealUpdateRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
@@ -13,6 +16,7 @@ import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -25,7 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +47,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     @Transactional
-    public TimeDealDetailRes createTimeDeal(CreateTimeDealCommand command) {
+    public TimeDealCreateRes createTimeDeal(CreateTimeDealCommand command) {
         log.info("타임딜 생성 시작");
 
         ProductInfo product = productClient.getProduct(command.productId());
@@ -70,7 +73,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         TimeDeal savedTimeDeal = timeDealRepository.save(timeDeal);
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
-        return TimeDealDetailRes.from(savedTimeDeal);
+        return TimeDealCreateRes.from(savedTimeDeal);
     }
 
     @Override
@@ -94,7 +97,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     @Transactional
-    public TimeDealDetailRes updateTimeDeal(UpdateTimeDealCommand command) {
+    public TimeDealUpdateRes updateTimeDeal(UpdateTimeDealCommand command) {
         log.info("타임딜 수정 시작");
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
@@ -104,32 +107,24 @@ public class TimeDealServiceImpl implements TimeDealService {
         updateTimeDealFields(timeDeal, command);
 
         log.info("타임딜 수정 완료");
-        return TimeDealDetailRes.from(timeDeal);
+        return TimeDealUpdateRes.from(timeDeal);
     }
 
     @Override
     @Transactional
-    public TimeDealDetailRes changeTimeDealStatus(ChangeTimeDealStatusCommand command) {
+    public TimeDealStatusChangeRes changeTimeDealStatus(ChangeTimeDealStatusCommand command) {
         log.info("타임딜 상태 수정 시작");
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
         validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
 
-        TimeDealStatus newStatus = parseTimeDealStatus(command.newStatus());
+        TimeDealStatus newStatus = TimeDealStatus.from(command.newStatus());
 
-        if (newStatus == TimeDealStatus.OPEN) {
-            timeDeal.openNow(command.reason());
-        }
-        else if (newStatus == TimeDealStatus.CLOSED) {
-            timeDeal.closeNow(command.reason());
-        }
-        else {
-            timeDeal.changeStatus(newStatus, command.reason());
-        }
+        TimeDealStatusHistory timeDealStatusHistory = timeDeal.changeStatusBy(newStatus, command.reason());
 
         log.info("타임딜 상태 수정 완료");
-        return TimeDealDetailRes.from(timeDeal);
+        return TimeDealStatusChangeRes.from(timeDeal, timeDealStatusHistory);
     }
 
     @Override
@@ -211,56 +206,49 @@ public class TimeDealServiceImpl implements TimeDealService {
         log.info("업체 판매자 관련 타임딜 삭제 완료");
     }
 
+    // TODO. 로직 수정 필요
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
-        TimeDealStatus timeDealStatus = timeDeal.getTimeDealStatus();
+        TimeDealStatus status = timeDeal.getTimeDealStatus();
 
-        if (command.title() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TITLE);
+        if (!command.title().equals(timeDeal.getTitle())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TITLE);
             timeDeal.changeTitle(command.title());
         }
 
-        if (command.description() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.DESCRIPTION);
+        if (!command.description().equals(timeDeal.getDescription())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.DESCRIPTION);
             timeDeal.changeDescription(command.description());
         }
 
-        if (command.startAt() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.START_AT);
+        if (!command.startAt().equals(timeDeal.getPeriod().getStartAt())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.START_AT);
             timeDeal.changeStartAt(command.startAt());
         }
 
-        if (command.endAt() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.END_AT);
+        if (!command.endAt().equals(timeDeal.getPeriod().getEndAt())) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.END_AT);
             timeDeal.changeEndAt(command.endAt());
         }
 
-        if (command.timeDealPrice() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TIME_DEAL_PRICE);
+        if (command.timeDealPrice() != timeDeal.getAmount().getTimeDealPrice()) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TIME_DEAL_PRICE);
             timeDeal.changeTimeDealPrice(command.timeDealPrice());
         }
 
-        if (command.totalQuantity() != null) {
-            timeDealValidator.validateEditable(timeDealStatus, TimeDealEditableField.TOTAL_QUANTITY);
+        if (command.totalQuantity() != timeDeal.getTimeDealStock().getQuantity().getTotalQuantity()) {
+            timeDealValidator.validateEditable(status, TimeDealEditableField.TOTAL_QUANTITY);
             timeDeal.changeTotalQuantity(command.totalQuantity());
         }
     }
 
     private TimeDeal getActiveTimeDeal(UUID timeDealId) {
-        return timeDealRepository.findDetailByTimeDealId(timeDealId)
+        return timeDealRepository.findByTimeDealId(timeDealId)
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 
     private void validateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
-        if (role.equals(UserRole.COMPANY_USER)) {
+        if (role == UserRole.COMPANY_USER) {
             timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
-        }
-    }
-
-    private TimeDealStatus parseTimeDealStatus(String status) {
-        try {
-            return TimeDealStatus.valueOf(status.toUpperCase());
-        } catch (Exception e) {
-            throw new BusinessException(TimeDealErrorCode.INVALID_TIME_DEAL_STATUS);
         }
     }
 }

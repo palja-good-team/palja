@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class TimeDealRepositoryAdapter implements TimeDealRepository {
+public class TimeDealRepositoryImpl implements TimeDealRepository {
 
     private final JpaTimeDealRepository jpaTimeDealRepository;
 
@@ -24,8 +24,8 @@ public class TimeDealRepositoryAdapter implements TimeDealRepository {
     }
 
     @Override
-    public Optional<TimeDeal> findDetailByTimeDealId(UUID timeDealId) {
-        return jpaTimeDealRepository.findDetailByTimeDealId(timeDealId);
+    public Optional<TimeDeal> findByTimeDealId(UUID timeDealId) {
+        return jpaTimeDealRepository.findByTimeDealId(timeDealId);
     }
 
     @Override

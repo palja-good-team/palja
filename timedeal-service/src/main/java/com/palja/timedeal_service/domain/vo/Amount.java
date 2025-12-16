@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @Getter
 public class Amount {
 
+    private static final long MIN_PRICE = 1L;
+    private static final int PERCENT_BASE = 100;
+
     @Column(name = "original_price", nullable = false)
     private long originalPrice;
 
@@ -38,21 +41,43 @@ public class Amount {
         return new Amount(this.originalPrice, newTimeDealPrice);
     }
 
+    // ========== 계산 ==========
     private int calculateDiscount(long originalPrice, long timeDealPrice) {
-        return (int)(((double)(originalPrice - timeDealPrice) / originalPrice) * 100);
+        return (int) (((double) (originalPrice - timeDealPrice) / originalPrice) * 100);
     }
 
+    // ========== 검증 ==========
     private void validate(long originalPrice, long timeDealPrice) {
-        if (originalPrice <= 0) {
+        validateOriginalPrice(originalPrice);
+        validateTimeDealPrice(timeDealPrice);
+        validatePriceOrder(originalPrice, timeDealPrice);
+    }
+
+
+    private void validateOriginalPrice(long originalPrice) {
+        if (isLessThanMinimumPrice(originalPrice)) {
             throw new BusinessException(TimeDealErrorCode.INVALID_ORIGINAL_PRICE);
         }
+    }
 
-        if (timeDealPrice <= 0) {
+    private void validateTimeDealPrice(long timeDealPrice) {
+        if (isLessThanMinimumPrice(timeDealPrice)) {
             throw new BusinessException(TimeDealErrorCode.INVALID_TIMEDEAL_PRICE);
         }
+    }
 
-        if (originalPrice < timeDealPrice) {
+    private void validatePriceOrder(long originalPrice, long timeDealPrice) {
+        if (!isTimeDealPriceLessThanOrEqualOriginal(originalPrice, timeDealPrice)) {
             throw new BusinessException(TimeDealErrorCode.TIMEDEAL_PRICE_GREATER_THAN_ORIGINAL);
         }
+    }
+
+    // ========== 조건식 ==========
+    private boolean isLessThanMinimumPrice ( long price){
+        return price < MIN_PRICE;
+    }
+
+    private boolean isTimeDealPriceLessThanOrEqualOriginal(long originalPrice, long timeDealPrice) {
+        return timeDealPrice <= originalPrice;
     }
 }

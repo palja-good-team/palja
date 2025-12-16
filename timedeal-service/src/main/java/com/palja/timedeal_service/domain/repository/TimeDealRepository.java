@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface TimeDealRepository {
     TimeDeal save(TimeDeal timeDeal);
-    Optional<TimeDeal> findDetailByTimeDealId(UUID timeDealId);
+    Optional<TimeDeal> findByTimeDealId(UUID timeDealId);
     Page<TimeDeal> searchTimeDeals(Pageable pageable);
     List<TimeDeal> findAllByCompanyUserId(UUID companyUserId, TimeDealStatus status, LocalDateTime now);
 }

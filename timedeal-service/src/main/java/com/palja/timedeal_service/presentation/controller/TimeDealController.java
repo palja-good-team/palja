@@ -1,6 +1,5 @@
 package com.palja.timedeal_service.presentation.controller;
 
-import brave.Response;
 import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
@@ -8,14 +7,15 @@ import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.*;
+import com.palja.timedeal_service.application.dto.TimeDealCreateRes;
 import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
+import com.palja.timedeal_service.application.dto.TimeDealStatusChangeRes;
+import com.palja.timedeal_service.application.dto.TimeDealUpdateRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.presentation.dto.request.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.shaded.com.google.protobuf.Api;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -37,14 +37,14 @@ public class TimeDealController {
 
     @PostMapping
     @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<TimeDealDetailRes>> createTimeDeal(
+    public ResponseEntity<ApiResponse<TimeDealCreateRes>> createTimeDeal(
             @RequestBody @Valid CreateTimeDealReq req
     ) {
         log.info("POST api/v1/time-deals 타임딜 생성 요청");
 
         CreateTimeDealCommand command = req.toCommand(CurrentUser.getLoginId(), CurrentUser.getRole());
 
-        TimeDealDetailRes res = timeDealService.createTimeDeal(command);
+        TimeDealCreateRes res = timeDealService.createTimeDeal(command);
 
         log.info("타임딜 생성 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(res, "타임딜이 생성되었습니다."));
@@ -52,7 +52,7 @@ public class TimeDealController {
 
     @GetMapping("/{timeDealId}")
     public ResponseEntity<ApiResponse<TimeDealDetailRes>> getTimeDeal(@PathVariable UUID timeDealId) {
-        log.info("GET /api/v1/time-deal/{} 타임딜 상세조회 요청", timeDealId);
+        log.info("GET /api/v1/time-deals/{} 타임딜 상세조회 요청", timeDealId);
 
         TimeDealDetailRes res = timeDealService.getTimeDeal(timeDealId);
 
@@ -74,7 +74,7 @@ public class TimeDealController {
 
     @PutMapping("/{timeDealId}")
     @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<TimeDealDetailRes>> updateTimeDeal(
+    public ResponseEntity<ApiResponse<TimeDealUpdateRes>> updateTimeDeal(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid UpdateTimeDealReq req
     ) {
@@ -82,7 +82,7 @@ public class TimeDealController {
 
         UpdateTimeDealCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
 
-        TimeDealDetailRes res = timeDealService.updateTimeDeal(command);
+        TimeDealUpdateRes res = timeDealService.updateTimeDeal(command);
 
         log.info("타임딜 수정 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 수정에 성공했습니다."));
@@ -90,7 +90,7 @@ public class TimeDealController {
 
     @PutMapping("/{timeDealId}/status")
     @RequiredRole({UserRole.MANAGER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<TimeDealDetailRes>> changeTimeDealStatus(
+    public ResponseEntity<ApiResponse<TimeDealStatusChangeRes>> changeTimeDealStatus(
             @PathVariable UUID timeDealId,
             @RequestBody @Valid ChangeTimeDealStatusReq req
     ) {
@@ -98,7 +98,7 @@ public class TimeDealController {
 
         ChangeTimeDealStatusCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
 
-        TimeDealDetailRes res = timeDealService.changeTimeDealStatus(command);
+        TimeDealStatusChangeRes res = timeDealService.changeTimeDealStatus(command);
 
         log.info("타임딜 상태 변경 완료: timeDealId = {}", res.getTimeDealId());
         return ResponseEntity.ok(ApiResponse.success(res, "타임딜 상태 변경에 성공했습니다."));

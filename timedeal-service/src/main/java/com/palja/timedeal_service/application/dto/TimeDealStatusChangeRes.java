@@ -3,7 +3,9 @@ package com.palja.timedeal_service.application.dto;
 import com.palja.timedeal_service.application.dto.common.AmountRes;
 import com.palja.timedeal_service.application.dto.common.PeriodRes;
 import com.palja.timedeal_service.application.dto.common.QuantityRes;
+import com.palja.timedeal_service.application.dto.common.TimeDealStatusHistoryRes;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
+import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class TimeDealDetailRes {
+public class TimeDealStatusChangeRes {
     private UUID timeDealId;
     private UUID productId;
     private UUID companyUserId;
@@ -23,9 +25,10 @@ public class TimeDealDetailRes {
     private AmountRes amount;
     private QuantityRes quantity;
     private String timeDealStatus;
+    private TimeDealStatusHistoryRes timeDealStatusHistory;
 
-    public static TimeDealDetailRes from(TimeDeal timeDeal) {
-        return TimeDealDetailRes.builder()
+    public static TimeDealStatusChangeRes from(TimeDeal timeDeal, TimeDealStatusHistory timeDealStatusHistory) {
+        return TimeDealStatusChangeRes.builder()
                 .timeDealId(timeDeal.getTimeDealId())
                 .productId(timeDeal.getProductId())
                 .companyUserId(timeDeal.getCompanyUserId())
@@ -35,6 +38,7 @@ public class TimeDealDetailRes {
                 .amount(AmountRes.from(timeDeal.getAmount()))
                 .quantity(QuantityRes.from(timeDeal.getTimeDealStock().getQuantity()))
                 .timeDealStatus(timeDeal.getTimeDealStatus().name())
+                .timeDealStatusHistory(TimeDealStatusHistoryRes.from(timeDealStatusHistory))
                 .build();
     }
 }

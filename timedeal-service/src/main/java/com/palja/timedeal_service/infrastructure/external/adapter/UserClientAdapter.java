@@ -15,7 +15,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserClientImpl implements UserClient {
+public class UserClientAdapter implements UserClient {
 
 //    private final UserFeignClient userFeignClient;
 

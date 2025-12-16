@@ -1,6 +1,8 @@
 package com.palja.timedeal_service.domain.vo;
 
+import com.palja.common.exception.BusinessException;
 import com.palja.timedeal_service.common.TimeDealEditableField;
+import com.palja.timedeal_service.common.TimeDealErrorCode;
 
 public enum TimeDealStatus {
     PENDING("대기중") {
@@ -12,11 +14,6 @@ public enum TimeDealStatus {
         @Override
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return newStatus == OPEN || newStatus == CLOSED;
-        }
-
-        @Override
-        public boolean canDelete() {
-            return true;
         }
     },
 
@@ -30,11 +27,6 @@ public enum TimeDealStatus {
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return newStatus == CLOSED;
         }
-
-        @Override
-        public boolean canDelete() {
-            return false;
-        }
     },
 
     SOLD_OUT("매진") {
@@ -47,11 +39,6 @@ public enum TimeDealStatus {
         public boolean canTransitTo(TimeDealStatus newStatus) {
             return false;
         }
-
-        @Override
-        public boolean canDelete() {
-            return false;
-        }
     },
 
     CLOSED("종료") {
@@ -62,11 +49,6 @@ public enum TimeDealStatus {
 
         @Override
         public boolean canTransitTo(TimeDealStatus newStatus) {
-            return false;
-        }
-
-        @Override
-        public boolean canDelete() {
             return false;
         }
     };
@@ -85,5 +67,28 @@ public enum TimeDealStatus {
 
     public abstract boolean canTransitTo(TimeDealStatus newStatus);
 
-    public abstract boolean canDelete();
+    // ========== 조건식 ==========
+    public boolean isOpen() {
+        return this == OPEN;
+    }
+
+    public boolean isClosed() {
+        return this == CLOSED;
+    }
+
+    public boolean canRestoreStock() {
+        return this == OPEN || this == SOLD_OUT;
+    }
+
+    public boolean canDelete() {
+        return this == PENDING;
+    }
+
+    public static TimeDealStatus from(String status) {
+        try {
+            return TimeDealStatus.valueOf(status.toUpperCase());
+        } catch (Exception e) {
+            throw new BusinessException(TimeDealErrorCode.INVALID_TIME_DEAL_STATUS);
+        }
+    }
 }
