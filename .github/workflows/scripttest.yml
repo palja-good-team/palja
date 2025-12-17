@@ -47,6 +47,7 @@ jobs:
 
   build-and-deploy:
     needs: [change-detect, gradle-cache]
+    if: needs.change-detect.outputs.detected != '[]'
     strategy:
       matrix:
         package: ${{ fromJSON(needs.change-detect.outputs.detected) }}
@@ -65,6 +66,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/**/gradle.properties
 
       - name: build gradle
         run: |
