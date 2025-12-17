@@ -189,9 +189,8 @@ public class PaymentServiceImpl implements PaymentService {
             payment.cancel(command.cancelReason());
             paymentRepository.save(payment);
 
-            log.info("[CANCEL] pgRes.success=false -> save cancelFailedLog start. paymentId={}", payment.getId());
+            log.info("결제 취소 pg 실패 cancelFailedLog 저장: paymentId={}", payment.getId());
             paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
-            log.info("[CANCEL] save cancelFailedLog done. paymentId={}", payment.getId());
 
             log.info("결제 취소 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
             return CancelPaymentRes.from(payment);
