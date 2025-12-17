@@ -14,7 +14,6 @@ import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealEditableField;
-import com.palja.timedeal_service.common.TimeDealErrorCode;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
@@ -52,9 +51,12 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         ProductInfo product = productClient.getProduct(command.productId());
 
-        validateCompanyUser(command.role(), command.loginId(), product.companyUserId());
+        validateCompanyUser(command.role(), product.companyUserId());
 
         timeDealValidator.validateStock(command.totalQuantity(), product.stock());
+
+        // TODO. 상품 차감 요청 언제 할지
+        productClient.decreaseStock(command.productId(), command.totalQuantity());
 
         Period period = Period.of(command.startAt(), command.endAt());
         Amount amount = Amount.of(product.price(), command.timeDealPrice());
@@ -102,7 +104,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), timeDeal.getCompanyUserId());
 
         updateTimeDealFields(timeDeal, command);
 
@@ -117,7 +119,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), timeDeal.getCompanyUserId());
 
         TimeDealStatus newStatus = TimeDealStatus.from(command.newStatus());
 
@@ -134,7 +136,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
-        validateCompanyUser(command.role(), command.loginId(), timeDeal.getCompanyUserId());
+        validateCompanyUser(command.role(), timeDeal.getCompanyUserId());
 
         timeDeal.validateDeletableStatus();
         timeDeal.validateDeletablePeriod(LocalDateTime.now());
@@ -246,9 +248,9 @@ public class TimeDealServiceImpl implements TimeDealService {
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.NOT_FOUND));
     }
 
-    private void validateCompanyUser(UserRole role, String loginId, UUID ownerCompanyUserId) {
+    private void validateCompanyUser(UserRole role, UUID ownerCompanyUserId) {
         if (role == UserRole.COMPANY_USER) {
-            timeDealValidator.validateCompanyUserId(loginId, ownerCompanyUserId);
+            timeDealValidator.validateCompanyUserId(ownerCompanyUserId);
         }
     }
 }

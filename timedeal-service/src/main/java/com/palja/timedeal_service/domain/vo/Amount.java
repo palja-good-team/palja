@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class Amount {
 
     private static final long MIN_PRICE = 1L;
-    private static final int PERCENT_BASE = 100;
 
     @Column(name = "original_price", nullable = false)
     private long originalPrice;

@@ -15,6 +15,5 @@ public record CreateTimeDealCommand (
         LocalDateTime endAt,
         long timeDealPrice,
         long totalQuantity,
-        String loginId,
         UserRole role
 ) {}

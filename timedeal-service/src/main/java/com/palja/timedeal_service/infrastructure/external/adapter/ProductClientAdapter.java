@@ -2,9 +2,11 @@ package com.palja.timedeal_service.infrastructure.external.adapter;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
+import com.palja.common.response.ApiResponse;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
+import com.palja.timedeal_service.infrastructure.external.ProductFeignClient;
 import com.palja.timedeal_service.infrastructure.external.dto.ProductDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,16 +19,16 @@ import java.util.UUID;
 @Component
 public class ProductClientAdapter implements ProductClient {
 
-//    private final ProductFeignClient productFeignClient;
+    private final ProductFeignClient productFeignClient;
 
     @Override
     public ProductInfo getProduct(UUID productId) {
         log.info("상품 정보 요청: productId = {}", productId);
 
         try {
-/*            // TODO. 추후 변경
-            ProductDTO product = productFeignClient.getProduct(productId);*/
-            ProductDTO product = mockProduct(productId);
+            ApiResponse<ProductDTO> product = productFeignClient.getProduct(productId);
+/*            // mock
+            ProductDTO product = mockProduct(productId);*/
 
             if (product == null) {
                 log.error("[ProductClient] 상품 없음: productId={}", productId);
@@ -34,10 +36,22 @@ public class ProductClientAdapter implements ProductClient {
             }
 
             log.info("상품 정보 요청 성공: productId={}", productId);
-            return product.toInfo();
+            return product.data().toInfo();
 
         } catch (Exception e) {
             log.error("[ProductClient] 상품 조회 실패: {}", e.getMessage());
+            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
+        }
+    }
+
+    @Override
+    public void decreaseStock(UUID productId, long decreaseQuantity) {
+        log.info("상품 재고 차감 요청: productId = {}", productId);
+
+        try {
+            productFeignClient.decreaseProductStock(productId, decreaseQuantity);
+        } catch (Exception e) {
+            log.error("[ProductClient] 상품 재고 차감 실패: {}", e.getMessage());
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
     }
@@ -47,15 +61,14 @@ public class ProductClientAdapter implements ProductClient {
         log.info("상품 재고 복구 요청: productId = {}", productId);
 
         try {
-/*            // TODO. 추후 변경
-            productFeignClient.restoreStock(productId, restoreQuantity);*/
+            productFeignClient.restoreProductStock(productId, restoreQuantity);
         } catch (Exception e) {
             log.error("[ProductClient] 상품 재고 복구 실패: {}", e.getMessage());
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
     }
 
-    private ProductDTO mockProduct(UUID productId) {
+/*    private ProductDTO mockProduct(UUID productId) {
         log.info("[MockProductClient] 상품 Mock 반환");
 
         return new ProductDTO(
@@ -64,5 +77,5 @@ public class ProductClientAdapter implements ProductClient {
                 10000L,
                 500L
         );
-    }
+    }*/
 }

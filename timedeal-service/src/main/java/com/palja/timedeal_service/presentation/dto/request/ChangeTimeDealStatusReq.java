@@ -19,12 +19,11 @@ public class ChangeTimeDealStatusReq {
     @Size(max = 100, message = "상태 변경 이유는 최대 100자까지 입력 가능합니다.")
     String reason;
 
-    public ChangeTimeDealStatusCommand toCommand(UUID timeDealId, String longinId, UserRole role) {
+    public ChangeTimeDealStatusCommand toCommand(UUID timeDealId, UserRole role) {
         return ChangeTimeDealStatusCommand.builder()
                 .timeDealId(timeDealId)
                 .newStatus(newStatus)
                 .reason(reason)
-                .loginId(longinId)
                 .role(role)
                 .build();
     }
