@@ -19,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderAdapter implements OrderClient {
+public class OrderClientAdapter implements OrderClient {
 
     private final OrderFeignClient orderFeignClient;
 
