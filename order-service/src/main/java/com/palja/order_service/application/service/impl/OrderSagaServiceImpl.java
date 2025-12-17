@@ -2,8 +2,8 @@ package com.palja.order_service.application.service.impl;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.saga.model.OrderSaga;
+import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.domain.repository.OrderSagaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class OrderSagaServiceImpl implements OrderSagaService {
      */
     @Override
     @Transactional
-    public OrderSaga findOrCreate(UUID orderId) {
+    public OrderSaga findOrCreateByOrderId(UUID orderId) {
         try {
             // 새로운 Saga 생성 시도
             OrderSaga saved = orderSagaRepository.save(OrderSaga.create(orderId));
@@ -80,7 +80,7 @@ public class OrderSagaServiceImpl implements OrderSagaService {
      * - 다른 트랜잭션의 변경사항은 명시적 재조회 필요
      */
     @Override
-    public OrderSaga reload(UUID orderId) {
+    public OrderSaga reloadByOrderId(UUID orderId) {
         return orderSagaRepository.findByOrderId(orderId)
                 .orElseThrow(() -> {
                     log.error("[SAGA][RELOAD_FAILED] orderId={}, saga not found", orderId);
@@ -107,7 +107,7 @@ public class OrderSagaServiceImpl implements OrderSagaService {
      */
     @Override
     @Transactional
-    public OrderSaga safeReloadForFail(UUID orderId) {
+    public OrderSaga safeReloadForFailByOrderId(UUID orderId) {
         try {
             return reload(orderId);
         } catch (Exception e) {
@@ -118,5 +118,46 @@ public class OrderSagaServiceImpl implements OrderSagaService {
             // Fallback: 새로 생성 (거의 발생 안 함)
             return OrderSaga.create(orderId);
         }
+    }
+
+    /**
+     * sagaId로 Saga 조회 (주요 메서드)
+     */
+    @Override
+    public OrderSaga findBySagaId(UUID sagaId) {
+        return orderSagaRepository.findBySagaId(sagaId)
+                .orElseThrow(() -> {
+                    log.error("[SAGA][NOT_FOUND] sagaId={}", sagaId);
+                    return new BusinessException(OrderErrorCode.ORDER_SAGA_NOT_FOUND);
+                });
+    }
+
+    /**
+     * sagaId로 Saga 재조회 (최신 상태)
+     */
+    @Override
+    public OrderSaga reload(UUID sagaId) {
+        return findBySagaId(sagaId);
+    }
+
+
+    /**
+     * Saga 실패 처리를 위한 안전한 재조회
+     */
+    @Override
+    public OrderSaga safeReloadForFail(UUID sagaId) {
+        try {
+            return reload(sagaId);
+        } catch (Exception e) {
+            log.error("[SAGA][RELOAD_FAILED] sagaId={}, error={}", sagaId, e.getMessage());
+            throw e;
+        }
+    }
+
+    // Saga 저장
+    @Override
+    @Transactional
+    public void save(OrderSaga saga) {
+        orderSagaRepository.save(saga);
     }
 }

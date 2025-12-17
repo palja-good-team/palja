@@ -6,11 +6,11 @@ import lombok.Getter;
  * Saga Step 진행 단계
  *
  * [순서]
- * STARTED(0) → INVENTORY_RESERVED(10) → COUPON_APPLIED(20) → PAYMENT_CREATED(30) → COMPLETED(90)
+ * STARTED(0) → STOCK_RESERVED(10) → COUPON_APPLIED(20) → PAYMENT_CREATED(30) → COMPLETED(90)
  *
  * [특징]
  * - code 기반 비교 (ordinal() 대신)
- * - 쿠폰 없으면 INVENTORY → PAYMENT 직접 전이 가능
+ * - 쿠폰 없으면 STOCK → PAYMENT 직접 전이 가능
  * - isAtLeast()로 완료 여부 판단
  * - canTransitionTo()로 전이 규칙 강제
  *
@@ -23,11 +23,11 @@ public enum OrderSagaStep {
     STARTED(0) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
-            return next == INVENTORY_RESERVED || next == FAILED;
+            return next == STOCK_RESERVED || next == FAILED;
         }
     },
 
-    INVENTORY_RESERVED(10) {
+    STOCK_RESERVED(10) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
             // 쿠폰 없으면 바로 결제로 갈 수 있음

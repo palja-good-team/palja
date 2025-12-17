@@ -6,18 +6,18 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
-import com.palja.order_service.application.dto.event.OrderCreatedEvent;
+import com.palja.order_service.application.dto.event.request.SagaStartEventReq;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.client.*;
+import com.palja.order_service.application.port.kafka.SagaEventPublisher;
+import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
-import com.palja.order_service.application.service.publisher.OrderSagaEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
 import com.palja.order_service.domain.vo.OrderStatus;
@@ -25,7 +25,6 @@ import com.palja.order_service.domain.vo.Recipient;
 import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,9 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
-
-    private final ApplicationEventPublisher eventPublisher;
-    private final OrderSagaEventPublisher sagaEventPublisher;
+    private final SagaEventPublisher sagaEventPublisher;
     private final OrderSagaService orderSagaService;
 
     // ====== Order Creation Workflow ======
@@ -70,7 +67,6 @@ public class OrderServiceImpl implements OrderService {
      * - 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
      * - 영속화
      */
-    // TODO: Kafka Event 기반 비동기 처리 및 Saga 패턴 적용
     @Transactional
     public OrderCreateRes createOrder(CreateOrderCommand command) {
         log.info("주문 생성 시작: loginId={}, productId={}, quantity={}",
@@ -88,18 +84,25 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("주문 생성 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
 
-        // SAGA 초기화
-        OrderSaga saga = orderSagaService.findOrCreate(order.getOrderId());
+        // OrderSaga 생성
+        OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
 
-        // TODO: Kafka Event 발행으로 전환
-        // SAGA 트리거 (AFTER_COMMIT + @Async)
-        // 커밋 이후(AFTER_COMMIT) Saga Orchestrator가 처리하도록 이벤트 발행
-        sagaEventPublisher.publishOrderCreated(order.getOrderId());
+        // Saga 시작 이벤트 발행 (비동기 시작점)
+        publishOrderCreatedSagaEvent(order.getOrderId(), saga.getSagaId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
                 order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
 
         return OrderCreateRes.from(order);
+    }
+
+    private void publishOrderCreatedSagaEvent(UUID orderId, UUID sagaId) {
+
+        SagaStartEventReq event = SagaStartEventReq.of(sagaId, orderId);
+        sagaEventPublisher.publishSagaStart(event);
+
+        log.info("[SAGA][START_EVENT_PUBLISHED] sagaId={}, orderId={}",
+                sagaId, orderId);
     }
 
     // 주문 생성에 필요한 데이터 수집 및 검증
@@ -222,29 +225,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 주문 생성 이벤트 발행
-     * - 트랜잭션이 커밋된 후 리스너가 실행됨
-     */
-    private void publishOrderCreatedEventV1(Order order) {
-        OrderCreatedEvent event = OrderCreatedEvent.from(order);
-        eventPublisher.publishEvent(event);
-        log.debug("주문 생성 이벤트 발행 완료: orderId={}", order.getOrderId());
-    }
-
-    /**
      * 주문에 결제 ID 등록
      * - 결제 생성 완료 후 호출
      * - 별도 트랜잭션으로 실행 (AFTER_COMMIT 이벤트에서 호출)
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void registerPaymentId(UUID orderId, UUID paymentId) {
+    public void registerPayment(UUID orderId, UUID paymentId) {
         log.info("주문 결제 ID 등록 시작: orderId={}, paymentId={}", orderId, paymentId);
 
         Order order = findByOrderIdAndDeletedAtIsNull(orderId);
-
         order.registerPaymentId(paymentId);
+        orderRepository.save(order);
 
         log.info("주문 결제 ID 등록 완료: orderId={}, paymentId={}", orderId, paymentId);
+    }
+
+    // 주문 저장
+    @Transactional
+    public void save(Order order) {
+        orderRepository.save(order);
     }
 
     // ====== Order Cancellation Workflow ======
