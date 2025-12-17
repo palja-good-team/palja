@@ -4,6 +4,7 @@ import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,9 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
+import com.palja.user_service.application.event.dto.DeleteCompanyUserEvent;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
-import com.palja.user_service.application.port.ProductClient;
-import com.palja.user_service.application.port.TimeDealClient;
 import com.palja.user_service.application.service.CompanyUserService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -43,8 +43,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
 
-	private final TimeDealClient timeDealClient;
-	private final ProductClient productClient;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
@@ -137,8 +136,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.softDelete();
-		timeDealClient.deleteAllTimeDeals(companyUser.getId());
-		productClient.deleteAllProducts(companyUser.getId());
+
+		applicationEventPublisher.publishEvent(DeleteCompanyUserEvent.from(companyUser.getId()));
 	}
 
 	@Override
@@ -148,8 +147,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.softDelete();
-		timeDealClient.deleteAllTimeDeals(companyUser.getId());
-		productClient.deleteAllProducts(companyUser.getId());
+
+		applicationEventPublisher.publishEvent(DeleteCompanyUserEvent.from(companyUser.getId()));
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
