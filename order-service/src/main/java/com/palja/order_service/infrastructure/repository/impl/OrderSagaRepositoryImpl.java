@@ -33,4 +33,9 @@ public class OrderSagaRepositoryImpl implements OrderSagaRepository {
     public Optional<OrderSaga> findByOrderId(UUID orderId) {
         return jpaOrderSagaRepository.findByOrderId(orderId);
     }
+
+    @Override
+    public Optional<OrderSaga> findBySagaId(UUID sagaId) {
+        return jpaOrderSagaRepository.findBySagaId(sagaId);
+    }
 }
