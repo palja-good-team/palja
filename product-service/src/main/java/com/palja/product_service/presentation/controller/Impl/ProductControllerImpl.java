@@ -33,7 +33,7 @@ public class ProductControllerImpl {
     @RequiredRole(UserRole.COMPANY_USER)
     @PostMapping()
     public ResponseEntity<ApiResponse<CreateProductRes>> createProduct(@RequestBody @Valid CreateProductReq req) {
-        System.out.println("adcde");
+        System.out.println("adcdef");
         CreateProductCommand createCommand = req.toCommand(req);
         CreateProductRes res = service.createProduct(createCommand);
 

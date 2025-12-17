@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SERVICE: ${{ matrix.package }}
+      PACKAGES_URL: ${{ secrets.COMMON_PACKAGES_URL }}
+      USERNAME: ${{ secrets.COMMON_USERNAME }}
+      TOKEN: ${{ secrets.COMMON_TOKEN }}
     steps:
       - name: code-checkout
         uses: actions/checkout@v4
