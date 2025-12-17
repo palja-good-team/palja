@@ -49,7 +49,11 @@ public class ProductStock extends BaseEntity {
         return this;
     }
 
-    protected void delete() {
+    @Override
+    public void softDelete() {
+    }
+
+    protected void mySoftDelete() {
         super.softDelete();
     }
 }

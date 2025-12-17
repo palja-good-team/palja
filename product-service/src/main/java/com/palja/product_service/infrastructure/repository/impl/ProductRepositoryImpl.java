@@ -139,8 +139,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public void deleteProductForUser(UUID companyUserId) {
+    public void deleteProductForUser(UUID companyUserId, String loginId) {
 
-        jpaProductRepository.deleteAllByCompanyUserId(companyUserId);
+        jpaProductRepository.deleteAllByCompanyUserId(companyUserId, loginId);
     }
 }

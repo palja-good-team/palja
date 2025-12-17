@@ -119,8 +119,9 @@ public class Product extends BaseEntity {
         return this.price;
     }
 
-    public void delete() {
-        this.productStock.delete();
+    @Override
+    public void softDelete() {
+        this.productStock.mySoftDelete();
         super.softDelete();
     }
 }
