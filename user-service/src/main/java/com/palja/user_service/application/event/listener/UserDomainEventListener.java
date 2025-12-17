@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.palja.user_service.application.event.dto.DeleteCompanyUserEvent;
-import com.palja.user_service.application.event.dto.DeleteCustomerEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCustomerEvent;
 import com.palja.user_service.application.event.publisher.UserEventPublisher;
 
 import lombok.RequiredArgsConstructor;

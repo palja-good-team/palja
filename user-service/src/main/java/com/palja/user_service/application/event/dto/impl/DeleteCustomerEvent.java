@@ -1,4 +1,6 @@
-package com.palja.user_service.application.event.dto;
+package com.palja.user_service.application.event.dto.impl;
+
+import com.palja.user_service.application.event.dto.UserEvent;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
