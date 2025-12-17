@@ -18,6 +18,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/**/gradle.properties
 
   change-detect:
     runs-on: ubuntu-latest
@@ -73,7 +76,7 @@ jobs:
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
-          chmod +x gradlew
+          chmod +x $SERVICE/gradlew
           ./gradlew -p $SERVICE clean build
 
       - name: create-image
