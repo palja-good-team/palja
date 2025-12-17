@@ -12,6 +12,7 @@ spring:
       - eureka
       - swagger
       - monitor
+      - kafka
 
 toss:
   base-url: https://api.tosspayments.com

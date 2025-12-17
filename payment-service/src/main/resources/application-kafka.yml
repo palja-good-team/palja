@@ -1,0 +1,17 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 2147483647
+      properties:
+        acks: all
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        compression.type: snappy
+
+app:
+  outbox:
+    publish-interval-ms: 30000
