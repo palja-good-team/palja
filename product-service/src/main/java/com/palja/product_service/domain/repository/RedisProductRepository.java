@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public interface RedisProductRepository {
 
-    boolean decreaseStockBySale(String productId, Integer stock, Integer quantity);
+    boolean decreaseStockBySale(String productId, Long stock, Long quantity);
 
-    boolean adjustStock(String productId, Integer quantity);
+    boolean adjustStock(String productId, Long quantity);
 
     boolean deleteProductStock(String productId);
 

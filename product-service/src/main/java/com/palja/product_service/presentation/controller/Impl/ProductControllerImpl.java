@@ -89,7 +89,7 @@ public class ProductControllerImpl {
     @RequiredRole(UserRole.COMPANY_USER)
     @PutMapping("/modifyStock/{productId}")
     public ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
-                                                                          @RequestParam Integer stock) {
+                                                                          @RequestParam Long stock) {
 
         UpdateStockRes res = service.updateStock(productId, stock);
 
@@ -99,7 +99,7 @@ public class ProductControllerImpl {
     @RequiredInternal
     @PutMapping("/order/sale/{productId}")
     public ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
-                                                                   @RequestParam Integer quantity) {
+                                                                   @RequestParam Long quantity) {
 
 //        SaleProductRes res = service.saleProductV1(productId, quantity);
         SaleProductRes res = service.saleProduct(productId, quantity);
@@ -110,7 +110,7 @@ public class ProductControllerImpl {
     @RequiredInternal
     @PutMapping("/order/cancel/{productId}")
     public ResponseEntity<ApiResponse<RestoreStockRes>> restoreStockByCancel(@PathVariable UUID productId,
-                                                                             @RequestParam Integer quantity) {
+                                                                             @RequestParam Long quantity) {
 
         RestoreStockRes res = service.stockRestoreV1(productId, quantity);
 //        RestoreStockRes res = service.stockRestore(productId, quantity);
@@ -121,7 +121,7 @@ public class ProductControllerImpl {
     @RequiredInternal
     @PutMapping("/time-deal/decrease/{productId}")
     public ResponseEntity<ApiResponse<DecreaseStockForTimeDealRes>> decreaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                                             @RequestParam Integer quantity) {
+                                                                                             @RequestParam Long quantity) {
 
         DecreaseStockForTimeDealRes res = service.decreaseStockForTimeDeal(productId, quantity);
 
@@ -131,7 +131,7 @@ public class ProductControllerImpl {
     @RequiredInternal
     @PutMapping("/time-deal/increase/{productId}")
     public ResponseEntity<ApiResponse<IncreaseStockForTimeDealRes>> increaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                                             @RequestParam Integer quantity) {
+                                                                                             @RequestParam Long quantity) {
 
         IncreaseStockForTimeDealRes res = service.increaseStockForTimeDeal(productId, quantity);
 

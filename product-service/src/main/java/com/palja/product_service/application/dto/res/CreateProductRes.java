@@ -19,7 +19,7 @@ public class CreateProductRes {
     private String category;
     private BigDecimal avgRating;
     private String companyName;
-    private Integer stock;
+    private Long stock;
 
     public static CreateProductRes fromEntity(Product product) {
         CreateProductRes result = new CreateProductRes();

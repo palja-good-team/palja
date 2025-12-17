@@ -2,7 +2,7 @@ package com.palja.product_service.infrastructure.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
-import org.redisson.client.codec.IntegerCodec;
+import org.redisson.client.codec.LongCodec;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
 import org.redisson.config.Config;
@@ -45,7 +45,7 @@ public class RedisConfig {
         config.setLockWatchdogTimeout(30000);
         config.setCodec(new CompositeCodec(
                 StringCodec.INSTANCE,
-                IntegerCodec.INSTANCE,
+                LongCodec.INSTANCE,
                 StringCodec.INSTANCE
         ));
 

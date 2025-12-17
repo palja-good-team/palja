@@ -23,19 +23,19 @@ public interface ProductService {
 
     UpdateProductInfoRes updateProductInfo(UUID productId, UpdateProductInfoCommand updateCommand);
 
-    UpdateStockRes updateStock(UUID productId, Integer stock);
+    UpdateStockRes updateStock(UUID productId, Long stock);
 
-    SaleProductRes saleProductV1(UUID productId, Integer quantity);
+    SaleProductRes saleProductV1(UUID productId, Long quantity);
 
-    SaleProductRes saleProduct(UUID productId, Integer quantity);
+    SaleProductRes saleProduct(UUID productId, Long quantity);
 
-    RestoreStockRes stockRestoreV1(UUID productId, Integer quantity);
+    RestoreStockRes stockRestoreV1(UUID productId, Long quantity);
 
-    RestoreStockRes stockRestore(UUID productId, Integer quantity);
+    RestoreStockRes stockRestore(UUID productId, Long quantity);
 
-    DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Integer quantity);
+    DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Long quantity);
 
-    IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Integer quantity);
+    IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Long quantity);
 
     void deleteProduct(UUID productId);
 

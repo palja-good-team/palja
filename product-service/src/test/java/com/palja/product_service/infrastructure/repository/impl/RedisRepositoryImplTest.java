@@ -65,8 +65,8 @@ class RedisRepositoryImplTest {
         //given
         String productId = UUID.randomUUID().toString();
         hashKey = redisRepository.createRedisHashKey(productId);
-        Integer dbStock = 100;
-        Integer saleQuantity = 1;
+        Long dbStock = 100L;
+        Long saleQuantity = 1L;
         long beforeTime = LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC);
 
         final int numOfThreads = 100;
@@ -89,10 +89,10 @@ class RedisRepositoryImplTest {
         long afterTime = LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC);
 
         //then
-        RMap<String, Integer> map = redissonClient.getMap(hashKey);
+        RMap<String, Long> map = redissonClient.getMap(hashKey);
         RScoredSortedSet<String> timeSet = redissonClient.getScoredSortedSet(hashKey + "Time");
 
-        assertThat(map.get(productId)).isEqualTo(0);
+        assertThat(map.get(productId)).isEqualTo(0L);
         assertThat(timeSet.size()).isEqualTo(1);
 
         assertThat(timeSet.getScore(productId)).isBetween(beforeTime * 1.0, afterTime * 1.0);
@@ -104,8 +104,8 @@ class RedisRepositoryImplTest {
         //given
         String productId = UUID.randomUUID().toString();
         hashKey = redisRepository.createRedisHashKey(productId);
-        Integer beforeStock = 100;
-        Integer afterStock = 200;
+        Long beforeStock = 100L;
+        Long afterStock = 200L;
 
         redissonClient.getMap(hashKey).fastPut(productId, beforeStock);
 
@@ -113,7 +113,7 @@ class RedisRepositoryImplTest {
         redisRepository.adjustStock(productId, afterStock);
 
         //then
-        RMap<String, Integer> map = redissonClient.getMap(hashKey);
+        RMap<String, Long> map = redissonClient.getMap(hashKey);
 
         assertThat(map.size()).isEqualTo(1);
         assertThat(map.get(productId)).isEqualTo(afterStock);

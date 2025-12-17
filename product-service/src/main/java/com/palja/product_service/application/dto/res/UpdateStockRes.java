@@ -9,7 +9,7 @@ import java.util.UUID;
 public class UpdateStockRes {
 
     private UUID productId;
-    private Integer stock;
+    private Long stock;
 
     public static UpdateStockRes fromEntity(Product product) {
         UpdateStockRes res = new UpdateStockRes();

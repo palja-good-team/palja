@@ -31,7 +31,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
     private String timeSuffix;
 
     @Override
-    public boolean decreaseStockBySale(String productId, Integer stock, Integer quantity) {
+    public boolean decreaseStockBySale(String productId, Long stock, Long quantity) {
 
         //상품의 아이디의 이름으로 락을 건다.
         RLock lock = redissonClient.getLock(productId);
@@ -50,13 +50,13 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
             );
 
             // 레디스에 key로 매핑된 Hash(자바의 Map)을 가져온다.
-            RMap<String, Integer> map = transaction.getMap(hashKey);
+            RMap<String, Long> map = transaction.getMap(hashKey);
 
             //값이 있으면 가져오고 없으면 DB의 재고로 잡는다
-            Integer remainStock = map.getOrDefault(productId, stock);
+            Long remainStock = map.getOrDefault(productId, stock);
 
             //남아있는 재고보다 판매수량이 많다면 예외
-            Integer resultStock = remainStock - quantity;
+            Long resultStock = remainStock - quantity;
             if (resultStock < 0) {
                 throw new InterruptedException();
             }
@@ -79,7 +79,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
     }
 
     @Override
-    public boolean adjustStock(String productId, Integer quantity) {
+    public boolean adjustStock(String productId, Long quantity) {
 
         RLock lock = redissonClient.getLock(productId);
         String hashKey = createRedisHashKey(productId);
@@ -90,7 +90,7 @@ public class RedisProductRepositoryImpl implements RedisProductRepository {
                 return false;
             }
 
-            RMap<String, Integer> map = redissonClient.getMap(hashKey);
+            RMap<String, Long> map = redissonClient.getMap(hashKey);
 
             //DB에 먼저 값이 저장되고 레디스에 저장하는 방식이기 때문에, 덮어씌워야함
             map.fastPut(productId, quantity);
