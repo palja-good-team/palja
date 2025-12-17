@@ -1,0 +1,103 @@
+name: palja_cicd
+
+on:
+  push:
+    branches:
+      - feat/#test
+
+jobs:
+  gradle-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: code-checkout
+        uses: actions/checkout@v4
+
+      - name: gradle-caching
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+  change-detect:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      detected: ${{ steps.changes.outputs.changes }}
+    steps:
+      - name: find-change-module
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            discovery-service: discovery-service/**
+            gateway-service: gateway-service/**
+            infra: infra/**
+            coupon-service: coupon-service/**
+            order-service: order-service/**
+            payment-service: payment-service/**
+            product-service: product-service/**
+            review-service: review-service/**
+            timedeal-service: timedeal-service/**
+            user-service: user-service/**
+
+  build-and-deploy:
+    needs: [change-detect, gradle-cache]
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.change-detect.outputs.detected) }}
+    runs-on: ubuntu-latest
+    env:
+      SERVICE: ${{ matrix.package }}
+    steps:
+      - name: code-checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install-java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: build gradle
+        run: |
+          echo "changed service = $SERVICE"
+          chmod +x gradlew
+          ./gradlew -p $SERVICE clean build
+
+      - name: create-image
+        run: |
+          ./gradlew -p $SERVICE bootBuildImage --imageName=palja/$SERVICE:latest
+
+      - name: docker-login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: push-image
+        run: |
+          docker push palja/$SERVICE:latest
+
+      - name: deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          port: ${{ secrets.EC2_PORT }}
+          key:  ${{ secrets.EC2_SSH_KEY }}
+          script:
+
+            export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
+            export GATEWAY_ACCESS_SECRET_KEY=${{ secrets.GATEWAY_ACCESS_SECRET_KEY }}
+            export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+            export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
+            export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
+            
+            cd palja
+            docker compose pull $SERVICE
+            docker compose up -d $SERVICE
