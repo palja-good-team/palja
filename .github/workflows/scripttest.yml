@@ -63,13 +63,11 @@ jobs:
           echo "changed service = $SERVICE"
           cd $SERVICE
           chmod +x gradlew
-          echo "pass1"
           ./gradlew clean build -x test
-          echo "pass2"
 
       - name: create-image
         run: |
-          ./gradlew -p $SERVICE bootBuildImage --imageName=palja/$SERVICE:latest
+          ./gradlew bootBuildImage --imageName=palja/$SERVICE:latest
           echo "pass3"
 
       - name: docker-login
