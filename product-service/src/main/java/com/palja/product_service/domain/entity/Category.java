@@ -53,4 +53,9 @@ public class Category extends BaseEntity {
     public int hashCode() {
         return Objects.hashCode(categoryNumber);
     }
+
+    @Override
+    public void softDelete() {
+        super.softDelete();
+    }
 }
