@@ -44,5 +44,5 @@ public interface ProductRepository {
 
     boolean deleteAllStockFromRedis(List<UUID> productIds);
 
-    void deleteProductForUser(UUID companyUserId);
+    void deleteProductForUser(UUID companyUserId, String loginId);
 }

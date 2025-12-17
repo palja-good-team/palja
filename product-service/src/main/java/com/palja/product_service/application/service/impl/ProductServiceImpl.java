@@ -1,5 +1,6 @@
 package com.palja.product_service.application.service.impl;
 
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
@@ -233,7 +234,7 @@ public class ProductServiceImpl implements ProductService {
 
         validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
-        product.delete();
+        product.softDelete();
 
         boolean result = repository.deleteStockFromRedis(productId.toString());
         validateRedisOperation(result);
@@ -243,8 +244,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProductForUser(UUID companyUserId) {
 
+        String loginId = CurrentUser.getLoginId();
+        repository.deleteProductForUser(companyUserId, loginId);
+
         List<UUID> idList = repository.findAllIdsByCompanyUserId(companyUserId);
-        repository.deleteProductForUser(companyUserId);
         boolean result = repository.deleteAllStockFromRedis(idList);
         validateRedisOperation(result);
 
