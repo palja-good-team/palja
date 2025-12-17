@@ -10,7 +10,7 @@ import com.palja.order_service.application.dto.event.OrderCreatedEvent;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.*;
+import com.palja.order_service.application.port.client.*;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;

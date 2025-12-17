@@ -3,7 +3,7 @@ package com.palja.order_service.application.saga.steps;
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.PaymentCreateRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.PaymentClient;
+import com.palja.order_service.application.port.client.PaymentClient;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
