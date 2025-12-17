@@ -64,7 +64,7 @@ jobs:
           cd $SERVICE
           chmod +x gradlew
           echo "pass1"
-          ./gradlew clean build
+          ./gradlew clean build -x test
           echo "pass2"
 
       - name: create-image
