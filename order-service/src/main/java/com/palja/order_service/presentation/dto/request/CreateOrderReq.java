@@ -22,7 +22,7 @@ public class CreateOrderReq {
 
     @NotNull(message = "주문 수량은 필수입니다.")
     @Min(value = 1, message = "주문 수량은 1 이상이어야 합니다.")
-    private int quantity;
+    private Long quantity;
 
     private UUID timeDealId;
 

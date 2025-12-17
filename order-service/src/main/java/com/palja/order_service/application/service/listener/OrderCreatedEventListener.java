@@ -1,6 +1,7 @@
 package com.palja.order_service.application.service.listener;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.order_service.application.dto.event.OrderCreatedSagaEvent;
 import com.palja.order_service.application.dto.external.PaymentCreateRes;
 import com.palja.order_service.application.dto.event.OrderCreatedEvent;
 import com.palja.order_service.application.exception.OrderErrorCode;
@@ -8,9 +9,11 @@ import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.application.port.PaymentClient;
 import com.palja.order_service.application.port.ProductClient;
 import com.palja.order_service.application.port.TimeDealClient;
+import com.palja.order_service.application.saga.OrderCreationSagaOrchestrator;
 import com.palja.order_service.application.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -34,6 +37,15 @@ public class OrderCreatedEventListener {
 
     private final OrderService orderService;
 
+    private final OrderCreationSagaOrchestrator sagaOrchestrator;
+
+    //@Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleOrderCreated(OrderCreatedSagaEvent event) {
+        log.info("[EVENT][ORDER_CREATED] orderId={}", event.getOrderId());
+        sagaOrchestrator.run(event.getOrderId());
+    }
+
     /**
      * 주문 생성 완료 후 외부 시스템 처리
      * - 주문 생성 트랜잭션이 커밋된 후에 실행
@@ -41,7 +53,7 @@ public class OrderCreatedEventListener {
      * - 이 메서드에서 예외 발생 시 주문 생성 트랜잭션은 영향 받지 않음
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOrderCreated(OrderCreatedEvent event) {
+    public void handleOrderCreatedV1(OrderCreatedEvent event) {
         log.info("[AFTER_COMMIT] 주문 생성 이벤트 처리 시작: orderId={}", event.getOrderId());
 
         try {
@@ -65,7 +77,7 @@ public class OrderCreatedEventListener {
         try {
             if (event.isTimeDealOrder()) {
                 UUID timeDealId = event.getTimeDealId();
-                timeDealClient.deductTimeDealStock(timeDealId, (long) event.getQuantity());
+                timeDealClient.deductTimeDealStock(timeDealId, event.getQuantity());
                 log.info("타임딜 재고 차감 완료: orderId={}, timeDealId={}, quantity={}",
                         event.getOrderId(), timeDealId, event.getQuantity());
             } else {

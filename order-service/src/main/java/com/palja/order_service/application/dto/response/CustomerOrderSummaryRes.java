@@ -19,7 +19,7 @@ public class CustomerOrderSummaryRes {
     private UUID orderId;
     private String status;
     private String productName;
-    private int quantity;
+    private Long quantity;
     private BigDecimal finalAmount;
     private boolean timeDealOrder;
     private LocalDateTime createdAt;

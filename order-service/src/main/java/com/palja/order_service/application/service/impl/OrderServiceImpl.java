@@ -11,10 +11,13 @@ import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.*;
+import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
+import com.palja.order_service.application.service.publisher.OrderSagaEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
+import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
 import com.palja.order_service.domain.vo.OrderStatus;
@@ -54,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderPriceCalculator orderPriceCalculator;
 
     private final ApplicationEventPublisher eventPublisher;
+    private final OrderSagaEventPublisher sagaEventPublisher;
+    private final OrderSagaService orderSagaService;
 
     // ====== Order Creation Workflow ======
     /**
@@ -78,12 +83,18 @@ public class OrderServiceImpl implements OrderService {
         OrderAmountResult amountResult = calculateOrderAmounts(context);
 
         Order order = createOrderEntity(command, context, amountResult);
+
         orderRepository.save(order);
-        log.info("주문 엔티티 저장 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
+
+        log.info("주문 생성 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
+
+        // SAGA 초기화
+        OrderSaga saga = orderSagaService.findOrCreate(order.getOrderId());
 
         // TODO: Kafka Event 발행으로 전환
-        // 이벤트 발행 (트랜잭션 커밋 후 실행)
-        publishOrderCreatedEvent(order);
+        // SAGA 트리거 (AFTER_COMMIT + @Async)
+        // 커밋 이후(AFTER_COMMIT) Saga Orchestrator가 처리하도록 이벤트 발행
+        sagaEventPublisher.publishOrderCreated(order.getOrderId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
                 order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
@@ -214,7 +225,7 @@ public class OrderServiceImpl implements OrderService {
      * 주문 생성 이벤트 발행
      * - 트랜잭션이 커밋된 후 리스너가 실행됨
      */
-    private void publishOrderCreatedEvent(Order order) {
+    private void publishOrderCreatedEventV1(Order order) {
         OrderCreatedEvent event = OrderCreatedEvent.from(order);
         eventPublisher.publishEvent(event);
         log.debug("주문 생성 이벤트 발행 완료: orderId={}", order.getOrderId());
@@ -308,13 +319,13 @@ public class OrderServiceImpl implements OrderService {
     // TODO: 이벤트 기반 처리
     private void restoreInventory(Order order) {
         UUID productId = order.getOrderItem().getProductId();
-        int quantity = order.getOrderItem().getQuantity();
+        Long quantity = order.getOrderItem().getQuantity();
 
         try {
             if (order.isTimeDealOrder()) {
                 // 타임딜 재고만 복구
                 UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealClient.restoreTimeDealStock(timeDealId, (long) quantity);
+                timeDealClient.restoreTimeDealStock(timeDealId, quantity);
                 log.info("타임딜 재고 복구 완료: timeDealId={}, quantity={}",
                         timeDealId, quantity);
             } else {
@@ -533,7 +544,7 @@ public class OrderServiceImpl implements OrderService {
             ProductRes product,
             Optional<TimeDealRes> timeDeal,
             Optional<CouponUserRes> coupon,
-            int quantity
+            Long quantity
     ) {}
 
     // 권한 검증 컨텍스트

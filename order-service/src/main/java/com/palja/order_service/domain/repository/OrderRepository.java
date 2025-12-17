@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface OrderRepository {
 
-    Order save(Order order);
+    void save(Order order);
 
     Optional<Order> findByOrderIdAndDeletedAtIsNull(UUID orderId);
 

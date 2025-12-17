@@ -21,7 +21,7 @@ public class CompanyOrderSummaryRes {
     private final OrderStatus status;
 
     private final String productName;
-    private final Integer quantity;
+    private final Long quantity;
     private final BigDecimal productAmount;
 
     private final String recipientName;

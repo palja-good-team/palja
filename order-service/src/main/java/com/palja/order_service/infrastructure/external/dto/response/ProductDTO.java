@@ -16,7 +16,7 @@ public class ProductDTO {
     private UUID companyUserId;
     private String productName;
     private BigDecimal price;
-    private int stockQuantity;
+    private Long stockQuantity;
 
     public  ProductRes toResponse() {
         return ProductRes.builder()

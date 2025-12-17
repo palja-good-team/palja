@@ -16,5 +16,5 @@ public class ProductRes {
     private UUID productId;
     private String productName;
     private BigDecimal price;
-    private int stockQuantity;
+    private Long stockQuantity;
 }

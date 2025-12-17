@@ -26,8 +26,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     @Transactional
-    public Order save(Order order) {
-        return jpaOrderRepository.save(order);
+    public void save(Order order) {
+        jpaOrderRepository.save(order);
     }
 
     @Override

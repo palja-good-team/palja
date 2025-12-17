@@ -24,7 +24,7 @@ public class OrderPriceCalculator {
     public BigDecimal calculateProductTotal(
             ProductRes product,
             TimeDealRes timeDeal,
-            int quantity) {
+            Long quantity) {
 
         BigDecimal unitPrice = resolveUnitPrice(product, timeDeal);
         BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(quantity));
