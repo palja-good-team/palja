@@ -67,6 +67,7 @@ jobs:
 
       - name: create-image
         run: |
+          cd $SERVICE
           ./gradlew bootBuildImage --imageName=palja/$SERVICE:latest
           echo "pass3"
 
