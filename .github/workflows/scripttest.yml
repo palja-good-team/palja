@@ -26,6 +26,9 @@ jobs:
     outputs:
       detected: ${{ steps.changes.outputs.changes }}
     steps:
+      - name: code-checkout
+        uses: actions/checkout@v4
+
       - name: find-change-module
         uses: dorny/paths-filter@v3
         id: changes
