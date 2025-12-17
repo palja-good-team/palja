@@ -20,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CouponAdapter implements CouponClient {
+public class CouponClientAdapter implements CouponClient {
 
     private final CouponFeignClient couponFeignClient;
 

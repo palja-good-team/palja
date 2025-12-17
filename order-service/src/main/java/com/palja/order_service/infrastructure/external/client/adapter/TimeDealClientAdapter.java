@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TimeDealAdapter implements TimeDealClient {
+public class TimeDealClientAdapter implements TimeDealClient {
 
     private final TimeDealFeignClient timeDealFeignClient;
 

@@ -22,7 +22,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PaymentAdapter implements PaymentClient {
+public class PaymentClientAdapter implements PaymentClient {
 
     private final PaymentFeignClient paymentFeignClient;
 

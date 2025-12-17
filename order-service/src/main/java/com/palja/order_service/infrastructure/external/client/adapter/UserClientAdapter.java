@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserAdapter implements UserClient {
+public class UserClientAdapter implements UserClient {
 
     private final UserFeignClient userFeignClient;
 
