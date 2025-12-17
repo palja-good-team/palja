@@ -68,6 +68,7 @@ jobs:
       - name: create-image
         run: |
           cd $SERVICE
+          ./gradlew bootBuildImage --imageName=palja/$SERVICE:latest
 
       - name: docker-login
         uses: docker/login-action@v3
