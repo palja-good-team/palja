@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: timedeal-service
+  kafka:
+    bootstrap-servers: localhost:9092
 
   profiles:
     include:

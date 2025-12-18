@@ -15,10 +15,4 @@ public interface ProductFeignClient {
 
     @GetMapping("/time-deal/{productId}")
     ApiResponse<ProductDTO> getProduct(@PathVariable UUID productId);
-
-    @PutMapping("/time-deal/decrease/{productId}")
-    void decreaseProductStock(@PathVariable UUID productId, @RequestParam long quantity);
-
-    @PutMapping("/time-deal/increase/{productId}")
-    void restoreProductStock(@PathVariable UUID productId, @RequestParam long quantity);
 }

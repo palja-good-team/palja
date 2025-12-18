@@ -176,6 +176,14 @@ public class TimeDeal extends BaseEntity {
         timeDealStock.restoreRemainingQuantity(restoreQuantity);
     }
 
+    public long getTotalQuantity() {
+        return timeDealStock.getQuantity().getTotalQuantity();
+    }
+
+    public long getRemainingQuantity() {
+        return timeDealStock.getQuantity().getRemainingQuantity();
+    }
+
     // ========== 삭제 ==========
     @Override
     public void softDelete() {
@@ -199,10 +207,6 @@ public class TimeDeal extends BaseEntity {
         if (!this.period.isBeforeStartAt(now)) {
             throw new BusinessException(TimeDealErrorCode.TIME_DEAL_NOT_DELETABLE_PERIOD);
         }
-    }
-
-    public long getRestoreQuantityOnDelete() {
-        return timeDealStock.getQuantity().getRemainingQuantity();
     }
 
     // ========== 검증 ==========
