@@ -16,6 +16,7 @@ import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
+import com.palja.order_service.application.service.publisher.OrderInternalEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;
@@ -57,6 +58,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderEventPublisher orderEventPublisher;
     private final OrderSagaService orderSagaService;
 
+    // Spring Event
+    private final OrderInternalEventPublisher internalEventPublisher;
+
     public static final String SAGA = "SYSTEM_SAGA";
 
     // ====== Order Creation Workflow ======
@@ -90,7 +94,11 @@ public class OrderServiceImpl implements OrderService {
         OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
 
         // Saga 시작 이벤트 발행 (비동기 시작점)
-        publishOrderCreatedSagaEvent(order.getOrderId(), saga.getSagaId());
+        // publishOrderCreatedSagaEvent(order.getOrderId(), saga.getSagaId());
+
+        // Spring ApplicationEvent 발행
+        // 실제 Kafka 발행은 트랜잭션 커밋 후 처리
+        internalEventPublisher.publishOrderCreated(order.getOrderId(), saga.getSagaId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
                 order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
@@ -98,6 +106,7 @@ public class OrderServiceImpl implements OrderService {
         return OrderCreateRes.from(order);
     }
 
+    // Saga 시작 이벤트 발행 (Kafka 발행)
     private void publishOrderCreatedSagaEvent(UUID orderId, UUID sagaId) {
 
         SagaStartEventReq event = SagaStartEventReq.of(sagaId, orderId);
