@@ -1,5 +1,6 @@
 package com.palja.order_service.application.dto.event.request;
 
+import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SagaStartEventReq {
+public class SagaStartEventReq implements OrderSagaEvent {
 
     private UUID sagaId;
     private UUID orderId;

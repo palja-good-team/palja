@@ -2,7 +2,7 @@ package com.palja.order_service.application.saga.steps;
 
 import com.palja.order_service.application.dto.event.request.StockDeductEventReq;
 import com.palja.order_service.application.dto.event.request.StockRestoreEventReq;
-import com.palja.order_service.application.port.kafka.SagaEventPublisher;
+import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.entity.Order;
@@ -25,7 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReserveStockStep implements SagaStep {
 
-    private final SagaEventPublisher eventPublisher;
+    private final OrderEventPublisher eventPublisher;
 
     @Override
     public String getName() {

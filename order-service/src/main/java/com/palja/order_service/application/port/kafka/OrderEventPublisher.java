@@ -7,7 +7,7 @@ import com.palja.order_service.application.dto.event.request.*;
  * - Application Layer에서 정의
  * - Infrastructure Layer에서 구현 (Kafka Producer)
  */
-public interface SagaEventPublisher {
+public interface OrderEventPublisher {
 
     // Saga 시작 요청
     void publishSagaStart(SagaStartEventReq event);

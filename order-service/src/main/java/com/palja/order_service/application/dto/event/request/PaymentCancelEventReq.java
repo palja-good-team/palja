@@ -1,5 +1,6 @@
 package com.palja.order_service.application.dto.event.request;
 
+import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class PaymentCancelEventReq {
+public class PaymentCancelEventReq implements OrderSagaEvent {
 
     private final UUID sagaId;
     private final UUID orderId;

@@ -1,4 +1,4 @@
-package com.palja.order_service.infrastructure.external.kafka.listener;
+package com.palja.order_service.infrastructure.external.kafka.Consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.order_service.application.dto.event.request.SagaStartEventReq;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SagaKafkaListeners {
+public class OrderKafkaConsumer {
 
     private final OrderSagaOrchestrator orchestrator;
     private final OrderService orderService;

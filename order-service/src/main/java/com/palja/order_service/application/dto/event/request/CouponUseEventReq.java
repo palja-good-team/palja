@@ -1,5 +1,6 @@
 package com.palja.order_service.application.dto.event.request;
 
+import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class CouponUseEventReq {
+public class CouponUseEventReq implements OrderSagaEvent {
 
     private final UUID sagaId;
     private final UUID orderId;

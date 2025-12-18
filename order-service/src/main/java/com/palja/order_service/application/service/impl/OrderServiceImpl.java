@@ -11,7 +11,7 @@ import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.client.*;
-import com.palja.order_service.application.port.kafka.SagaEventPublisher;
+import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
-    private final SagaEventPublisher sagaEventPublisher;
+    private final OrderEventPublisher orderEventPublisher;
     private final OrderSagaService orderSagaService;
 
     public static final String SAGA = "SYSTEM_SAGA";
@@ -101,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
     private void publishOrderCreatedSagaEvent(UUID orderId, UUID sagaId) {
 
         SagaStartEventReq event = SagaStartEventReq.of(sagaId, orderId);
-        sagaEventPublisher.publishSagaStart(event);
+        orderEventPublisher.publishSagaStart(event);
 
         log.info("[SAGA][START_EVENT_PUBLISHED] sagaId={}, orderId={}",
                 sagaId, orderId);

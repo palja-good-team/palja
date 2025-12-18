@@ -1,8 +1,8 @@
 package com.palja.order_service.infrastructure.external.kafka.publisher;
 
-import com.palja.common.auditor.CurrentUser;
+import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import com.palja.order_service.application.dto.event.request.*;
-import com.palja.order_service.application.port.kafka.SagaEventPublisher;
+import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.infrastructure.external.kafka.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +23,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaSagaEventPublisher implements SagaEventPublisher {
+public class OrderKafkaProducer implements OrderEventPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, OrderSagaEvent> kafkaTemplate;
 
     @Override
     public void publishSagaStart(SagaStartEventReq event) {
@@ -74,9 +74,9 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
     /**
      * Kafka 전송 (공통 로직)
      */
-    private void send(String topic, String key, Object event) {
+    private void send(String topic, String key, OrderSagaEvent event) {
 
-        Message<Object> message = MessageBuilder
+        Message<OrderSagaEvent> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader(KafkaHeaders.KEY, key) // 병렬처리를 위해 -> 현재는 빼도됌
@@ -85,7 +85,7 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
         kafkaTemplate.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("[KAFKA][PUBLISH_FAILED] topic={}, key={}, error={}",
+                        log.error("[KAFKA][PUBLISH][FAILED] topic={}, key={}, error={}",
                                 topic, key, ex.getMessage(), ex);
                     }
                 });
