@@ -21,6 +21,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: changes
         with:
+          base: feat/#test
           filters: |
             discovery-service: discovery-service/**
             gateway-service: gateway-service/**
