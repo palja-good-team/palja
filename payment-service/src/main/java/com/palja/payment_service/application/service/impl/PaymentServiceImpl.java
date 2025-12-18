@@ -1,5 +1,6 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.payment_service.domain.event.vo.PaymentEventType;
 import io.micrometer.tracing.Tracer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.CurrentUser;
@@ -14,7 +15,6 @@ import com.palja.payment_service.application.dto.external.OrderRes;
 import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.dto.response.*;
 import com.palja.payment_service.application.event.PaymentEventEnvelope;
-import com.palja.payment_service.application.event.PaymentEventType;
 import com.palja.payment_service.application.event.dto.PaymentApprovedPayload;
 import com.palja.payment_service.application.event.dto.PaymentCancelFailedPayload;
 import com.palja.payment_service.application.event.dto.PaymentCanceledPayload;

@@ -1,7 +1,7 @@
 package com.palja.payment_service.infrastructure.event;
 
-import com.palja.payment_service.application.event.OutboxStatus;
 import com.palja.payment_service.domain.entity.PaymentOutbox;
+import com.palja.payment_service.domain.event.vo.OutboxStatus;
 import com.palja.payment_service.domain.repository.PaymentOutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

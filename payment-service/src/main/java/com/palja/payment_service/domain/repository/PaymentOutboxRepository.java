@@ -1,7 +1,7 @@
 package com.palja.payment_service.domain.repository;
 
-import com.palja.payment_service.application.event.OutboxStatus;
 import com.palja.payment_service.domain.entity.PaymentOutbox;
+import com.palja.payment_service.domain.event.vo.OutboxStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

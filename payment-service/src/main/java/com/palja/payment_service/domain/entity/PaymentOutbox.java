@@ -1,8 +1,8 @@
 package com.palja.payment_service.domain.entity;
 
 import com.palja.common.vo.UserRole;
-import com.palja.payment_service.application.event.OutboxStatus;
-import com.palja.payment_service.application.event.PaymentEventType;
+import com.palja.payment_service.domain.event.vo.OutboxStatus;
+import com.palja.payment_service.domain.event.vo.PaymentEventType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
