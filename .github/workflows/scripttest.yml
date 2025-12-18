@@ -105,5 +105,5 @@ jobs:
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
             cd palja
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${SERVICE}:latest
-            docker compose up -d --no-deps --pull never ${SERVICE}
+            docker compose pull ${{ secrets.DOCKER_USERNAME }}/${SERVICE}:latest
+            docker compose up ${SERVICE}
