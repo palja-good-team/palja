@@ -8,6 +8,7 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
+import com.palja.product_service.application.event.ChangePriceEvent;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -22,6 +23,7 @@ import com.palja.product_service.domain.service.ProductCategoryService;
 import com.palja.product_service.exception.CategoryErrorCode;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final ProductCategoryService productCategoryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserClient userClient;
 
     @Override
@@ -118,11 +121,17 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException(CategoryErrorCode.NOT_FOUND_CATEGORY);
         }
 
+        Long beforePrice = product.getPrice().getAmount();
         Product updateProduct = product.updateInfo(
                 updateCommand.name(),
                 updateCommand.description(),
                 updateCommand.price(),
                 optionalCategory.get());
+        Long afterPrice = product.getPrice().getAmount();
+
+        if(!beforePrice.equals(afterPrice)) {
+            applicationEventPublisher.publishEvent(ChangePriceEvent.create(productId, afterPrice));
+        }
 
         return UpdateProductInfoRes.fromEntity(updateProduct);
     }
