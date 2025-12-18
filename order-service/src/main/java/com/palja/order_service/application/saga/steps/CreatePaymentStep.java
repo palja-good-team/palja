@@ -50,12 +50,10 @@ public class CreatePaymentStep implements SagaStep {
             // Kafka 발행: Kafka Producer가 메시지 전송
             eventPublisher.publishPaymentCreate(event);
 
-            log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][EVENT][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][STEP][{}][PUBLISH_FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.error("[SAGA][STEP][{}][EVENT][PUBLISH][FAILED] sagaId={}",  getName(), saga.getSagaId());
             throw e;
         }
 
@@ -66,7 +64,7 @@ public class CreatePaymentStep implements SagaStep {
         UUID paymentId = order.getPaymentId();
 
         if (paymentId == null) {
-            log.debug("[SAGA][STEP][{}][COMPENSATE_SKIP] sagaId={}, orderId={}, reason=결제ID없음",
+            log.debug("[SAGA][STEP][{}][COMPENSATE][SKIP] sagaId={}, orderId={}, reason=결제ID없음",
                     getName(), saga.getSagaId(), order.getOrderId());
             return;
         }
@@ -84,12 +82,11 @@ public class CreatePaymentStep implements SagaStep {
         );
 
         try {
-            eventPublisher.publishPaymentCancel(event);
+//            eventPublisher.publishPaymentCancel(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][COMPENSATE][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
         } catch (Exception e) {
-            log.error("[SAGA][STEP][{}][COMPENSATE_FAILED] sagaId={}, error={}",
+            log.error("[SAGA][STEP][{}][COMPENSATE][FAILED] sagaId={}, error={}",
                     getName(), saga.getSagaId(), e.getMessage(), e);
         }
     }

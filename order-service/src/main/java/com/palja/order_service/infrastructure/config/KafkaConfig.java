@@ -43,13 +43,6 @@ public class KafkaConfig {
 
         // 멱등성 보장
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        config.put(ProducerConfig.ACKS_CONFIG, "all");
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);
-
-        // 성능 최적화
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
-        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);
 
         return new DefaultKafkaProducerFactory<>(config);
     }
@@ -76,14 +69,6 @@ public class KafkaConfig {
 
         // JSON 설정
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.palja.*");
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-
-        // Offset 설정
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-
-        // 성능 설정
-        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
@@ -94,8 +79,6 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3); // 3개 스레드로 병렬 처리
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 
         return factory;
     }

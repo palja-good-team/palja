@@ -20,11 +20,6 @@ public class PaymentCancelEventReq {
     private final BigDecimal amount;
     private final String reason;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
-
     public static PaymentCancelEventReq of(
             UUID sagaId,
             UUID orderId,

@@ -98,7 +98,7 @@ public class OrderSagaOrchestrator {
 
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
 
-        // 다음 Step 실행
+        // 다음 Step 실행 (statuscode 로 변경)
         int completedStepIndex = getStepIndex(completedStep);
         int nextStepIndex = completedStepIndex + 1;
 
@@ -107,7 +107,7 @@ public class OrderSagaOrchestrator {
             completeSaga(saga);
         } else {
             // 다음 Step 실행
-            com.palja.order_service.application.saga.SagaStep nextStep = steps.get(nextStepIndex);
+            SagaStep nextStep = steps.get(nextStepIndex);
             nextStep.execute(saga, order);
 
             log.info("[SAGA][NEXT_STEP][EXECUTED] sagaId={}, step={}",
@@ -188,7 +188,7 @@ public class OrderSagaOrchestrator {
 
         // 실패한 Step 이전까지 역순으로 보상
         for (int i = failedStepIndex - 1; i >= 0; i--) {
-            com.palja.order_service.application.saga.SagaStep step = steps.get(i);
+            SagaStep step = steps.get(i);
 
             try {
                 step.compensate(saga, order);

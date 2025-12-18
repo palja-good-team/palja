@@ -57,12 +57,10 @@ public class ApplyCouponStep implements SagaStep {
             // Kafka 발행: Kafka Producer가 메시지 전송
             eventPublisher.publishCouponUse(event);
 
-            log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][EVENT][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][STEP][{}][PUBLISH_FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.error("[SAGA][STEP][{}][EVENT][PUBLISH][FAILED] sagaId={}",getName(), saga.getSagaId());
             throw e;
         }
     }
@@ -88,8 +86,8 @@ public class ApplyCouponStep implements SagaStep {
         try {
             eventPublisher.publishCouponCancel(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}",
+                    getName(), saga.getSagaId());
         } catch (Exception e) {
             log.error("[SAGA][STEP][{}][COMPENSATE_FAILED] sagaId={}, error={}",
                     getName(), saga.getSagaId(), e.getMessage(), e);

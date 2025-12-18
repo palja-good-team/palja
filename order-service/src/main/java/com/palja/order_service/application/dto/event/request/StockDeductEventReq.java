@@ -20,11 +20,6 @@ public class StockDeductEventReq {
     private final Long quantity;
     private final boolean isTimeDeal;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
-
     public static StockDeductEventReq of(
             UUID sagaId,
             UUID orderId,

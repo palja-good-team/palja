@@ -17,9 +17,4 @@ public class PaymentCreateEventRes {
     private UUID sagaId;
     private UUID orderId;
     private UUID paymentId;
-    private boolean success;
-    private String errorMessage;
-
-    private UUID correlationId;
-    private Long timestamp;
 }

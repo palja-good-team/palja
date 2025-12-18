@@ -26,7 +26,4 @@ public interface SagaEventPublisher {
 
     // 결제 생성 요청
     void publishPaymentCreate(PaymentCreateEventReq event);
-
-    // 결제 취소 요청 (보상)
-    void publishPaymentCancel(PaymentCancelEventReq event);
 }

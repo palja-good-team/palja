@@ -19,14 +19,8 @@ public class CouponUseEventReq {
     private final UUID sagaId;
     private final UUID orderId;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-
     private final UUID couponUserId;
     private final BigDecimal discountAmount;
-
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
 
     public static CouponUseEventReq of(
             UUID sagaId,

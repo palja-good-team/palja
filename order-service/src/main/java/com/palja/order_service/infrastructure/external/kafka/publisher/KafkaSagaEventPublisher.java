@@ -29,52 +29,47 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
 
     @Override
     public void publishSagaStart(SagaStartEventReq event) {
-        send(KafkaTopics.ORDER_CREATE_SAGA_START, event.getSagaId().toString(), event);
+        send(KafkaTopics.ORDER_SAGA_START, event.getSagaId().toString(), event);
         log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, orderId={}",
-                KafkaTopics.ORDER_CREATE_SAGA_START, event.getSagaId(), event.getOrderId());
+                KafkaTopics.ORDER_SAGA_START, event.getSagaId(), event.getOrderId());
     }
 
     @Override
     public void publishStockDeduct(StockDeductEventReq event) {
         send(KafkaTopics.STOCK_DEDUCT_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.STOCK_DEDUCT_REQUEST, event.getSagaId(), event.getCorrelationId());
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_DEDUCT_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishStockRestore(StockRestoreEventReq event) {
         send(KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId(), event.getCorrelationId());
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishCouponUse(CouponUseEventReq event) {
         send(KafkaTopics.COUPON_USE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.COUPON_USE_REQUEST, event.getSagaId(), event.getCorrelationId());
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}",
+                KafkaTopics.COUPON_USE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishCouponCancel(CouponCancelEventReq event) {
         send(KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId(), event.getCorrelationId());
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishPaymentCreate(PaymentCreateEventReq event) {
         send(KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId(), event.getCorrelationId());
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId());
     }
 
-    @Override
-    public void publishPaymentCancel(PaymentCancelEventReq event) {
-        send(KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, correlationId={}",
-                KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId(), event.getCorrelationId());
-    }
+//    @Override
+//    public void publishOrderCancel(OrderCancelEventReq event) {
+//        send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getSagaId().toString(), event);
+//        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.ORDER_CANCEL_REQUEST, event.getSagaId());
+//    }
 
     /**
      * Kafka 전송 (공통 로직)
@@ -86,7 +81,7 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
         Message<Object> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic)
-                .setHeader(KafkaHeaders.KEY, key)
+                .setHeader(KafkaHeaders.KEY, key) // 병렬처리를 위해 -> 현재는 빼도됌
                 .setHeader(X_USER_LOGIN_ID, CurrentUser.getLoginId())
                 .build();
 

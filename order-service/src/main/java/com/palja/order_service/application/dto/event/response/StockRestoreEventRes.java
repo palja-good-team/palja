@@ -15,9 +15,4 @@ import java.util.UUID;
 public class StockRestoreEventRes {
     private UUID sagaId;
     private UUID orderId;
-    private boolean success;
-    private String errorMessage;
-
-    private UUID correlationId;
-    private Long timestamp;
 }

@@ -23,11 +23,6 @@ public class PaymentCreateEventReq {
     private final BigDecimal amount;
     private final String orderStatus;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
-
     public static PaymentCreateEventReq of(
             UUID sagaId,
             UUID orderId,

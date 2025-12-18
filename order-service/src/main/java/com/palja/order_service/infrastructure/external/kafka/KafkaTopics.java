@@ -5,32 +5,38 @@ package com.palja.order_service.infrastructure.external.kafka;
  */
 public class KafkaTopics {
 
-    // Order Create Saga (정방향)
-    // Saga 시작 요청
-    public static final String ORDER_CREATE_SAGA_START = "order.create.saga.start";
+    // ========== Saga start (Order -> Order Orchestrator) ==========
+    public static final String ORDER_SAGA_START = "order.saga.start";
 
-    // 재고 차감 요청/응답
-    public static final String STOCK_DEDUCT_REQUEST = "order.deduct.request";
-    public static final String STOCK_DEDUCT_RESPONSE = "order.deduct.response";
+    // ========== Order Create Saga ==========
+    // Stock (Order -> Product, Product -> Order)
+    public static final String STOCK_DEDUCT_REQUEST = "order.stock.deduct.request";
+    // 응답
+    public static final String STOCK_DEDUCT_SUCCESS = "order.stock.deduct.success";
+    public static final String STOCK_DEDUCT_FAILURE = "order.stock.deduct.failure";
 
-    // 쿠폰 사용 요청/응답
-    public static final String COUPON_USE_REQUEST = "order.use.request";
-    public static final String COUPON_USE_RESPONSE = "order.use.response";
+    // Coupon (Order -> Coupon, Coupon -> Order)
+    public static final String COUPON_USE_REQUEST = "order.coupon.use.request";
+    // 응답
+    public static final String COUPON_USE_SUCCESS = "order.coupon.use.success";
+    public static final String COUPON_USE_FAILURE = "order.coupon.use.failure";
 
-    // 결제 생성 요청/응답
-    public static final String PAYMENT_CREATE_REQUEST = "order.create.request";
-    public static final String PAYMENT_CREATE_RESPONSE = "order.create.response";
+    // Payment (Order -> Payment, Payment -> Order)
+    public static final String PAYMENT_CREATE_REQUEST = "order.payment.create.request";
+    // 응답
+    public static final String PAYMENT_CREATE_SUCCESS = "order.payment.create.success";
+    public static final String PAYMENT_CREATE_FAILURE = "order.payment.create.failure";
 
-    // Order Create Saga (보상)
-    // 재고 복구 요청/응답
-    public static final String STOCK_RESTORE_REQUEST = "order.restore.request";
-    public static final String STOCK_RESTORE_RESPONSE = "order.restore.response";
-    // 쿠폰 취소 요청/응답
-    public static final String COUPON_CANCEL_REQUEST = "order.cancel.request";
-    public static final String COUPON_CANCEL_RESPONSE = "order.cancel.response";
-    // 결제 취소 요청 요청/응답
-    public static final String PAYMENT_CANCEL_REQUEST = "order.cancel.request";
-    public static final String PAYMENT_CANCEL_RESPONSE = "order.cancel.response";
+    // ========== Order Create Saga (보상) ==========
+    // Stock Restore (Order -> Product, Product -> Order)
+    public static final String STOCK_RESTORE_REQUEST = "order.stock.restore.request";
+
+    // Coupon Cancel (Order -> Coupon, Coupon -> Order)
+    public static final String COUPON_CANCEL_REQUEST = "order.coupon.cancel.request";
+
+    // ========== Order Cancel ==========
+    public static final String ORDER_CANCEL_REQUEST = "order.cancel.request";
+
 
     private KafkaTopics() {
         throw new AssertionError("Cannot instantiate");

@@ -15,9 +15,6 @@ public class SagaStartEventReq {
     private final UUID sagaId;
     private final UUID orderId;
 
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
-
     public static SagaStartEventReq of(UUID sagaId, UUID orderId) {
         return SagaStartEventReq.builder()
                 .sagaId(sagaId)

@@ -17,11 +17,6 @@ public class CouponCancelEventReq {
 
     private final UUID couponUserId;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
-
     public static CouponCancelEventReq of(
             UUID sagaId,
             UUID orderId,

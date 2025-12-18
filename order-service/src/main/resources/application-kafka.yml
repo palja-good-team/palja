@@ -7,11 +7,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
       properties:
         enable.idempotence: true
-        compression.type: snappy
         spring.json.add.type.headers: true
     
     # Consumer 설정
@@ -19,16 +16,7 @@ spring:
       group-id: order-service
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      auto-offset-reset: earliest
-      enable-auto-commit: false
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: com.palja.*
-        spring.json.use.type.headers: true
-
-    
-    # Listener 설정
-    listener:
-      ack-mode: manual
-      concurrency: 3

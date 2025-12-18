@@ -44,8 +44,8 @@ public class ReserveStockStep implements SagaStep {
         boolean isTimeDeal = order.isTimeDealOrder();
         UUID timeDealId = isTimeDeal ? item.getTimeDealId() : null;
 
-        log.debug("[STOCK_INFO] isTimeDeal={}, timeDealId={}, productId={}",
-                isTimeDeal, timeDealId, item.getProductId());
+        log.debug("[SAGA][STEP][{}][INFO] isTimeDeal={}, timeDealId={}, productId={}",
+                getName(), isTimeDeal, timeDealId, item.getProductId());
 
         // 재고 차감 요청 이벤트 발행
         StockDeductEventReq event = StockDeductEventReq.of(
@@ -64,8 +64,7 @@ public class ReserveStockStep implements SagaStep {
             // - Value: StockDeductRequest
             eventPublisher.publishStockDeduct(event);
 
-            log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}", getName(), saga.getSagaId());
 
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
@@ -95,8 +94,8 @@ public class ReserveStockStep implements SagaStep {
         try {
             eventPublisher.publishStockRestore(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}, correlationId={}",
-                    getName(), saga.getSagaId(), event.getCorrelationId());
+            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}",
+                    getName(), saga.getSagaId());
         } catch (Exception e) {
             log.error("[SAGA][STEP][{}][COMPENSATE_FAILED] sagaId={}, error={}",
                     getName(), saga.getSagaId(), e.getMessage(), e);

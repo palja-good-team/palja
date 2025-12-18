@@ -15,16 +15,10 @@ public class StockRestoreEventReq {
     private final UUID sagaId;
     private final UUID orderId;
 
-    @Builder.Default
-    private final UUID correlationId = UUID.randomUUID();
-
     private final UUID productId;
     private final UUID timeDealId;
     private final Long quantity;
     private final boolean isTimeDeal;
-
-    @Builder.Default
-    private final long timestamp = System.currentTimeMillis();
 
     public static StockRestoreEventReq of(
             UUID sagaId,

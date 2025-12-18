@@ -15,11 +15,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Saga Kafka Listeners
- *
- * 역할:
- * 1. Saga 시작 이벤트 수신
- * 2. 각 Step 응답 이벤트 수신
- * 3. Orchestrator 호출
+ * - Saga 시작 이벤트 수신
+ * - 각 Step 응답 이벤트 수신
+ * - Orchestrator 호출
  */
 @Slf4j
 @Component
@@ -27,132 +25,105 @@ import org.springframework.stereotype.Component;
 public class SagaKafkaListeners {
 
     private final OrderSagaOrchestrator orchestrator;
-    private final OrderRepository orderRepository;
     private final OrderService orderService;
 
     /**
      * Saga 시작 이벤트 수신
      */
     @KafkaListener(
-            topics = KafkaTopics.ORDER_CREATE_SAGA_START,
+            topics = KafkaTopics.ORDER_SAGA_START,
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void onSagaStart(SagaStartEventReq event, Acknowledgment ack) {
+    public void onSagaStart(SagaStartEventReq event) {
         log.info("[KAFKA][CONSUME] topic={}, sagaId={}, orderId={}",
-                KafkaTopics.ORDER_CREATE_SAGA_START, event.getSagaId(), event.getOrderId());
+                KafkaTopics.ORDER_SAGA_START, event.getSagaId(), event.getOrderId());
 
-        try {
-            orchestrator.startSaga(event.getSagaId());
-            // Kafka 메시지 처리 완료 → offset 커밋
-            ack.acknowledge();
-        } catch (Exception e) {
-            log.error("[KAFKA][CONSUME_ERROR] sagaId={}, error={}",
-                    event.getSagaId(), e.getMessage(), e);
-            // 재처리를 위해 ack하지 않음
-        }
+        orchestrator.startSaga(event.getSagaId());
+        // retry 로직 추가
     }
 
     /**
-     * 재고 차감 응답 수신
+     * 재고 차감 성공 응답
+     * Topic: order.stock.deduct.success
      */
     @KafkaListener(
-            topics = KafkaTopics.STOCK_DEDUCT_RESPONSE,
+            topics = KafkaTopics.STOCK_DEDUCT_SUCCESS,
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void onStockResponse(StockDeductEventRes event, Acknowledgment ack) {
-        log.info("[KAFKA][CONSUME] topic={}, sagaId={}, success={}",
-                KafkaTopics.STOCK_DEDUCT_RESPONSE, event.getSagaId(), event.isSuccess());
-
-        try {
-            if (event.isSuccess()) {
-                orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_RESERVED);
-            } else {
-                orchestrator.failSaga(
-                        event.getSagaId(),
-                        OrderSagaStep.STOCK_RESERVED,
-                        "재고 차감 실패: " + event.getErrorMessage()
-                );
-            }
-            ack.acknowledge();
-        } catch (Exception e) {
-            log.error("[KAFKA][CONSUME_ERROR] sagaId={}, error={}",
-                    event.getSagaId(), e.getMessage(), e);
-        }
+    public void onStockDeductSuccess(StockDeductEventRes event) {
+        log.info("[KAFKA][CONSUME][SUCCESS] topic={}, sagaId={}",
+                KafkaTopics.STOCK_DEDUCT_SUCCESS, event.getSagaId());
+        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_RESERVED);
     }
 
     /**
-     * 쿠폰 사용 응답 수신
+     * 재고 차감 실패 응답
+     * Topic: order.stock.deduct.failure
      */
     @KafkaListener(
-            topics = KafkaTopics.COUPON_USE_RESPONSE,
+            topics = KafkaTopics.STOCK_DEDUCT_FAILURE,
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void onCouponResponse(CouponUseEventRes event, Acknowledgment ack) {
-        log.info("[KAFKA][CONSUME] topic={}, sagaId={}, success={}",
-                KafkaTopics.COUPON_USE_RESPONSE, event.getSagaId(), event.isSuccess());
-
-        try {
-            if (event.isSuccess()) {
-                orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.COUPON_APPLIED);
-            } else {
-                orchestrator.failSaga(
-                        event.getSagaId(),
-                        OrderSagaStep.COUPON_APPLIED,
-                        "쿠폰 사용 실패: " + event.getErrorMessage()
-                );
-            }
-            ack.acknowledge();
-        } catch (Exception e) {
-            log.error("[KAFKA][CONSUME_ERROR] sagaId={}, error={}",
-                    event.getSagaId(), e.getMessage(), e);
-        }
+    public void onStockDeductFailure(StockDeductEventRes event) {
+        log.error("[KAFKA][CONSUME][FAILURE] topic={}, sagaId={}",
+                KafkaTopics.STOCK_DEDUCT_FAILURE, event.getSagaId());
+            orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_RESERVED, "재고 차감 실패");
     }
 
     /**
-     * 결제 생성 응답 수신
+     * 쿠폰 사용 성공 응답
+     * Topic: coupon.order.use.success
      */
     @KafkaListener(
-            topics = KafkaTopics.PAYMENT_CREATE_RESPONSE,
+            topics = KafkaTopics.COUPON_USE_SUCCESS,
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void onPaymentResponse(PaymentCreateEventRes event, Acknowledgment ack) {
-        log.info("[KAFKA][CONSUME] topic={}, sagaId={}, success={}, paymentId={}",
-                KafkaTopics.PAYMENT_CREATE_RESPONSE, event.getSagaId(),
-                event.isSuccess(), event.getPaymentId());
-
-        try {
-            if (event.isSuccess()) {
-                // Order에 paymentId 등록
-                orderService.registerPayment(event.getOrderId(), event.getPaymentId());
-
-                // Saga 다음 Step (완료)
-                orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.PAYMENT_CREATED);
-            } else {
-                orchestrator.failSaga(
-                        event.getSagaId(),
-                        OrderSagaStep.PAYMENT_CREATED,
-                        "결제 생성 실패: " + event.getErrorMessage()
-                );
-            }
-            ack.acknowledge();
-        } catch (Exception e) {
-            log.error("[KAFKA][CONSUME_ERROR] sagaId={}, error={}",
-                    event.getSagaId(), e.getMessage(), e);
-        }
+    public void onCouponUseSuccess(CouponUseEventRes event) {
+        log.info("[KAFKA][CONSUME][SUCCESS] topic={}, sagaId={}",
+                KafkaTopics.COUPON_USE_SUCCESS, event.getSagaId());
+        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.COUPON_APPLIED);
     }
 
-    @KafkaListener(topics = KafkaTopics.PAYMENT_CANCEL_RESPONSE, groupId = "${spring.kafka.consumer.group-id}")
-    public void onPaymentCancelResponse(PaymentCancelEventRes res, Acknowledgment ack) {
-        ack.acknowledge();
+    /**
+     * 쿠폰 사용 실패 응답
+     * Topic: coupon.order.use.failure
+     */
+    @KafkaListener(
+            topics = KafkaTopics.COUPON_USE_FAILURE,
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void onCouponUseFailure(CouponUseEventRes event) {
+        log.error("[KAFKA][CONSUME][FAILURE] topic={}, sagaId={}",
+                KafkaTopics.COUPON_USE_FAILURE, event.getSagaId());
+        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.COUPON_APPLIED, "쿠폰 사용 실패");
     }
 
-    @KafkaListener(topics = KafkaTopics.COUPON_CANCEL_RESPONSE, groupId = "${spring.kafka.consumer.group-id}")
-    public void onCouponCancelResponse(CouponCancelEventRes res, Acknowledgment ack) {
-        ack.acknowledge();
+    /**
+     * 결제 생성 성공 응답
+     * Topic: payment.order.create.success
+     */
+    @KafkaListener(
+            topics = KafkaTopics.PAYMENT_CREATE_SUCCESS,
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void onPaymentCreateSuccess(PaymentCreateEventRes event) {
+        log.info("[KAFKA][CONSUME][SUCCESS] topic={}, sagaId={}, paymentId={}",
+                KafkaTopics.PAYMENT_CREATE_SUCCESS, event.getSagaId(), event.getPaymentId());
+        orderService.registerPayment(event.getOrderId(), event.getPaymentId());
+        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.PAYMENT_CREATED);
     }
 
-    @KafkaListener(topics = KafkaTopics.STOCK_RESTORE_RESPONSE, groupId = "${spring.kafka.consumer.group-id}")
-    public void onStockRestoreResponse(StockRestoreEventRes res, Acknowledgment ack) {
-        ack.acknowledge();
+    /**
+     * 결제 생성 실패 응답
+     * Topic: payment.order.create.failure
+     */
+    @KafkaListener(
+            topics = KafkaTopics.PAYMENT_CREATE_FAILURE,
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void onPaymentCreateFailure(PaymentCreateEventRes event) {
+        log.error("[KAFKA][CONSUME][FAILURE] topic={}, sagaId={}",
+                KafkaTopics.PAYMENT_CREATE_FAILURE, event.getSagaId());
+        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.PAYMENT_CREATED, "결제 생성 실패");
     }
 }
