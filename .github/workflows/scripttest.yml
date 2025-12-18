@@ -83,6 +83,11 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
 
+      - name: Debug SERVICE
+        run: |
+          echo "matrix.package = '${{ matrix.package }}'"
+          echo "SERVICE        = '${SERVICE}'"
+
       - name: deploy
         uses: appleboy/ssh-action@v1
         with:
@@ -99,5 +104,5 @@ jobs:
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
             cd palja
-            docker pull $SERVICE
+            docker pull $SERVICE:latest
             docker compose up -d $SERVICE
