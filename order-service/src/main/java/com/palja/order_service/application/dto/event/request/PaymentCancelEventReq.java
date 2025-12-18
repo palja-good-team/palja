@@ -7,12 +7,12 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * 결제 취소 요청 이벤트 (보상)
+ * 결제 취소 요청 이벤트
  */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class PaymentCancelEventReq implements OrderSagaEvent {
+public class PaymentCancelEventReq {
 
     private final UUID sagaId;
     private final UUID orderId;

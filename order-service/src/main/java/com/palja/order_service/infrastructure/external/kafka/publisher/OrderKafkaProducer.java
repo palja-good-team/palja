@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OrderKafkaProducer implements OrderEventPublisher {
 
-    private final KafkaTemplate<String, OrderSagaEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public void publishSagaStart(SagaStartEventReq event) {
@@ -74,9 +74,9 @@ public class OrderKafkaProducer implements OrderEventPublisher {
     /**
      * Kafka 전송 (공통 로직)
      */
-    private void send(String topic, String key, OrderSagaEvent event) {
+    private void send(String topic, String key, Object event) {
 
-        Message<OrderSagaEvent> message = MessageBuilder
+        Message<Object> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader(KafkaHeaders.KEY, key) // 병렬처리를 위해 -> 현재는 빼도됌
@@ -85,7 +85,7 @@ public class OrderKafkaProducer implements OrderEventPublisher {
         kafkaTemplate.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("[KAFKA][PUBLISH][FAILED] topic={}, key={}, error={}",
+                        log.error("[KAFKA][PUBLISH_FAILED] topic={}, key={}, error={}",
                                 topic, key, ex.getMessage(), ex);
                     }
                 });

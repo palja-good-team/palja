@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SagaStartEventReq implements OrderSagaEvent {
+public class SagaStartEventReq {
 
     private UUID sagaId;
     private UUID orderId;

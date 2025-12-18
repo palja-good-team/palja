@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class PaymentCreateEventReq implements OrderSagaEvent {
+public class PaymentCreateEventReq {
 
     private final UUID sagaId;
     private final UUID orderId;
