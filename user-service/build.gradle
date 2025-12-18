@@ -54,7 +54,7 @@ dependencies {
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.palja:common-module:0.9.0'
+    implementation 'com.palja:common-module:0.9.1'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
