@@ -1,8 +1,8 @@
 package com.palja.order_service.infrastructure.config;
 
+import com.palja.common.interceptor.KafkaRecordInterceptor;
 import io.micrometer.tracing.Tracer;
 import com.palja.common.interceptor.KafkaProducerInterceptor;
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -63,6 +63,11 @@ public class KafkaConfig {
 
     // ===== Consumer =====
     @Bean
+    public KafkaRecordInterceptor<Object> ConsumerInterceptor(Tracer tracer) {
+        return new KafkaRecordInterceptor<>(tracer);
+    }
+
+    @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
@@ -82,11 +87,12 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(KafkaRecordInterceptor<Object> kafkaRecordInterceptor) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
+        factory.setRecordInterceptor(kafkaRecordInterceptor);
 
         return factory;
     }
