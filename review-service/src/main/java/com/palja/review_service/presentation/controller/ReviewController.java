@@ -28,7 +28,7 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateReviewRes>> createReview(@RequestBody @Valid CreateReviewReq createReq) {
-        System.out.println("asdf");
+        System.out.println("adsdf");
         String loginId = AuditorContext.get().getLoginId();
         if(createReq.getIsLike().equals(Boolean.TRUE) && createReq.getIsLike().equals(createReq.getDisLike()))
             throw new IllegalArgumentException();
