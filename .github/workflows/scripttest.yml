@@ -99,5 +99,5 @@ jobs:
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
             cd palja
-            docker compose pull $SERVICE
+            docker pull $SERVICE
             docker compose up -d $SERVICE
