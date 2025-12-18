@@ -1,5 +1,6 @@
 package com.palja.payment_service.domain.entity;
 
+import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.event.OutboxStatus;
 import com.palja.payment_service.application.event.PaymentEventType;
 import jakarta.persistence.*;
@@ -45,6 +46,19 @@ public class PaymentOutbox {
     @JdbcTypeCode(SqlTypes.JSON)
     private String payload;
 
+    @Column(name = "login_id", length = 255)
+    private String loginId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", length = 50)
+    private UserRole userRole;
+
+    @Column(name = "trace_id", length = 64)
+    private String traceId;
+
+    @Column(name = "span_id", length = 64)
+    private String spanId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OutboxStatus status;
@@ -62,12 +76,28 @@ public class PaymentOutbox {
     private String errorMessage;
 
     @Builder
-    private PaymentOutbox(UUID eventId, UUID aggregateId, UUID orderId, PaymentEventType eventType, String payload) {
+    private PaymentOutbox(
+            UUID eventId,
+            UUID aggregateId,
+            UUID orderId,
+            PaymentEventType eventType,
+            String payload,
+            String loginId,
+            UserRole userRole,
+            String traceId,
+            String spanId
+    ) {
         this.eventId = eventId;
         this.aggregateId = aggregateId;
         this.orderId = orderId;
         this.eventType = eventType;
         this.payload = payload;
+
+        this.loginId = loginId;
+        this.userRole = userRole;
+        this.traceId = traceId;
+        this.spanId = spanId;
+
         this.status = OutboxStatus.PENDING;
         this.createdAt = LocalDateTime.now();
         this.retryCount = 0;
@@ -78,7 +108,11 @@ public class PaymentOutbox {
             UUID paymentId,
             UUID orderId,
             PaymentEventType type,
-            String envelopeJson
+            String envelopeJson,
+            String loginId,
+            UserRole userRole,
+            String traceId,
+            String spanId
     ) {
         return PaymentOutbox.builder()
                 .eventId(eventId)
@@ -86,6 +120,10 @@ public class PaymentOutbox {
                 .orderId(orderId)
                 .eventType(type)
                 .payload(envelopeJson)
+                .loginId(loginId)
+                .userRole(userRole)
+                .traceId(traceId)
+                .spanId(spanId)
                 .build();
     }
 

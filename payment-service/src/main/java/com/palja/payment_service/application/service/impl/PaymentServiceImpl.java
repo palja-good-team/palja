@@ -1,5 +1,6 @@
 package com.palja.payment_service.application.service.impl;
 
+import io.micrometer.tracing.Tracer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
@@ -58,6 +59,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserClient userClient;
 
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;
 
     /*
       결제 생성 (PENDING 상태)
@@ -377,8 +379,34 @@ public class PaymentServiceImpl implements PaymentService {
 
             String envelopeJson = objectMapper.writeValueAsString(envelope);
 
+            String loginId = null;
+            UserRole userRole = null;
+
+            try {
+                loginId = CurrentUser.getLoginId();
+                userRole = CurrentUser.getRole();
+            } catch (Exception ignored) {
+            }
+
+            String traceId = null;
+            String spanId = null;
+            if (tracer != null && tracer.currentSpan() != null) {
+                traceId = tracer.currentSpan().context().traceId();
+                spanId = tracer.currentSpan().context().spanId();
+            }
+
             paymentOutboxRepository.save(
-                    PaymentOutbox.pending(eventId, payment.getId(), payment.getOrderId(), type, envelopeJson)
+                    PaymentOutbox.pending(
+                            eventId,
+                            payment.getId(),
+                            payment.getOrderId(),
+                            type,
+                            envelopeJson,
+                            loginId,
+                            userRole,
+                            traceId,
+                            spanId
+                    )
             );
         } catch (Exception e) {
             log.error("Outbox enqueue 실패: type={}, paymentId={}, orderId={}",

@@ -21,6 +21,7 @@ public class KafkaProducerConfig {
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
+
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -28,6 +29,9 @@ public class KafkaProducerConfig {
         configs.put(ProducerConfig.ACKS_CONFIG, "all");
         configs.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         configs.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+
+        configs.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+        configs.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
 
         return new DefaultKafkaProducerFactory<>(configs);
     }
