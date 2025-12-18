@@ -101,7 +101,9 @@ jobs:
             export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
             export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-
+            
+            echo "DOCKER_USERNAME=$DOCKER_USERNAME"
             cd palja
             docker pull ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
+            echo $?
             docker compose up -d --no-deps --pull never $SERVICE
