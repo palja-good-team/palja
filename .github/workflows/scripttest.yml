@@ -101,8 +101,9 @@ jobs:
             export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
             export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            IMAGE="$DOCKER_USERNAME/$SERVICE:latest"
+            echo "Pulling image: $IMAGE"
             
-            ehco 1
             cd palja
-            docker pull ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
+            docker pull "$IMAGE"
             docker compose up -d --no-deps --pull never $SERVICE
