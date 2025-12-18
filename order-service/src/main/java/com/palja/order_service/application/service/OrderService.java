@@ -22,6 +22,7 @@ public interface OrderService {
     OrderDetailRes getOrderDetail(UUID orderId, String loginId, UserRole userRole);
 
     OrderCancelRes cancelOrder(CancelOrderCommand command);
+    void cancelOrderBySaga(UUID orderId, String reason);
 
     Order findOrderWithDetails(UUID orderId);
 

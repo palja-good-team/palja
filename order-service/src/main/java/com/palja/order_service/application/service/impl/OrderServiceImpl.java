@@ -57,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
     private final SagaEventPublisher sagaEventPublisher;
     private final OrderSagaService orderSagaService;
 
+    public static final String SAGA = "SYSTEM_SAGA";
+
     // ====== Order Creation Workflow ======
     /**
      * 주문 생성
@@ -254,7 +256,6 @@ public class OrderServiceImpl implements OrderService {
      * - 주문 취소 처리 (도메인)
      * - 보상 트랜잭션 (환불, 재고, 쿠폰)
      */
-    // TODO: Kafka Event 기반 비동기 처리 및 자동 보상 트랜잭션
     @Transactional
     public OrderCancelRes cancelOrder(CancelOrderCommand command) {
         log.info("주문 취소 시작: orderId={}, requestedBy={}",
@@ -358,6 +359,35 @@ public class OrderServiceImpl implements OrderService {
             // TODO: 쿠폰 복구 실패 (보상 트랜젝션 처리)
             throw new BusinessException(OrderErrorCode.COUPON_RESTORE_FAILED);
         }
+    }
+    // ====== Order Cancellation By Saga Workflow ======
+    /**
+     * Saga 실패로 인한 주문 취소 확정
+     * - 외부 보상은 이미 수행되었으므로 이벤트 발행 X
+     * - 주문 상태만 최종 CANCELED 로 확정
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void cancelOrderBySaga(UUID orderId, String reason) {
+        log.info("[SAGA][ORDER][CANCEL][START] orderId={}, reason={}", orderId, reason);
+
+        Order order = findByOrderIdAndDeletedAtIsNull(orderId);
+
+        // 멱등성: 이미 취소/종료 상태면 스킵
+        if (order.getStatus().isCanceled()) {
+            log.warn("[SAGA][[ORDER][CANCEL][ALREADY_CANCELED] orderId={}", orderId);
+            return;
+        }
+        if (order.getStatus().isFinalState()) {
+            log.warn("[SAGA][ORDER][CANCEL][SKIP_TERMINAL] orderId={}, status={}",
+                    orderId, order.getStatus());
+            return;
+        }
+
+        // 주문 상태 변경
+        order.cancel(reason, SAGA);
+        orderRepository.save(order);
+
+        log.info("[SAGA][ORDER][CANCEL][COMPLETED] orderId={}", orderId);
     }
 
     // ====== Order Read Workflow ======

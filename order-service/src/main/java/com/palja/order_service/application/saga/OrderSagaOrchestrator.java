@@ -116,23 +116,6 @@ public class OrderSagaOrchestrator {
     }
 
     /**
-     * Step 스킵 처리
-     */
-    public void skipStep(UUID sagaId, OrderSagaStep skippedStep) {
-        OrderSaga saga = sagaService.findBySagaId(sagaId);
-        saga.proceedToNextStep(skippedStep);
-        sagaService.save(saga);
-
-        int nextStepIndex = getStepIndex(skippedStep) + 1;
-        if (nextStepIndex < steps.size()) {
-            steps.get(nextStepIndex).execute(saga,
-                    orderService.findOrderWithDetails(saga.getOrderId()));
-        } else {
-            completeSaga(saga);
-        }
-    }
-
-    /**
      * Saga 완료
      */
     private void completeSaga(OrderSaga saga) {
@@ -166,7 +149,12 @@ public class OrderSagaOrchestrator {
         saga.startCompensation();
         sagaService.save(saga);
 
+        // 보상 트랜잭션 실행
         compensate(saga, order, failedStep);
+
+        // 주문 취소 처리 추가
+        orderService.cancelOrderBySaga(order.getOrderId(), errorMessage);
+        log.info("[SAGA][ORDER_CANCELLED] sagaId={}, orderId={}", sagaId, order.getOrderId());
 
         // Saga 실패 처리
         saga.fail(errorMessage);
