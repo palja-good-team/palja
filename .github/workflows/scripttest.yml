@@ -46,6 +46,9 @@ jobs:
       USERNAME: ${{ secrets.COMMON_USERNAME }}
       TOKEN: ${{ secrets.COMMON_TOKEN }}
     steps:
+      - name: print-change-module
+        run: |
+          echo '${{ needs.change-detect.outputs.detected }}' | jq 'length'
       - name: code-checkout
         uses: actions/checkout@v4
         with:
