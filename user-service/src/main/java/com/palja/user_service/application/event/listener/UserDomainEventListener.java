@@ -20,12 +20,12 @@ public class UserDomainEventListener {
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleCustomerDeleted(DeleteCustomerEvent event) {
-		userEventPublisher.publish(event);
+		userEventPublisher.publishCustomerDeleteEvent(event);
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleCompanyUserDeleted(DeleteCompanyUserEvent event) {
-		userEventPublisher.publish(event);
+		userEventPublisher.publishCompanyUserDeleteEvent(event);
 	}
 
 }

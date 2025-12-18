@@ -16,12 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DeleteCompanyUserEvent implements UserEvent {
 
-	UUID companyUserId;
-
-	@Override
-	public String topic() {
-		return "company-user.delete.request";
-	}
+	private UUID companyUserId;
 
 	public static DeleteCompanyUserEvent from(UUID companyUserId) {
 		return DeleteCompanyUserEvent.builder().companyUserId(companyUserId).build();

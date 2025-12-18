@@ -16,11 +16,6 @@ public class DeleteCustomerEvent implements UserEvent {
 
 	private Long userId;
 
-	@Override
-	public String topic() {
-		return "customer.delete.request";
-	}
-
 	public static DeleteCustomerEvent from(Long userId) {
 		return DeleteCustomerEvent.builder().userId(userId).build();
 	}

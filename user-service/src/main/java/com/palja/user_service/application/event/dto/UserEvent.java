@@ -8,7 +8,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	property = "@class"
 )
 public interface UserEvent {
-
-	String topic();
-
 }

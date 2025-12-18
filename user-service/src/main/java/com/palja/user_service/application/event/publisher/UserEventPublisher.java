@@ -1,9 +1,12 @@
 package com.palja.user_service.application.event.publisher;
 
-import com.palja.user_service.application.event.dto.UserEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCustomerEvent;
 
 public interface UserEventPublisher {
 
-	void publish(UserEvent event);
+	void publishCustomerDeleteEvent(DeleteCustomerEvent event);
+
+	void publishCompanyUserDeleteEvent(DeleteCompanyUserEvent event);
 
 }
