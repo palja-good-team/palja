@@ -1,11 +1,14 @@
 package com.palja.timedeal_service.infrastructure.config;
 
+import com.palja.common.interceptor.KafkaProducerInterceptor;
 import com.palja.timedeal_service.application.event.TimeDealStockEvent;
+import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -15,10 +18,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@EnableKafka
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Bean
+    public KafkaProducerInterceptor<TimeDealStockEvent> kafkaEventProducerInterceptor(Tracer tracer) {
+        return new KafkaProducerInterceptor<>(tracer);
+    }
 
     // producer 설정
     @Bean
@@ -37,7 +46,12 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, TimeDealStockEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, TimeDealStockEvent> userEventKafkaTemplate(
+            KafkaProducerInterceptor<TimeDealStockEvent> kafkaProducerInterceptor
+    ) {
+        KafkaTemplate<String, TimeDealStockEvent> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+        kafkaTemplate.setProducerInterceptor(kafkaProducerInterceptor);
+
+        return kafkaTemplate;
     }
 }

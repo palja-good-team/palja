@@ -17,7 +17,6 @@ public class TimeDealEventHandler {
 
     private final ProductEventPublisher productEventPort;
 
-    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTimeDealStockIncreased(TimeDealStockIncreaseEventReq event) {
         log.info("타임딜 생성 완료 -> 상품 재고 차감 요청 발행 timeDealId = {}, productId = {} 차감 수량 = {}",
@@ -26,7 +25,6 @@ public class TimeDealEventHandler {
         productEventPort.publishDecrease(event);
     }
 
-    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTimeDealStockDecreased(TimeDealStockDecreaseEventReq event) {
         log.info("타임딜 종료 완료 -> 남은 재고 복구 요청 발행 TimeDealId = {}, productId = {} 복구 수량 = {}",

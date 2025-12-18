@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableJpaAuditing
 @EnableDiscoveryClient
 @EnableFeignClients
-@EnableAsync
 public class TimedealServiceApplication {
 
 	public static void main(String[] args) {
