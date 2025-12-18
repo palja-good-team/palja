@@ -85,8 +85,7 @@ jobs:
 
       - name: Debug SERVICE
         run: |
-          echo "matrix.package = '${{ matrix.package }}'"
-          echo "SERVICE        = '${SERVICE}'"
+          echo "imagename = '${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest'"
 
       - name: deploy
         uses: appleboy/ssh-action@v1
@@ -105,4 +104,4 @@ jobs:
 
             cd palja
             docker pull ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
-            docker compose up -d $SERVICE
+            docker compose up -d --no-deps --pull never $SERVICE
