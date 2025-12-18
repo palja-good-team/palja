@@ -13,6 +13,7 @@ import com.palja.coupon_service.domain.repository.RedisRepository;
 import com.palja.coupon_service.domain.vo.AmountPolicy;
 import com.palja.coupon_service.domain.vo.CouponUserStatus;
 import com.palja.coupon_service.domain.vo.DiscountPolicy;
+import com.palja.coupon_service.domain.vo.IssuePeriod;
 import com.palja.coupon_service.exception.CouponErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -153,6 +154,7 @@ public class CouponServiceImplTest {
             Coupon coupon = mock(Coupon.class);
             given(coupon.getId()).willReturn(couponId);
             given(coupon.getDiscountPolicy()).willReturn(mock(DiscountPolicy.class));
+            given(coupon.getIssuePeriod()).willReturn(mock(IssuePeriod.class));
             given(couponRepository.findByIdAndDeletedAtIsNull(couponId)).willReturn(Optional.of(coupon));
 
             String lockKey = "lock:coupon:issue:" + couponId;
@@ -176,7 +178,7 @@ public class CouponServiceImplTest {
             verify(couponRepository).findByIdAndDeletedAtIsNull(couponId);
             verify(coupon).validateIssuable();
             verify(coupon).validateIssuePeriod();
-            verify(redisRepository).initIssuedCount(couponId, 0);
+            verify(redisRepository).initIssuedCount(couponId, 0, coupon.getIssuePeriod());
             verify(redisRepository).issued(couponId, userId);
             verify(coupon).increaseIssuedQuantity();
             verify(couponUserRepository).save(any(CouponUser.class));
