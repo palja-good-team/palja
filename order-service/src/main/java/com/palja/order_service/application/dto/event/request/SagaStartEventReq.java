@@ -8,12 +8,14 @@ import java.util.UUID;
  * Saga 시작 요청 이벤트
  */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder(access = AccessLevel.PRIVATE)
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SagaStartEventReq {
 
-    private final UUID sagaId;
-    private final UUID orderId;
+    private UUID sagaId;
+    private UUID orderId;
 
     public static SagaStartEventReq of(UUID sagaId, UUID orderId) {
         return SagaStartEventReq.builder()

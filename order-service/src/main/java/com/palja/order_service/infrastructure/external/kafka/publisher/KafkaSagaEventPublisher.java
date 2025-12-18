@@ -29,9 +29,9 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
 
     @Override
     public void publishSagaStart(SagaStartEventReq event) {
-        send(KafkaTopics.ORDER_SAGA_START, event.getSagaId().toString(), event);
+        send(KafkaTopics.SAGA_START_REQUEST, event.getSagaId().toString(), event);
         log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, orderId={}",
-                KafkaTopics.ORDER_SAGA_START, event.getSagaId(), event.getOrderId());
+                KafkaTopics.SAGA_START_REQUEST, event.getSagaId(), event.getOrderId());
     }
 
     @Override
@@ -76,13 +76,10 @@ public class KafkaSagaEventPublisher implements SagaEventPublisher {
      */
     private void send(String topic, String key, Object event) {
 
-        String X_USER_LOGIN_ID = "X-USER-LOGIN-ID";
-
         Message<Object> message = MessageBuilder
                 .withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader(KafkaHeaders.KEY, key) // 병렬처리를 위해 -> 현재는 빼도됌
-                .setHeader(X_USER_LOGIN_ID, CurrentUser.getLoginId())
                 .build();
 
         kafkaTemplate.send(message)

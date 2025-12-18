@@ -6,7 +6,7 @@ package com.palja.order_service.infrastructure.external.kafka;
 public class KafkaTopics {
 
     // ========== Saga start (Order -> Order Orchestrator) ==========
-    public static final String ORDER_SAGA_START = "order.saga.start";
+    public static final String SAGA_START_REQUEST = "order.saga.start.request";
 
     // ========== Order Create Saga ==========
     // Stock (Order -> Product, Product -> Order)

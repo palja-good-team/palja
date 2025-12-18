@@ -173,7 +173,6 @@ public class OrderSagaOrchestrator {
         sagaService.save(saga);
 
         log.error("[SAGA][FAIL] sagaId={}, reason={}", sagaId, errorMessage);
-
     }
 
     /**
