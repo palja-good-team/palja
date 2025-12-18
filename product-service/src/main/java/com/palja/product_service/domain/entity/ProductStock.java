@@ -23,33 +23,37 @@ public class ProductStock extends BaseEntity {
     private Product product;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Long quantity;
 
     protected ProductStock() {}
 
-    protected ProductStock(Product product, Integer quantity) {
+    protected ProductStock(Product product, Long quantity) {
         this.product = product;
         this.quantity = quantity;
     }
 
-    protected ProductStock increase(Integer quantity) {
+    protected ProductStock increase(Long quantity) {
         this.quantity += quantity;
         return this;
     }
 
-    protected ProductStock decrease(Integer quantity) {
+    protected ProductStock decrease(Long quantity) {
         this.quantity -= quantity;
         if(this.quantity < 0)
             throw new BusinessException(ProductErrorCode.INVALID_PRODUCT_STOCK);
         return this;
     }
 
-    protected ProductStock updateQuantity(Integer quantity) {
+    protected ProductStock updateQuantity(Long quantity) {
         this.quantity = quantity;
         return this;
     }
 
-    protected void delete() {
+    @Override
+    public void softDelete() {
+    }
+
+    protected void mySoftDelete() {
         super.softDelete();
     }
 }

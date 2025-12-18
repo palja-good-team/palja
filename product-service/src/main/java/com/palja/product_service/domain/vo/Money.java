@@ -16,45 +16,46 @@ import java.math.RoundingMode;
 public class Money {
 
     @Column(name = "price")
-    private BigDecimal amount;
+    private Long amount;
 
     public static Money of(Long amount) {
         if(amount == null || amount < 0)
             throw new BusinessException(ProductErrorCode.INVALID_PRICE);
 
-        return new Money(BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP));
+        return new Money(amount);
     }
 
     protected Money() {
     }
 
-    protected Money(BigDecimal amount) {
+    protected Money(Long amount) {
         this.amount = amount;
     }
 
-    public Money plus(Money other) {
-        return new Money(amount.add(other.amount));
+    public Money plus(Long other) {
+        return new Money(amount + other);
     }
 
-    public Money minus(Money other) {
-        BigDecimal result = amount.subtract(other.amount);
-        if (result.compareTo(BigDecimal.ZERO) < 0) {
+    public Money minus(Long other) {
+
+        long result = amount - other;
+        if (result < 0) {
             throw new BusinessException(ProductErrorCode.INVALID_PRICE);
         }
 
         return new Money(result);
     }
 
-    public Money multiply(BigDecimal other) {
-        return new Money(amount.multiply(other).setScale(2, RoundingMode.HALF_UP));
+    public Money multiply(Double other) {
+        return new Money( (long)(amount * other) );
     }
 
-    public Money divide(Money other) {
-        return new Money(amount.divide(other.amount,2, RoundingMode.HALF_UP));
+    public Money divide(Double other) {
+        return new Money((long)(amount/other));
     }
 
     @Override
     public String toString() {
-        return amount.toPlainString();
+        return amount.toString();
     }
 }

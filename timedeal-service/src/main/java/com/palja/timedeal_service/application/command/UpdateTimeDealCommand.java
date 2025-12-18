@@ -15,6 +15,5 @@ public record UpdateTimeDealCommand(
         LocalDateTime endAt,
         Long timeDealPrice,
         Long totalQuantity,
-        String loginId,
         UserRole role
 ) {}

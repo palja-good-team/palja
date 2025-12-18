@@ -24,8 +24,8 @@ public class TimeDealValidator {
 
     private final UserClient userClient;
 
-    public void validateCompanyUserId(String loginId, UUID ownerCompanyUserId) {
-            CompanyUserInfo companyUserInfo = userClient.getCompanyUserByLoginId(loginId);
+    public void validateCompanyUserId(UUID ownerCompanyUserId) {
+            CompanyUserInfo companyUserInfo = userClient.getCompanyUserByLoginId();
 
             if (!companyUserInfo.companyUserId().equals(ownerCompanyUserId)) {
                 throw new BusinessException(CommonErrorCode.FORBIDDEN);

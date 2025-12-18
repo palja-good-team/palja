@@ -1,5 +1,6 @@
 package com.palja.product_service.application.service.impl;
 
+import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
 import com.palja.product_service.application.command.CreateProductCommand;
@@ -129,7 +130,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public UpdateStockRes updateStock(UUID productId,
-                                      Integer stock) {
+                                      Long stock) {
 
         Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
@@ -148,7 +149,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public SaleProductRes saleProductV1(UUID productId,
-                                        Integer quantity) {
+                                        Long quantity) {
 
         Product product = repository.findByIdFetchStockWithLock(productId, quantity);
         product.decreaseStock(quantity);
@@ -158,7 +159,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public SaleProductRes saleProduct(UUID productId,
-                                      Integer quantity) {
+                                      Long quantity) {
 
         ProductStock stock = repository.findProductStock(productId);
 
@@ -172,7 +173,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public RestoreStockRes stockRestoreV1(UUID productId,
-                                          Integer quantity) {
+                                          Long quantity) {
 
         Product product = repository.findByIdFetchStockWithLock(productId, quantity);
         product.increaseStock(quantity);
@@ -183,7 +184,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public RestoreStockRes stockRestore(UUID productId,
-                                        Integer quantity) {
+                                        Long quantity) {
 
         ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
 
@@ -197,7 +198,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId,
-                                                                Integer quantity) {
+                                                                Long quantity) {
 
         Product product = repository.findProduct(productId);
         product.decreaseStock(quantity);
@@ -212,7 +213,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId,
-                                                                Integer quantity) {
+                                                                Long quantity) {
 
         Product product = repository.findProduct(productId);
         product.increaseStock(quantity);
@@ -233,7 +234,7 @@ public class ProductServiceImpl implements ProductService {
 
         validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
-        product.delete();
+        product.softDelete();
 
         boolean result = repository.deleteStockFromRedis(productId.toString());
         validateRedisOperation(result);
@@ -243,8 +244,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProductForUser(UUID companyUserId) {
 
+        String loginId = CurrentUser.getLoginId();
+        repository.deleteProductForUser(companyUserId, loginId);
+
         List<UUID> idList = repository.findAllIdsByCompanyUserId(companyUserId);
-        repository.deleteProductForUser(companyUserId);
         boolean result = repository.deleteAllStockFromRedis(idList);
         validateRedisOperation(result);
 

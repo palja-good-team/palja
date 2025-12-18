@@ -44,7 +44,7 @@ public class TimeDealControllerImpl implements TimeDealController {
     ) {
         log.info("POST api/v1/time-deals 타임딜 생성 요청");
 
-        CreateTimeDealCommand command = req.toCommand(CurrentUser.getLoginId(), CurrentUser.getRole());
+        CreateTimeDealCommand command = req.toCommand(CurrentUser.getRole());
 
         TimeDealCreateRes res = timeDealService.createTimeDeal(command);
 
@@ -85,7 +85,7 @@ public class TimeDealControllerImpl implements TimeDealController {
     ) {
         log.info("PUT /api/v1/time-deals/{} 타임딜 수정 요청", timeDealId);
 
-        UpdateTimeDealCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
+        UpdateTimeDealCommand command = req.toCommand(timeDealId, CurrentUser.getRole());
 
         TimeDealUpdateRes res = timeDealService.updateTimeDeal(command);
 
@@ -102,7 +102,7 @@ public class TimeDealControllerImpl implements TimeDealController {
     ) {
         log.info("PUT api/v1/time-deals/{}/status 타임딜 상태 변경 요청", timeDealId);
 
-        ChangeTimeDealStatusCommand command = req.toCommand(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
+        ChangeTimeDealStatusCommand command = req.toCommand(timeDealId, CurrentUser.getRole());
 
         TimeDealStatusChangeRes res = timeDealService.changeTimeDealStatus(command);
 
@@ -115,7 +115,7 @@ public class TimeDealControllerImpl implements TimeDealController {
     public ResponseEntity<Void> deleteTimeDeal(@PathVariable UUID timeDealId) {
         log.info("DELETE api/v1/time-deals/{} 타임딜 삭제 요청", timeDealId);
 
-        DeleteTimeDealCommand command = DeleteTimeDealCommand.of(timeDealId, CurrentUser.getLoginId(), CurrentUser.getRole());
+        DeleteTimeDealCommand command = DeleteTimeDealCommand.of(timeDealId, CurrentUser.getRole());
 
         timeDealService.deleteTimeDeal(command);
 

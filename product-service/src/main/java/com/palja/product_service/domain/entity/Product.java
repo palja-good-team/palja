@@ -47,7 +47,7 @@ public class Product extends BaseEntity {
 
     protected Product() {}
 
-    public static Product create(String name, String description, Long price, UUID companyUserId, String companyName, Integer stock) {
+    public static Product create(String name, String description, Long price, UUID companyUserId, String companyName, Long stock) {
 
         Product product = new Product();
 
@@ -79,7 +79,7 @@ public class Product extends BaseEntity {
         return this;
     }
 
-    public Product updateStock(Integer stock) {
+    public Product updateStock(Long stock) {
         if(stock < 0)
             throw new BusinessException(ProductErrorCode.INVALID_STOCK);
 
@@ -87,40 +87,41 @@ public class Product extends BaseEntity {
         return this;
     }
 
-    public ProductStock increaseStock(Integer quantity) {
+    public ProductStock increaseStock(Long quantity) {
         this.productStock = productStock.increase(quantity);
         return this.productStock;
     }
 
-    public ProductStock decreaseStock(Integer quantity) {
+    public ProductStock decreaseStock(Long quantity) {
         this.productStock = productStock.decrease(quantity);
         return this.productStock;
     }
 
     public Money increaseFixPrice(Long amount) {
-        this.price = price.plus(Money.of(amount));
+        this.price = price.plus(amount);
         return this.price;
     }
 
     public Money increaseRatePrice(Double amount) {
-        BigDecimal rate = BigDecimal.ONE.add(BigDecimal.valueOf(amount));
+        double rate = 1L + amount;
         this.price = price.multiply(rate);
         return this.price;
     }
 
     public Money discountFixPrice(Long amount) {
-        this.price = price.minus(Money.of(amount));
+        this.price = price.minus(amount);
         return this.price;
     }
 
     public Money discountRatePrice(Double amount) {
-        BigDecimal rate = BigDecimal.ONE.subtract(BigDecimal.valueOf(amount));
+        double rate = 1L - amount;
         this.price = price.multiply(rate);
         return this.price;
     }
 
-    public void delete() {
-        this.productStock.delete();
+    @Override
+    public void softDelete() {
+        this.productStock.mySoftDelete();
         super.softDelete();
     }
 }

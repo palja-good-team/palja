@@ -34,7 +34,7 @@ public class UpdateTimeDealReq {
     @Positive(message = "타임딜 재고의 전체 수량은 0보다 커야 합니다.")
     Long totalQuantity;
 
-    public UpdateTimeDealCommand toCommand(UUID timeDealId, String loginId, UserRole role) {
+    public UpdateTimeDealCommand toCommand(UUID timeDealId, UserRole role) {
         return UpdateTimeDealCommand.builder()
                 .timeDealId(timeDealId)
                 .title(title)
@@ -43,7 +43,6 @@ public class UpdateTimeDealReq {
                 .endAt(endAt)
                 .timeDealPrice(timeDealPrice)
                 .totalQuantity(totalQuantity)
-                .loginId(loginId)
                 .role(role)
                 .build();
     }

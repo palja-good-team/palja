@@ -22,7 +22,7 @@ public class CreateProductReq {
 
     @NotNull(message = "상품의 재고는 필수항목입니다")
     @PositiveOrZero(message = "재고는 양수여야 합니다")
-    private Integer stock;
+    private Long stock;
 
     @NotEmpty(message = "상품의 카테고리는 필수항목입니다")
     @Pattern(regexp = "^\\d{9}$")

@@ -10,6 +10,6 @@ public class CreateReq {
     private String name;
     private String description;
     private Long price;
-    private Integer stock;
+    private Long stock;
     private String category;
 }

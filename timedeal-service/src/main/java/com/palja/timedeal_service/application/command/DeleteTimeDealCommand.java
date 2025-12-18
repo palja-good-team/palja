@@ -6,10 +6,9 @@ import java.util.UUID;
 
 public record DeleteTimeDealCommand (
         UUID timeDealId,
-        String loginId,
         UserRole role
 ) {
-    public static DeleteTimeDealCommand of(UUID timeDealId, String loginId, UserRole role) {
-        return new DeleteTimeDealCommand(timeDealId, loginId, role);
+    public static DeleteTimeDealCommand of(UUID timeDealId, UserRole role) {
+        return new DeleteTimeDealCommand(timeDealId, role);
     }
 }
