@@ -10,10 +10,10 @@ public class KafkaTopics {
 
     // ========== Order Create Saga ==========
     // Stock (Order -> Product, Product -> Order)
-    public static final String STOCK_DEDUCT_REQUEST = "order.stock.deduct.request";
+    public static final String STOCK_DECREASE_REQUEST = "order.stock.decrease.request";
     // 응답
-    public static final String STOCK_DEDUCT_SUCCESS = "order.stock.deduct.success";
-    public static final String STOCK_DEDUCT_FAILURE = "order.stock.deduct.failure";
+    public static final String STOCK_DECREASE_SUCCESS = "order.stock.decrease.success";
+    public static final String STOCK_DECREASE_FAILURE = "order.stock.decrease.failure";
 
     // Coupon (Order -> Coupon, Coupon -> Order)
     public static final String COUPON_USE_REQUEST = "order.coupon.use.request";
@@ -26,6 +26,7 @@ public class KafkaTopics {
     // 응답
     public static final String PAYMENT_CREATE_SUCCESS = "order.payment.create.success";
     public static final String PAYMENT_CREATE_FAILURE = "order.payment.create.failure";
+    public static final String PAYMENT_CANCEL_REQUEST = "order.payment.cancel.request";
 
     // ========== Order Create Saga (보상) ==========
     // Stock Restore (Order -> Product, Product -> Order)

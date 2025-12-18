@@ -44,7 +44,7 @@ public class TimeDealClientAdapter implements TimeDealClient {
     }
 
     @Override
-    public void deductTimeDealStock(UUID timeDealId, Long quantity) {
+    public void decreaseTimeDealStock(UUID timeDealId, Long quantity) {
         log.info("타임딜 재고 차감 요청 시작: timeDealId={}, quantity={}", timeDealId, quantity);
         try {
             timeDealFeignClient.decreaseTimeDealStock(timeDealId, new TimeDealStockDecreaseDTO(quantity));

@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto.event.request;
 
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.util.UUID;
@@ -36,6 +35,18 @@ public class StockRestoreEventReq {
                 .timeDealId(timeDealId)
                 .quantity(quantity)
                 .isTimeDeal(isTimeDeal)
+                .build();
+    }
+
+    // OrderCanceledEventReq 기반 재고 복구 이벤트 생성
+    public static StockRestoreEventReq from(OrderCanceledEventReq canceledEvent) {
+        return StockRestoreEventReq.builder()
+                .sagaId(canceledEvent.getOrderId())
+                .orderId(canceledEvent.getOrderId())
+                .productId(canceledEvent.getProductId())
+                .timeDealId(canceledEvent.getTimeDealId())
+                .quantity(canceledEvent.getQuantity())
+                .isTimeDeal(canceledEvent.getTimeDealId() != null)
                 .build();
     }
 }

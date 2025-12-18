@@ -10,7 +10,7 @@ public interface TimeDealClient {
     TimeDealRes getTimeDeal(UUID timeDealId);
 
     // 타임딜 재고 차감
-    void deductTimeDealStock(UUID timeDealId, Long quantity);
+    void decreaseTimeDealStock(UUID timeDealId, Long quantity);
 
     // 타임딜 재고 복구
     void restoreTimeDealStock(UUID timeDealId, Long quantity);

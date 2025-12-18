@@ -43,7 +43,7 @@ public class ProductClientAdapter implements ProductClient {
     }
 
     @Override
-    public void deductProductStock(UUID productId, Long quantity) {
+    public void decreaseProductStock(UUID productId, Long quantity) {
         log.info("상품 재고 차감 요청 시작: productId={}, quantity={}", productId, quantity);
         try {
             productFeignClient.decreaseProductStock(productId, quantity);

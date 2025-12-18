@@ -13,7 +13,7 @@ public interface OrderEventPublisher {
     void publishSagaStart(SagaStartEventReq event);
 
     // 재고 차감 요청
-    void publishStockDeduct(StockDeductEventReq event);
+    void publishStockDecrease(StockDecreaseEventReq event);
 
     // 재고 복구 요청 (보상)
     void publishStockRestore(StockRestoreEventReq event);
@@ -26,4 +26,10 @@ public interface OrderEventPublisher {
 
     // 결제 생성 요청
     void publishPaymentCreate(PaymentCreateEventReq event);
+
+    // 결제 취소 요청
+    void publishPaymentCancel(PaymentCancelEventReq event);
+
+    void publishOrderCanceled(OrderCanceledEventReq event);
+
 }

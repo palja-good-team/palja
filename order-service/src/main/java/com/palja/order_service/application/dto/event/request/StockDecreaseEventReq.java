@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto.event.request;
 
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.util.UUID;
@@ -11,7 +10,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class StockDeductEventReq {
+public class StockDecreaseEventReq {
 
     private final UUID sagaId;
     private final UUID orderId;
@@ -21,7 +20,7 @@ public class StockDeductEventReq {
     private final Long quantity;
     private final boolean isTimeDeal;
 
-    public static StockDeductEventReq of(
+    public static StockDecreaseEventReq of(
             UUID sagaId,
             UUID orderId,
             UUID productId,
@@ -29,7 +28,7 @@ public class StockDeductEventReq {
             Long quantity,
             boolean isTimeDeal
     ) {
-        return StockDeductEventReq.builder()
+        return StockDecreaseEventReq.builder()
                 .sagaId(sagaId)
                 .orderId(orderId)
                 .productId(productId)

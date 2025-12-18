@@ -1,6 +1,5 @@
 package com.palja.order_service.infrastructure.external.kafka.publisher;
 
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import com.palja.order_service.application.dto.event.request.*;
 import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.infrastructure.external.kafka.KafkaTopics;
@@ -35,9 +34,9 @@ public class OrderKafkaProducer implements OrderEventPublisher {
     }
 
     @Override
-    public void publishStockDeduct(StockDeductEventReq event) {
-        send(KafkaTopics.STOCK_DEDUCT_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_DEDUCT_REQUEST, event.getSagaId());
+    public void publishStockDecrease(StockDecreaseEventReq event) {
+        send(KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId().toString(), event);
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId());
     }
 
     @Override
@@ -65,11 +64,17 @@ public class OrderKafkaProducer implements OrderEventPublisher {
         log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId());
     }
 
-//    @Override
-//    public void publishOrderCancel(OrderCancelEventReq event) {
-//        send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getSagaId().toString(), event);
-//        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.ORDER_CANCEL_REQUEST, event.getSagaId());
-//    }
+    @Override
+    public void publishPaymentCancel(PaymentCancelEventReq event) {
+        send(KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId().toString(), event);
+        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId());
+    }
+
+    @Override
+    public void publishOrderCanceled(OrderCanceledEventReq event) {
+        send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId().toString(), event);
+        log.info("[KAFKA][PUBLISH] topic={}, orderId={}", KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId());
+    }
 
     /**
      * Kafka 전송 (공통 로직)

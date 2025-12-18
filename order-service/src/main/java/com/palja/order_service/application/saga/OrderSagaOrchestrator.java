@@ -60,8 +60,8 @@ public class OrderSagaOrchestrator {
         firstStep.execute(saga, order);
 
         // ====== 실행 결과 ======
-        // 1. Kafka에 StockDeductEventReq 발행됨
-        //    - Topic: order.deduct.req
+        // 1. Kafka에 StockDecreaseEventReq 발행됨
+        //    - Topic: order.decrease.req
         //    - Key: sagaId
         //    - Value: {sagaId, orderId, productId, quantity, ...}
         // 2. OrderSaga 상태는 아직 STARTED

@@ -11,7 +11,7 @@ public interface ProductClient {
     ProductRes getProduct(UUID productId);
 
     // 상품 재고 차감
-    void deductProductStock(UUID productId, Long quantity);
+    void decreaseProductStock(UUID productId, Long quantity);
 
     // 상품 재고 복구
     void restoreProductStock(UUID productId, Long quantity);

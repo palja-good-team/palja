@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto.event.request;
 
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.util.UUID;
@@ -27,6 +26,16 @@ public class CouponCancelEventReq {
                 .sagaId(sagaId)
                 .orderId(orderId)
                 .couponUserId(couponUserId)
+                .build();
+    }
+
+
+    // OrderCanceledEventReq 기반 쿠폰 취소 이벤트 생성
+    public static CouponCancelEventReq from(OrderCanceledEventReq canceledEvent) {
+        return CouponCancelEventReq.builder()
+                .sagaId(canceledEvent.getOrderId())
+                .orderId(canceledEvent.getOrderId())
+                .couponUserId(canceledEvent.getCouponUserId())
                 .build();
     }
 }

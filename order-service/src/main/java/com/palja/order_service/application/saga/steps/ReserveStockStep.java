@@ -1,6 +1,6 @@
 package com.palja.order_service.application.saga.steps;
 
-import com.palja.order_service.application.dto.event.request.StockDeductEventReq;
+import com.palja.order_service.application.dto.event.request.StockDecreaseEventReq;
 import com.palja.order_service.application.dto.event.request.StockRestoreEventReq;
 import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.application.saga.SagaStep;
@@ -48,7 +48,7 @@ public class ReserveStockStep implements SagaStep {
                 getName(), isTimeDeal, timeDealId, item.getProductId());
 
         // 재고 차감 요청 이벤트 발행
-        StockDeductEventReq event = StockDeductEventReq.of(
+        StockDecreaseEventReq event = StockDecreaseEventReq.of(
                 saga.getSagaId(),
                 order.getOrderId(),
                 item.getProductId(),
@@ -59,10 +59,10 @@ public class ReserveStockStep implements SagaStep {
 
         try {
             // Kafka 발행: Kafka Producer가 메시지 전송
-            // - Topic: order.deduct.req
+            // - Topic: order.decrease.req
             // - Key: sagaId
-            // - Value: StockDeductRequest
-            eventPublisher.publishStockDeduct(event);
+            // - Value: StockDecreaseRequest
+            eventPublisher.publishStockDecrease(event);
 
             log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}", getName(), saga.getSagaId());
 

@@ -1,6 +1,5 @@
 package com.palja.order_service.application.dto.event.request;
 
-import com.palja.order_service.application.dto.event.OrderSagaEvent;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -34,6 +33,17 @@ public class PaymentCancelEventReq {
                 .paymentId(paymentId)
                 .amount(amount)
                 .reason(reason)
+                .build();
+    }
+
+    // OrderCanceledEventReq 기반 결제 취소 이벤트 생성
+    public static PaymentCancelEventReq from(OrderCanceledEventReq canceledEvent) {
+        return PaymentCancelEventReq.builder()
+                .sagaId(canceledEvent.getOrderId())
+                .orderId(canceledEvent.getOrderId())
+                .paymentId(canceledEvent.getPaymentId())
+                .amount(canceledEvent.getAmount())
+                .reason(canceledEvent.getCancelReason())
                 .build();
     }
 }

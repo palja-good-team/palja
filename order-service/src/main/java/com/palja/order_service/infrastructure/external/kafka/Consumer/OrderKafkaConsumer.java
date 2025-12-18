@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.order_service.application.dto.event.request.SagaStartEventReq;
 import com.palja.order_service.application.dto.event.response.CouponUseEventRes;
 import com.palja.order_service.application.dto.event.response.PaymentCreateEventRes;
-import com.palja.order_service.application.dto.event.response.StockDeductEventRes;
+import com.palja.order_service.application.dto.event.response.StockDecreaseEventRes;
 import com.palja.order_service.application.saga.OrderSagaOrchestrator;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
 import com.palja.order_service.application.service.OrderService;
@@ -48,36 +48,36 @@ public class OrderKafkaConsumer {
 
     /**
      * 재고 차감 성공 응답
-     * Topic: order.stock.deduct.success
+     * Topic: order.stock.decrease.success
      */
     @KafkaListener(
-            topics = KafkaTopics.STOCK_DEDUCT_SUCCESS
+            topics = KafkaTopics.STOCK_DECREASE_SUCCESS
     )
-    public void onStockDeductSuccess(ConsumerRecord<String, Object> record) {
+    public void onStockDecreaseSuccess(ConsumerRecord<String, Object> record) {
 
         Object value = record.value();
-        StockDeductEventRes event = objectMapper.convertValue(value, StockDeductEventRes.class);
+        StockDecreaseEventRes event = objectMapper.convertValue(value, StockDecreaseEventRes.class);
 
         log.info("[KAFKA][SAGA][STEP][SUCCESS] topic={}, sagaId={}",
-                KafkaTopics.STOCK_DEDUCT_SUCCESS, event.getSagaId());
+                KafkaTopics.STOCK_DECREASE_SUCCESS, event.getSagaId());
 
         orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_RESERVED);
     }
 
     /**
      * 재고 차감 실패 응답
-     * Topic: order.stock.deduct.failure
+     * Topic: order.stock.decrease.failure
      */
     @KafkaListener(
-            topics = KafkaTopics.STOCK_DEDUCT_FAILURE
+            topics = KafkaTopics.STOCK_DECREASE_FAILURE
     )
-    public void onStockDeductFailure(ConsumerRecord<String, Object> record) {
+    public void onStockDecreaseFailure(ConsumerRecord<String, Object> record) {
 
         Object value = record.value();
-        StockDeductEventRes event = objectMapper.convertValue(value, StockDeductEventRes.class);
+        StockDecreaseEventRes event = objectMapper.convertValue(value, StockDecreaseEventRes.class);
 
         log.error("[KAFKA][SAGA][STEP][FAILURE] topic={}, sagaId={}",
-                KafkaTopics.STOCK_DEDUCT_FAILURE, event.getSagaId());
+                KafkaTopics.STOCK_DECREASE_FAILURE, event.getSagaId());
 
             orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_RESERVED, "재고 차감 실패");
     }

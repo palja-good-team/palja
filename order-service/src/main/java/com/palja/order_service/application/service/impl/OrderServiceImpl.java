@@ -51,7 +51,6 @@ public class OrderServiceImpl implements OrderService {
     private final TimeDealClient timeDealClient;
     private final CouponClient couponClient;
     private final UserClient userClient;
-    private final PaymentClient paymentClient;
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
@@ -263,7 +262,7 @@ public class OrderServiceImpl implements OrderService {
      * - 주문 조회 및 권한 검증
      * - 취소 가능 상태 검증 (도메인)
      * - 주문 취소 처리 (도메인)
-     * - 보상 트랜잭션 (환불, 재고, 쿠폰)
+     * - 트랜잭션 커밋 후 보상 이벤트 발행 (환불, 재고, 쿠폰)
      */
     @Transactional
     public OrderCancelRes cancelOrder(CancelOrderCommand command) {
@@ -281,94 +280,18 @@ public class OrderServiceImpl implements OrderService {
                 authContext.productSellerId()
         );
 
+        // 도메인 로직: 주문 취소
         order.cancel(command.cancelReason(), command.CurrentUserLoginId());
-
-        // TODO: Kafka Event 발행으로 전환
-        processOrderCancellationExternalEvents(order, command.cancelReason());
-
         orderRepository.save(order);
+
+        // 트랜잭션 커밋 후 보상 이벤트 발행
+        internalEventPublisher.publishOrderCanceled(order);
+
         log.info("주문 취소 완료: orderId={}", command.orderId());
 
         return OrderCancelRes.from(order);
     }
 
-    // 주문 취소
-    private void processOrderCancellationExternalEvents(Order order, String cancelReason) {
-        // TODO: 이벤트 발행으로 대체
-        refundPayment(order, cancelReason);
-        restoreInventory(order);
-        restoreCoupon(order);
-    }
-
-    // 결제 환불
-    // TODO: 이벤트 기반 처리
-    private void refundPayment(Order order, String cancelReason) {
-        if (order.getPaymentId() == null) {
-            log.debug("환불할 결제 정보 없음: orderId={}", order.getOrderId());
-            return;
-        }
-
-        try {
-            paymentClient.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
-            log.info("결제 환불 완료: paymentId={}, amount={}",
-                    order.getPaymentId(), order.getOrderAmount().getFinalAmount());
-        } catch (Exception e) {
-            log.error("결제 환불 실패: orderId={}, paymentId={}",
-                    order.getOrderId(), order.getPaymentId(), e);
-            // TODO: 결제 환불 실패 (보상 트랜잭션 처리)
-            throw new BusinessException(OrderErrorCode.REFUND_FAILED);
-        }
-    }
-
-    /**
-     * 재고 복구
-     * - 타임딜 주문: 타임딜 재고만 복구
-     * - 일반 주문: 상품 재고만 복구
-     */
-    // TODO: 이벤트 기반 처리
-    private void restoreInventory(Order order) {
-        UUID productId = order.getOrderItem().getProductId();
-        Long quantity = order.getOrderItem().getQuantity();
-
-        try {
-            if (order.isTimeDealOrder()) {
-                // 타임딜 재고만 복구
-                UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealClient.restoreTimeDealStock(timeDealId, quantity);
-                log.info("타임딜 재고 복구 완료: timeDealId={}, quantity={}",
-                        timeDealId, quantity);
-            } else {
-                // 일반 상품 재고만 복구
-                productClient.restoreProductStock(productId, quantity);
-                log.info("상품 재고 복구 완료: productId={}, quantity={}",
-                        productId, quantity);
-            }
-        } catch (Exception e) {
-            log.error("재고 복구 실패: orderId={}, productId={}, isTimeDeal={}",
-                    order.getOrderId(), productId, order.isTimeDealOrder(), e);
-            // TODO: 재고 복구 실패 (보상 트랜젝션 처리)
-            throw new BusinessException(OrderErrorCode.INVENTORY_RESTORE_FAILED);
-        }
-    }
-
-    // 쿠폰 복구
-    // TODO: 이벤트 기반 처리
-    private void restoreCoupon(Order order) {
-        if (order.getCouponUserId() == null) {
-            return;
-        }
-
-        try {
-            couponClient.cancelCoupon(order.getCouponUserId(), order.getOrderId());
-            log.info("쿠폰 복구 완료: couponUserId={}, orderId={}",
-                    order.getCouponUserId(), order.getOrderId());
-        } catch (Exception e) {
-            log.error("쿠폰 복구 실패: orderId={}, couponUserId={}",
-                    order.getOrderId(), order.getCouponUserId(), e);
-            // TODO: 쿠폰 복구 실패 (보상 트랜젝션 처리)
-            throw new BusinessException(OrderErrorCode.COUPON_RESTORE_FAILED);
-        }
-    }
     // ====== Order Cancellation By Saga Workflow ======
     /**
      * Saga 실패로 인한 주문 취소 확정
