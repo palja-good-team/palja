@@ -36,16 +36,13 @@ public class ReserveStockStep implements SagaStep {
     public void execute(OrderSaga saga, Order order) {
         OrderItem item = order.getOrderItem();
 
-        log.info("[SAGA][STEP][{}][EXECUTE] sagaId={}, orderId={}, productId={}, qty={}",
-                getName(), saga.getSagaId(), order.getOrderId(),
-                item.getProductId(), item.getQuantity());
-
         // 타임딜 여부 확인
         boolean isTimeDeal = order.isTimeDealOrder();
         UUID timeDealId = isTimeDeal ? item.getTimeDealId() : null;
 
-        log.debug("[SAGA][STEP][{}][INFO] isTimeDeal={}, timeDealId={}, productId={}",
-                getName(), isTimeDeal, timeDealId, item.getProductId());
+        // Step 1: 재고 차감 요청 준비
+        log.info("[SAGA][ORDER][INVENTORY_DECREASE][READY] sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
+                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
 
         // 재고 차감 요청 이벤트 발행
         StockDecreaseEventReq event = StockDecreaseEventReq.of(
@@ -64,12 +61,15 @@ public class ReserveStockStep implements SagaStep {
             // - Value: StockDecreaseRequest
             eventPublisher.publishStockDecrease(event);
 
-            log.info("[SAGA][STEP][{}][EVENT_PUBLISHED] sagaId={}", getName(), saga.getSagaId());
+            // Producer에서 [KAFKA][ORDER][INVENTORY_DECREASE][PUBLISHED]가 있음
+            // Saga Step 기준으로 “발행 요청 완료”만 남김
+            log.info("[SAGA][ORDER][INVENTORY_DECREASE][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
 
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][STEP][{}][PUBLISH_FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), e.getMessage(), e);
+            log.error("[SAGA][ORDER][INVENTORY_DECREASE][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
             throw e;
         }
     }
@@ -78,8 +78,11 @@ public class ReserveStockStep implements SagaStep {
     public void compensate(OrderSaga saga, Order order) {
         OrderItem item = order.getOrderItem();
 
-        log.warn("[SAGA][STEP][{}][COMPENSATE] sagaId={}, orderId={}, productId={}",
-                getName(), saga.getSagaId(), order.getOrderId(), item.getProductId());
+        boolean isTimeDeal = order.isTimeDealOrder();
+        UUID timeDealId = isTimeDeal ? item.getTimeDealId() : null;
+
+        log.warn("[SAGA][ORDER][INVENTORY_RESTORE][START] sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
+                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
 
         // 재고 복구 요청 이벤트 발행
         StockRestoreEventReq event = StockRestoreEventReq.of(
@@ -94,12 +97,13 @@ public class ReserveStockStep implements SagaStep {
         try {
             eventPublisher.publishStockRestore(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}",
-                    getName(), saga.getSagaId());
+            log.info("[SAGA][ORDER][INVENTORY_RESTORE][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
+
         } catch (Exception e) {
-            log.error("[SAGA][STEP][{}][COMPENSATE_FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), e.getMessage(), e);
-            // Best Effort - 보상 실패는 로그만 남기고 계속 진행
+            // 보상은 Best Effort
+            log.error("[SAGA][ORDER][INVENTORY_RESTORE][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
     }
 }

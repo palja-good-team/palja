@@ -37,13 +37,13 @@ public class ApplyCouponStep implements SagaStep {
 
         // 쿠폰이 없으면 스킵
         if (couponUserId == null) {
-            log.info("[SAGA][STEP][{}][SKIP] sagaId={}, orderId={}, reason=쿠폰없음",
-                    getName(), saga.getSagaId(), order.getOrderId());
+            log.info("[SAGA][ORDER][COUPON_USE][SKIP] sagaId={} orderId={} reason=NO_COUPON",
+                    saga.getSagaId(), order.getOrderId());
             return;
         }
 
-        log.info("[SAGA][STEP][{}][EXECUTE] sagaId={}, orderId={}, couponUserId={}",
-                getName(), saga.getSagaId(), order.getOrderId(), couponUserId);
+        log.info("[SAGA][ORDER][COUPON_USE][READY] sagaId={} orderId={} couponUserId={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId);
 
         // 쿠폰 사용 요청 이벤트 발행
         CouponUseEventReq event = CouponUseEventReq.of(
@@ -57,10 +57,15 @@ public class ApplyCouponStep implements SagaStep {
             // Kafka 발행: Kafka Producer가 메시지 전송
             eventPublisher.publishCouponUse(event);
 
-            log.info("[SAGA][STEP][{}][EVENT][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
+            // Producer에서 [KAFKA][ORDER][COUPON_USE][PUBLISHED] 찍고 있음
+            // "사가 단계가 발행 요청을 완료했다" 정도만 남김
+            log.info("[SAGA][ORDER][COUPON_USE][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
+
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][STEP][{}][EVENT][PUBLISH][FAILED] sagaId={}",getName(), saga.getSagaId());
+            log.error("[SAGA][ORDER][COUPON_USE][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
             throw e;
         }
     }
@@ -69,12 +74,13 @@ public class ApplyCouponStep implements SagaStep {
     public void compensate(OrderSaga saga, Order order) {
         UUID couponUserId = order.getCouponUserId();
 
+        // 쿠폰이 없으면 보상도 없음
         if (couponUserId == null) {
             return;
         }
 
-        log.warn("[SAGA][STEP][{}][COMPENSATE] sagaId={}, orderId={}, couponUserId={}",
-                getName(), saga.getSagaId(), order.getOrderId(), couponUserId);
+        log.warn("[SAGA][ORDER][COUPON_CANCEL][START] sagaId={} orderId={} couponUserId={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId);
 
         // 쿠폰 취소 요청 이벤트 발행
         CouponCancelEventReq event = CouponCancelEventReq.of(
@@ -86,11 +92,13 @@ public class ApplyCouponStep implements SagaStep {
         try {
             eventPublisher.publishCouponCancel(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE_PUBLISHED] sagaId={}",
-                    getName(), saga.getSagaId());
+            log.info("[SAGA][ORDER][COUPON_CANCEL][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
+
         } catch (Exception e) {
-            log.error("[SAGA][STEP][{}][COMPENSATE_FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), e.getMessage(), e);
+            // 보상은 Best Effort: 실패해도 계속 진행
+            log.error("[SAGA][ORDER][COUPON_CANCEL][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
     }
 }

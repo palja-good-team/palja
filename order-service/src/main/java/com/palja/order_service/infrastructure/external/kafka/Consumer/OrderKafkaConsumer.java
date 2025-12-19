@@ -38,10 +38,11 @@ public class OrderKafkaConsumer {
     @KafkaListener(topics = KafkaTopics.SAGA_START_REQUEST)
     public void onSagaStart(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        SagaStartEventReq event = objectMapper.convertValue(value, SagaStartEventReq.class);
+        SagaStartEventReq event = objectMapper.convertValue(record.value(), SagaStartEventReq.class);
 
-        log.info("[KAFKA][SAGA][START] topic={}, sagaId={}", KafkaTopics.SAGA_START_REQUEST, event.getSagaId());
+        log.info("[KAFKA][ORDER][SAGA_START][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
         orchestrator.startSaga(event.getSagaId());
     }
@@ -50,16 +51,14 @@ public class OrderKafkaConsumer {
      * 재고 차감 성공 응답
      * Topic: order.stock.decrease.success
      */
-    @KafkaListener(
-            topics = KafkaTopics.STOCK_DECREASE_SUCCESS
-    )
+    @KafkaListener(topics = KafkaTopics.STOCK_DECREASE_SUCCESS)
     public void onStockDecreaseSuccess(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        StockDecreaseEventRes event = objectMapper.convertValue(value, StockDecreaseEventRes.class);
+        StockDecreaseEventRes event = objectMapper.convertValue(record.value(), StockDecreaseEventRes.class);
 
-        log.info("[KAFKA][SAGA][STEP][SUCCESS] topic={}, sagaId={}",
-                KafkaTopics.STOCK_DECREASE_SUCCESS, event.getSagaId());
+        log.info("[KAFKA][ORDER][INVENTORY_DECREASE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
         orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_RESERVED);
     }
@@ -68,34 +67,34 @@ public class OrderKafkaConsumer {
      * 재고 차감 실패 응답
      * Topic: order.stock.decrease.failure
      */
-    @KafkaListener(
-            topics = KafkaTopics.STOCK_DECREASE_FAILURE
-    )
+    @KafkaListener(topics = KafkaTopics.STOCK_DECREASE_FAILURE)
     public void onStockDecreaseFailure(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        StockDecreaseEventRes event = objectMapper.convertValue(value, StockDecreaseEventRes.class);
+        StockDecreaseEventRes event = objectMapper.convertValue(record.value(), StockDecreaseEventRes.class);
 
-        log.error("[KAFKA][SAGA][STEP][FAILURE] topic={}, sagaId={}",
-                KafkaTopics.STOCK_DECREASE_FAILURE, event.getSagaId());
+        log.info("[KAFKA][ORDER][INVENTORY_DECREASE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
-            orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_RESERVED, "재고 차감 실패");
+        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_RESERVED, "재고 차감 실패");
+
+        // 비즈니스 실패 응답 처리 결과를 남기는 로그
+        log.warn("[SAGA][ORDER][INVENTORY_DECREASE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
+                OrderSagaStep.STOCK_RESERVED, event.getSagaId(), event.getOrderId());
     }
 
     /**
      * 쿠폰 사용 성공 응답
      * Topic: order.coupon.use.success
      */
-    @KafkaListener(
-            topics = KafkaTopics.COUPON_USE_SUCCESS
-    )
+    @KafkaListener(topics = KafkaTopics.COUPON_USE_SUCCESS)
     public void onCouponUseSuccess(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        CouponUseEventRes event = objectMapper.convertValue(value, CouponUseEventRes.class);
+        CouponUseEventRes event = objectMapper.convertValue(record.value(), CouponUseEventRes.class);
 
-        log.info("[KAFKA][SAGA][STEP][SUCCESS] topic={}, sagaId={}",
-                KafkaTopics.COUPON_USE_SUCCESS, event.getSagaId());
+        log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
         orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.COUPON_APPLIED);
     }
@@ -104,34 +103,33 @@ public class OrderKafkaConsumer {
      * 쿠폰 사용 실패 응답
      * Topic: order.coupon.use.failure
      */
-    @KafkaListener(
-            topics = KafkaTopics.COUPON_USE_FAILURE
-    )
+    @KafkaListener(topics = KafkaTopics.COUPON_USE_FAILURE)
     public void onCouponUseFailure(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        CouponUseEventRes event = objectMapper.convertValue(value, CouponUseEventRes.class);
+        CouponUseEventRes event = objectMapper.convertValue(record.value(), CouponUseEventRes.class);
 
-        log.error("[KAFKA][SAGA][STEP][FAILURE] topic={}, sagaId={}",
-                KafkaTopics.COUPON_USE_FAILURE, event.getSagaId());
+        log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
         orchestrator.failSaga(event.getSagaId(), OrderSagaStep.COUPON_APPLIED, "쿠폰 사용 실패");
+
+        log.warn("[SAGA][ORDER][COUPON_USE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
+                OrderSagaStep.COUPON_APPLIED, event.getSagaId(), event.getOrderId());
     }
 
     /**
      * 결제 생성 성공 응답
      * Topic: order.payment.create.success
      */
-    @KafkaListener(
-            topics = KafkaTopics.PAYMENT_CREATE_SUCCESS
-    )
+    @KafkaListener(topics = KafkaTopics.PAYMENT_CREATE_SUCCESS)
     public void onPaymentCreateSuccess(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        PaymentCreateEventRes event = objectMapper.convertValue(value, PaymentCreateEventRes.class);
+        PaymentCreateEventRes event = objectMapper.convertValue(record.value(), PaymentCreateEventRes.class);
 
-        log.info("[KAFKA][SAGA][STEP][SUCCESS] topic={}, sagaId={}, paymentId={}",
-                KafkaTopics.PAYMENT_CREATE_SUCCESS, event.getSagaId(), event.getPaymentId());
+        log.info("[KAFKA][ORDER][PAYMENT_CREATE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={} paymentId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId(), event.getPaymentId());
 
         orderService.registerPayment(event.getOrderId(), event.getPaymentId());
         orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.PAYMENT_CREATED);
@@ -141,17 +139,18 @@ public class OrderKafkaConsumer {
      * 결제 생성 실패 응답
      * Topic: order.payment.create.failure
      */
-    @KafkaListener(
-            topics = KafkaTopics.PAYMENT_CREATE_FAILURE
-    )
+    @KafkaListener(topics = KafkaTopics.PAYMENT_CREATE_FAILURE)
     public void onPaymentCreateFailure(ConsumerRecord<String, Object> record) {
 
-        Object value = record.value();
-        PaymentCreateEventRes event = objectMapper.convertValue(value, PaymentCreateEventRes.class);
+        PaymentCreateEventRes event = objectMapper.convertValue(record.value(), PaymentCreateEventRes.class);
 
-        log.error("[KAFKA][SAGA][STEP][FAILURE] topic={}, sagaId={}",
-                KafkaTopics.PAYMENT_CREATE_FAILURE, event.getSagaId());
+        log.info("[KAFKA][ORDER][PAYMENT_CREATE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getSagaId(), event.getOrderId());
 
         orchestrator.failSaga(event.getSagaId(), OrderSagaStep.PAYMENT_CREATED, "결제 생성 실패");
+
+        log.warn("[SAGA][ORDER][PAYMENT_CREATE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
+                OrderSagaStep.PAYMENT_CREATED, event.getSagaId(), event.getOrderId());
     }
 }

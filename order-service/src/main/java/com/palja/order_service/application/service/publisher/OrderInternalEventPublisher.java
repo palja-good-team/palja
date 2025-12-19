@@ -19,17 +19,24 @@ public class OrderInternalEventPublisher {
     // Spring ApplicationEvent 발행
     // 실제 Kafka 발행은 리스너가 트랜잭션 커밋 후 처리
 
-    // 주문 생성 이벤트 발행
+    /**
+     * TX 내부에서 주문 생성 이벤트 발행
+     * - 실제 Kafka 발행은 AFTER_COMMIT 리스너에서 수행
+     */
     public void publishOrderCreated(UUID orderId, UUID sagaId) {
-        eventPublisher.publishEvent(OrderCreatedEventReq.of(orderId, sagaId));
-        log.info("[INTERNAL_EVENT][PUBLISHED] OrderCreated: orderId={}", orderId);
+        // TX : DB 트랜잭션 내부
+        log.info("[TX][ORDER][SAGA_START][READY] orderId={} sagaId={}", orderId, sagaId);
 
+        eventPublisher.publishEvent(OrderCreatedEventReq.of(orderId, sagaId));
     }
 
-    // 주문 취소 이벤트 발행
+    /**
+     * TX 내부에서 주문 취소 이벤트 발행
+     * - 커밋 후 보상 Saga 트리거
+     */
     public void publishOrderCanceled(Order order) {
-        eventPublisher.publishEvent(OrderCanceledEventReq.from(order));
-        log.info("[INTERNAL_EVENT][PUBLISHED] OrderCanceled: orderId={}", order.getOrderId());
+        log.info("[TX][ORDER][ORDER_CANCEL][READY] orderId={}", order.getOrderId());
 
+        eventPublisher.publishEvent(OrderCanceledEventReq.from(order));
     }
 }

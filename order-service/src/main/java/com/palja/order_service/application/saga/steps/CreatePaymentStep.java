@@ -33,8 +33,10 @@ public class CreatePaymentStep implements SagaStep {
 
     @Override
     public void execute(OrderSaga saga, Order order) {
-        log.info("[SAGA][STEP][{}][EXECUTE] sagaId={}, orderId={}, amount={}",
-                getName(), saga.getSagaId(), order.getOrderId(),
+
+        log.info("[SAGA][ORDER][PAYMENT_CREATE][READY] sagaId={} orderId={} amount={}",
+                saga.getSagaId(),
+                order.getOrderId(),
                 order.getOrderAmount().getFinalAmount());
 
         // 결제 생성 요청 이벤트 발행
@@ -50,27 +52,30 @@ public class CreatePaymentStep implements SagaStep {
             // Kafka 발행: Kafka Producer가 메시지 전송
             eventPublisher.publishPaymentCreate(event);
 
-            log.info("[SAGA][STEP][{}][EVENT][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
+            // Producer에서 Kafka 발행 로그 있음
+            // 여기서는 Saga 단계 기준으로 발행 완료만 표시
+            log.info("[SAGA][ORDER][PAYMENT_CREATE][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
+
         } catch (Exception e) {
             // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][STEP][{}][EVENT][PUBLISH][FAILED] sagaId={}",  getName(), saga.getSagaId());
+            log.error("[SAGA][ORDER][PAYMENT_CREATE][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
             throw e;
         }
-
     }
 
     @Override
     public void compensate(OrderSaga saga, Order order) {
         UUID paymentId = order.getPaymentId();
 
+        // 결제가 생성되지 않았다면 보상도 없음
         if (paymentId == null) {
-            log.debug("[SAGA][STEP][{}][COMPENSATE][SKIP] sagaId={}, orderId={}, reason=결제ID없음",
-                    getName(), saga.getSagaId(), order.getOrderId());
             return;
         }
 
-        log.warn("[SAGA][STEP][{}][COMPENSATE] sagaId={}, orderId={}, paymentId={}",
-                getName(), saga.getSagaId(), order.getOrderId(), paymentId);
+        log.warn("[SAGA][ORDER][PAYMENT_CANCEL][START] sagaId={} orderId={} paymentId={}",
+                saga.getSagaId(), order.getOrderId(), paymentId);
 
         // 결제 취소 요청 이벤트 발행
         PaymentCancelEventReq event = PaymentCancelEventReq.of(
@@ -82,12 +87,15 @@ public class CreatePaymentStep implements SagaStep {
         );
 
         try {
-//            eventPublisher.publishPaymentCancel(event);
+            eventPublisher.publishPaymentCancel(event);
 
-            log.info("[SAGA][STEP][{}][COMPENSATE][PUBLISHED] sagaId={}", getName(), saga.getSagaId());
+            log.info("[SAGA][ORDER][PAYMENT_CANCEL][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
+
         } catch (Exception e) {
-            log.error("[SAGA][STEP][{}][COMPENSATE][FAILED] sagaId={}, error={}",
-                    getName(), saga.getSagaId(), e.getMessage(), e);
+            // 보상은 Best Effort
+            log.error("[SAGA][ORDER][PAYMENT_CANCEL][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
     }
 }

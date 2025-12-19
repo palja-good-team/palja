@@ -105,16 +105,6 @@ public class OrderServiceImpl implements OrderService {
         return OrderCreateRes.from(order);
     }
 
-    // Saga 시작 이벤트 발행 (Kafka 발행)
-    private void publishOrderCreatedSagaEvent(UUID orderId, UUID sagaId) {
-
-        SagaStartEventReq event = SagaStartEventReq.of(sagaId, orderId);
-        orderEventPublisher.publishSagaStart(event);
-
-        log.info("[SAGA][START_EVENT_PUBLISHED] sagaId={}, orderId={}",
-                sagaId, orderId);
-    }
-
     // 주문 생성에 필요한 데이터 수집 및 검증
     private OrderCreationContext collectAndValidateOrderData(CreateOrderCommand command) {
         // 사용자 정보 조회 및 검증 (권한에 따라 다른 API 호출)

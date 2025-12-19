@@ -28,70 +28,86 @@ public class OrderKafkaProducer implements OrderEventPublisher {
 
     @Override
     public void publishSagaStart(SagaStartEventReq event) {
+        log.info("[KAFKA][ORDER][SAGA_START][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.SAGA_START_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.SAGA_START_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}, orderId={}",
-                KafkaTopics.SAGA_START_REQUEST, event.getSagaId(), event.getOrderId());
     }
 
     @Override
     public void publishStockDecrease(StockDecreaseEventReq event) {
+        log.info("[KAFKA][ORDER][INVENTORY_DECREASE][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.STOCK_DECREASE_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishStockRestore(StockRestoreEventReq event) {
+        log.info("[KAFKA][ORDER][INVENTORY_RESTORE][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.STOCK_RESTORE_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishCouponUse(CouponUseEventReq event) {
+        log.info("[KAFKA][ORDER][COUPON_USE][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.COUPON_USE_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.COUPON_USE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}",
-                KafkaTopics.COUPON_USE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishCouponCancel(CouponCancelEventReq event) {
+        log.info("[KAFKA][ORDER][COUPON_CANCEL][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.COUPON_CANCEL_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishPaymentCreate(PaymentCreateEventReq event) {
+        log.info("[KAFKA][ORDER][PAYMENT_CREATE][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.PAYMENT_CREATE_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishPaymentCancel(PaymentCancelEventReq event) {
+        log.info("[KAFKA][ORDER][PAYMENT_CANCEL][PUBLISHED] topic={} orderId={} sagaId={}",
+                KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getOrderId(), event.getSagaId());
+
         send(KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, sagaId={}", KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId());
     }
 
     @Override
     public void publishOrderCanceled(OrderCanceledEventReq event) {
+        log.info("[KAFKA][ORDER][ORDER_CANCEL][PUBLISHED] topic={} orderId={}",
+                KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId());
+
         send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId().toString(), event);
-        log.info("[KAFKA][PUBLISH] topic={}, orderId={}", KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId());
     }
 
     /**
      * Kafka 전송 (공통 로직)
+     * - 실패 로그만 기록
      */
-    private void send(String topic, String key, Object event) {
+    private void send(String topic, String key, Object payload) {
 
         Message<Object> message = MessageBuilder
-                .withPayload(event)
+                .withPayload(payload)
                 .setHeader(KafkaHeaders.TOPIC, topic)
-                .setHeader(KafkaHeaders.KEY, key) // 병렬처리를 위해 -> 현재는 빼도됌
+                .setHeader(KafkaHeaders.KEY, key) // 키 기반 파티셔닝/순서 보장 용도
                 .build();
 
         kafkaTemplate.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("[KAFKA][PUBLISH_FAILED] topic={}, key={}, error={}",
-                                topic, key, ex.getMessage(), ex);
+                        // 실패만 기록
+                        log.error("[KAFKA][ORDER][PUBLISH][FAILED] topic={} key={} reason={}",
+                                topic, key, ex.getClass().getSimpleName(), ex);
                     }
                 });
     }
