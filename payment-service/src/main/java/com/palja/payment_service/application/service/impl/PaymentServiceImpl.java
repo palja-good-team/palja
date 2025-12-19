@@ -1,5 +1,8 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.payment_service.domain.event.vo.PaymentEventType;
+import io.micrometer.tracing.Tracer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -11,20 +14,24 @@ import com.palja.payment_service.application.command.FindPaymentListByConditionC
 import com.palja.payment_service.application.dto.external.OrderRes;
 import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.dto.response.*;
-import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
+import com.palja.payment_service.application.event.PaymentEventEnvelope;
+import com.palja.payment_service.application.event.dto.PaymentApprovedPayload;
+import com.palja.payment_service.application.event.dto.PaymentCancelFailedPayload;
+import com.palja.payment_service.application.event.dto.PaymentCanceledPayload;
+import com.palja.payment_service.application.event.dto.PaymentFailedPayload;
 import com.palja.payment_service.application.port.OrderClient;
+import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.service.PGPaymentService;
 import com.palja.payment_service.application.service.PaymentService;
-import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.validator.PaymentValidator;
 import com.palja.payment_service.domain.entity.Payment;
 import com.palja.payment_service.domain.entity.PaymentLog;
+import com.palja.payment_service.domain.entity.PaymentOutbox;
 import com.palja.payment_service.domain.repository.PaymentLogRepository;
+import com.palja.payment_service.domain.repository.PaymentOutboxRepository;
 import com.palja.payment_service.domain.repository.PaymentRepository;
-import com.palja.payment_service.domain.vo.PaymentMethod;
 import com.palja.payment_service.domain.vo.PaymentStatus;
 import com.palja.payment_service.exception.PaymentErrorCode;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +39,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,18 +50,24 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentLogRepository paymentLogRepository;
+    private final PaymentOutboxRepository paymentOutboxRepository;
+
     private final PGPaymentService pgPaymentService;
     private final PaymentValidator paymentValidator;
+
     private final OrderClient orderClient;
     private final UserClient userClient;
 
-    @Override
-    @Transactional
+    private final ObjectMapper objectMapper;
+    private final Tracer tracer;
+
     /*
       결제 생성 (PENDING 상태)
       - 결제 엔티티만 생성하고 PENDING 상태로 저장
       - Toss API 호출은 하지 않음
      */
+    @Override
+    @Transactional
     public CreatePaymentRes createPayment(CreatePaymentCommand command) {
         log.info("결제 생성 시작: orderId={}, userId={}, loginId={}, orderStatus={}, amount={}",
                 command.orderId(), command.userId(), command.loginId(), command.orderStatus(), command.amount());
@@ -90,14 +104,15 @@ public class PaymentServiceImpl implements PaymentService {
         return CreatePaymentRes.from(payment);
     }
 
-    @Override
-    @Transactional(noRollbackFor = BusinessException.class)
     /*
       결제 완료 처리
       - paymentKey를 받아서 Toss API 호출
       - Payment 상태를 APPROVED/FAILED로 업데이트
       - PaymentLog 결과는 상태에 따라 1번 저장
+      - 기존 FeignClient 호출하는 로직 제거, Outbox 적재(성공/실패 모두)
      */
+    @Override
+    @Transactional(noRollbackFor = BusinessException.class)
     public CreatePaymentRes completePayment(CompletePaymentCommand command) {
         log.info("결제 완료 처리 시작: paymentId={}, paymentKey={}, loginId={}",
                 command.paymentId(), command.paymentKey(), command.loginId());
@@ -120,7 +135,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             pgRes = pgPaymentService.requestPayment(payment);
 
-            log.info("Toss 결제 확인 응답: paymentId={}, reason={}, pgMessage={}",
+            log.info("Toss 결제 확인 응답: paymentId={}, success={}, pgMessage={}",
                     payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
         } catch (Exception e) {
             log.error("Toss 결제 확인 API 호출 실패: paymentId={}, paymentKey={}",
@@ -143,20 +158,25 @@ public class PaymentServiceImpl implements PaymentService {
                 : PaymentLog.createFailedLog(payment, pgRes);
         paymentLogRepository.save(resultLog);
 
+        if (pgRes.isSuccess()) {
+            enqueueOutboxApproved(payment, pgRes);
+        } else {
+            enqueueOutboxFailed(payment, pgRes);
+        }
+
         if (!pgRes.isSuccess()) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
 
-        orderClient.completeOrderPayment(
-                payment.getOrderId(),
-                payment.getId(),
-                payment.getAmount()
-        );
-
-        log.info("결제 생성 완료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
+        log.info("결제 완료 처리 종료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
         return CreatePaymentRes.from(payment);
     }
 
+    /*
+        결제 취소 처리
+        - Toss 취소 성공 시 payment.cancel + createCanceledLog + outbox PAYMENT_CANCELED
+        - Toss 취소 실패 시 payment 상태 APPROVED 유지 + createCancelFailedLog + outbox PAYMENT_CANCEL_FAILED
+     */
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
     public CancelPaymentRes cancelPayment(CancelPaymentCommand command) {
@@ -189,14 +209,15 @@ public class PaymentServiceImpl implements PaymentService {
             payment.cancel(command.cancelReason());
             paymentRepository.save(payment);
 
-            log.info("결제 취소 pg 실패 cancelFailedLog 저장: paymentId={}", payment.getId());
-            paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
+            paymentLogRepository.save(PaymentLog.createCanceledLog(payment, pgRes));
+            enqueueOutboxCanceled(payment, command, pgRes);
 
             log.info("결제 취소 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
             return CancelPaymentRes.from(payment);
         }
 
         paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
+        enqueueOutboxCancelFailed(payment, command, pgRes);
 
         log.warn("결제 취소 실패: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
         throw new BusinessException(PaymentErrorCode.PAYMENT_CANCEL_FAILED);
@@ -204,9 +225,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ReadPaymentDetailRes getPayment(UUID paymentId){
+    public ReadPaymentDetailRes getPayment(UUID paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(()-> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         String loginId = CurrentUser.getLoginId();
         UserRes user = userClient.getUserByLoginId(loginId);
@@ -274,5 +295,123 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String resolvePaymentKey(PGPaymentRes pgRes, Payment payment) {
         return Objects.toString(pgRes.getPaymentKey(), Objects.toString(payment.getPaymentKey(), ""));
+    }
+
+    /*
+        outbox enqueue
+     */
+    private void enqueueOutboxApproved(Payment payment, PGPaymentRes pgRes) {
+        PaymentApprovedPayload payload = PaymentApprovedPayload.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .paidAmount(payment.getAmount())
+                .paymentKey(payment.getPaymentKey())
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .approvedAt(LocalDateTime.now())
+                .build();
+
+        enqueueOutbox(payment, PaymentEventType.PAYMENT_APPROVED, payload);
+    }
+
+    private void enqueueOutboxFailed(Payment payment, PGPaymentRes pgRes) {
+        PaymentFailedPayload payload = PaymentFailedPayload.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .paymentKey(payment.getPaymentKey())
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .failedAt(LocalDateTime.now())
+                .build();
+
+        enqueueOutbox(payment, PaymentEventType.PAYMENT_FAILED, payload);
+    }
+
+    private void enqueueOutboxCanceled(Payment payment, CancelPaymentCommand command, PGPaymentRes pgRes) {
+        PaymentCanceledPayload payload = PaymentCanceledPayload.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .canceledAmount(command.cancelAmount())
+                .cancelReason(command.cancelReason())
+                .paymentKey(payment.getPaymentKey())
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .canceledAt(LocalDateTime.now())
+                .build();
+
+        enqueueOutbox(payment, PaymentEventType.PAYMENT_CANCELED, payload);
+    }
+
+    private void enqueueOutboxCancelFailed(Payment payment, CancelPaymentCommand command, PGPaymentRes pgRes) {
+        PaymentCancelFailedPayload payload = PaymentCancelFailedPayload.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .cancelReason(command.cancelReason())
+                .paymentKey(payment.getPaymentKey())
+                .pgResponseCode(pgRes.getPgResponseCode())
+                .pgResponseMessage(pgRes.getPgResponseMessage())
+                .failedAt(LocalDateTime.now())
+                .build();
+
+        enqueueOutbox(payment, PaymentEventType.PAYMENT_CANCEL_FAILED, payload);
+    }
+
+    private void enqueueOutbox(Payment payment, PaymentEventType type, Object payloadObj) {
+        try {
+            UUID eventId = UUID.randomUUID();
+
+            String payloadJson = objectMapper.writeValueAsString(payloadObj);
+
+            PaymentEventEnvelope envelope = PaymentEventEnvelope.builder()
+                    .eventId(eventId)
+                    .type(type)
+                    .occurredAt(LocalDateTime.now())
+                    .paymentId(payment.getId())
+                    .orderId(payment.getOrderId())
+                    .payloadJson(payloadJson)
+                    .build();
+
+            String envelopeJson = objectMapper.writeValueAsString(envelope);
+
+            String loginId = null;
+            UserRole userRole = null;
+
+            try {
+                loginId = CurrentUser.getLoginId();
+                userRole = CurrentUser.getRole();
+            } catch (Exception ignored) {
+            }
+
+            String traceId = null;
+            String spanId = null;
+            if (tracer != null && tracer.currentSpan() != null) {
+                traceId = tracer.currentSpan().context().traceId();
+                spanId = tracer.currentSpan().context().spanId();
+            }
+
+            paymentOutboxRepository.save(
+                    PaymentOutbox.pending(
+                            eventId,
+                            payment.getId(),
+                            payment.getOrderId(),
+                            type,
+                            envelopeJson,
+                            loginId,
+                            userRole,
+                            traceId,
+                            spanId
+                    )
+            );
+        } catch (Exception e) {
+            log.error("Outbox enqueue 실패: type={}, paymentId={}, orderId={}",
+                    type, payment.getId(), payment.getOrderId(), e);
+            throw new RuntimeException("enqueueOutbox failed. type=" + type, e);
+        }
     }
 }
