@@ -2,7 +2,7 @@ package com.palja.product_service.infrastructure.external.kafka.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.product_service.application.service.ProductService;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseTimeDealDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.TimeDealStockDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,18 +23,18 @@ public class ProductKafkaListener {
     public void handleDecreaseStockEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        StockDecreaseTimeDealDto event = test(value, StockDecreaseTimeDealDto.class);
+        TimeDealStockDto event = test(value, TimeDealStockDto.class);
 
-        productService.decreaseStockForTimeDeal(event.getProductId(), event.getStockQuantity());
+        productService.decreaseStockForTimeDeal(event.getProductId(), event.getQuantity());
     }
 
     @KafkaListener(topics = INCREASE_STOCK_TIMEDEAL)
     public void handleIncreaseStockEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        StockDecreaseTimeDealDto event = test(value, StockDecreaseTimeDealDto.class);
+        TimeDealStockDto event = test(value, TimeDealStockDto.class);
 
-        productService.increaseStockForTimeDeal(event.getProductId(), event.getStockQuantity());
+        productService.increaseStockForTimeDeal(event.getProductId(), event.getQuantity());
     }
 
     private <T> T test(Object value, Class<T> type) {
