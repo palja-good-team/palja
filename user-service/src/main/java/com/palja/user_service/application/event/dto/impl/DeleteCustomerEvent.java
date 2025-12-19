@@ -1,7 +1,5 @@
 package com.palja.user_service.application.event.dto.impl;
 
-import com.palja.user_service.application.event.dto.UserEvent;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DeleteCustomerEvent implements UserEvent {
+public class DeleteCustomerEvent {
 
 	private Long userId;
 

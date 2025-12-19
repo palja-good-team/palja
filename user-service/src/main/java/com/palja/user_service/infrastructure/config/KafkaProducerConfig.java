@@ -15,7 +15,6 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.palja.common.interceptor.KafkaProducerInterceptor;
-import com.palja.user_service.application.event.dto.UserEvent;
 
 import io.micrometer.tracing.Tracer;
 
@@ -30,12 +29,12 @@ public class KafkaProducerConfig {
 	}
 
 	@Bean
-	public KafkaProducerInterceptor<UserEvent> kafkaEventProducerInterceptor(Tracer tracer) {
+	public KafkaProducerInterceptor<Object> kafkaEventProducerInterceptor(Tracer tracer) {
 		return new KafkaProducerInterceptor<>(tracer);
 	}
 
 	@Bean
-	public ProducerFactory<String, UserEvent> producerFactory() {
+	public ProducerFactory<String, Object> producerFactory() {
 		Map<String, Object> config = new HashMap<>();
 		config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
 		config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -45,8 +44,8 @@ public class KafkaProducerConfig {
 	}
 
 	@Bean
-	public KafkaTemplate<String, UserEvent> userEventKafkaTemplate(KafkaProducerInterceptor<UserEvent> kafkaProducerInterceptor) {
-		KafkaTemplate<String, UserEvent> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+	public KafkaTemplate<String, Object> userEventKafkaTemplate(KafkaProducerInterceptor<Object> kafkaProducerInterceptor) {
+		KafkaTemplate<String, Object> kafkaTemplate = new KafkaTemplate<>(producerFactory());
 		kafkaTemplate.setProducerInterceptor(kafkaProducerInterceptor);
 
 		return kafkaTemplate;
