@@ -128,7 +128,7 @@ public class ProductServiceImpl implements ProductService {
                 updateCommand.description(),
                 updateCommand.price(),
                 optionalCategory.get());
-        Long afterPrice = product.getPrice().getAmount();
+        Long afterPrice = updateProduct.getPrice().getAmount();
 
         if(!beforePrice.equals(afterPrice)) {
             applicationEventPublisher.publishEvent(ChangePriceEvent.create(productId, afterPrice));
