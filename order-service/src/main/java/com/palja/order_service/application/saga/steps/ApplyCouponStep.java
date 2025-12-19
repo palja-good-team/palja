@@ -1,84 +1,104 @@
 package com.palja.order_service.application.saga.steps;
 
-import com.palja.common.exception.BusinessException;
-import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.CouponClient;
+import com.palja.order_service.application.dto.event.request.CouponCancelEventReq;
+import com.palja.order_service.application.dto.event.request.CouponUseEventReq;
+import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.application.saga.SagaStep;
+import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.application.saga.model.OrderSagaStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/**
+ * Step 2: 쿠폰 적용
+ *
+ * 정방향: 쿠폰 사용 요청 이벤트 발행
+ * 보상: 쿠폰 취소 요청 이벤트 발행
+ */
 @Slf4j
 @org.springframework.core.annotation.Order(2)
 @Component
 @RequiredArgsConstructor
 public class ApplyCouponStep implements SagaStep {
 
-    private final CouponClient couponClient;
-
-    @Override public String name() { return "쿠폰사용"; }
-    @Override public OrderSagaStep successStep() { return OrderSagaStep.COUPON_APPLIED; }
+    private final OrderEventPublisher eventPublisher;
 
     @Override
-    public void execute(Order order) {
-        UUID orderId = order.getOrderId();
+    public String getName() {
+        return "쿠폰적용";
+    }
+
+    @Override
+    public void execute(OrderSaga saga, Order order) {
         UUID couponUserId = order.getCouponUserId();
 
+        // 쿠폰이 없으면 스킵
         if (couponUserId == null) {
-            log.info("[SAGA][{}][SUCCESS] orderId={}, action=skip, reason=쿠폰없음",
-                    name(), orderId);
-            return; // 쿠폰 없으면 성공 처리(다음 step 진행)
+            log.info("[SAGA][ORDER][COUPON_USE][SKIP] sagaId={} orderId={} reason=NO_COUPON",
+                    saga.getSagaId(), order.getOrderId());
+            return;
         }
 
-        log.debug("[SAGA][{}][EXECUTE] orderId={}, couponUserId={}", name(), orderId, couponUserId);
+        log.info("[SAGA][ORDER][COUPON_USE][READY] sagaId={} orderId={} couponUserId={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId);
 
-        long start = System.nanoTime();
+        // 쿠폰 사용 요청 이벤트 발행
+        CouponUseEventReq event = CouponUseEventReq.of(
+                saga.getSagaId(),
+                order.getOrderId(),
+                couponUserId,
+                order.getOrderAmount().getCouponDiscountAmount()
+        );
+
         try {
-            couponClient.useCoupon(
-                    couponUserId,
-                    orderId,
-                    order.getOrderAmount().getCouponDiscountAmount()
-            );
+            // Kafka 발행: Kafka Producer가 메시지 전송
+            eventPublisher.publishCouponUse(event);
 
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
-            log.info("[SAGA][{}][SUCCESS] action=use, orderId={}, couponUserId={}, elapsedMs={}",
-                    name(), orderId, couponUserId, elapsedMs);
+            // Producer에서 [KAFKA][ORDER][COUPON_USE][PUBLISHED] 찍고 있음
+            // "사가 단계가 발행 요청을 완료했다" 정도만 남김
+            log.info("[SAGA][ORDER][COUPON_USE][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
 
         } catch (Exception e) {
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
-            log.error("[SAGA][{}][ERROR] action=use, orderId={}, couponUserId={}, elapsedMs={}, msg={}",
-                    name(), orderId, couponUserId, elapsedMs, e.getMessage(), e);
-            throw new BusinessException(OrderErrorCode.COUPON_APPLICATION_FAILED);
+            // Kafka 전송 실패 (네트워크 오류 등)
+            log.error("[SAGA][ORDER][COUPON_USE][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
+            throw e;
         }
     }
 
     @Override
-    public void compensate(Order order) {
-        UUID orderId = order.getOrderId();
+    public void compensate(OrderSaga saga, Order order) {
         UUID couponUserId = order.getCouponUserId();
 
-        if (couponUserId == null) return;
+        // 쿠폰이 없으면 보상도 없음
+        if (couponUserId == null) {
+            return;
+        }
 
-        log.warn("[SAGA][{}][COMPENSATE-START] orderId={}, couponUserId={}",
-                name(), orderId, couponUserId);
+        log.warn("[SAGA][ORDER][COUPON_CANCEL][START] sagaId={} orderId={} couponUserId={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId);
 
-        long start = System.nanoTime();
+        // 쿠폰 취소 요청 이벤트 발행
+        CouponCancelEventReq event = CouponCancelEventReq.of(
+                saga.getSagaId(),
+                order.getOrderId(),
+                couponUserId
+        );
+
         try {
-            couponClient.cancelCoupon(couponUserId, orderId);
+            eventPublisher.publishCouponCancel(event);
 
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
-            log.info("[SAGA][{}][COMPENSATE-SUCCESS] action=cancel, orderId={}, couponUserId={}, elapsedMs={}",
-                    name(), orderId, couponUserId, elapsedMs);
+            log.info("[SAGA][ORDER][COUPON_CANCEL][PUBLISHED] sagaId={} orderId={}",
+                    saga.getSagaId(), order.getOrderId());
 
         } catch (Exception e) {
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
-            log.error("[SAGA][{}][COMPENSATE-FAIL] action=cancel, orderId={}, couponUserId={}, elapsedMs={}, msg={}",
-                    name(), orderId, couponUserId, elapsedMs, e.getMessage(), e);
-            throw e; // Orchestrator가 Best Effort로 삼킴
+            // 보상은 Best Effort: 실패해도 계속 진행
+            log.error("[SAGA][ORDER][COUPON_CANCEL][FAILED] sagaId={} orderId={} reason={}",
+                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
     }
 }

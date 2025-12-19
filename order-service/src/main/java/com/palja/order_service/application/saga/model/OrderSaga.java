@@ -2,38 +2,55 @@ package com.palja.order_service.application.saga.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * OrderSaga 엔티티
+ * - orderId만 참조 (단방향)
+ * - Saga의 생명주기를 관리
+ */
 @Getter
 @Entity
 @Table(name = "p_order_saga")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class OrderSaga {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "order_saga_id", nullable = false, updatable = false)
+    @Column(name = "saga_id")
     private UUID sagaId;
 
-    @Column(name = "order_id", nullable = false, updatable = false, unique = true)
+    @Column(name = "order_id", nullable = false, unique = true, updatable = false)
     private UUID orderId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "saga_status", nullable = false)
-    private OrderSagaStatus sagaStatus;
+    @Column(name = "status", nullable = false, length = 20)
+    private OrderSagaStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "saga_step", nullable = false)
-    private OrderSagaStep sagaStep;
+    @Column(name = "current_step", nullable = false, length = 30)
+    private OrderSagaStep currentStep;
 
-    @Column(name = "saga_fail_reason", length = 255)
-    private String sagaFailReason;
+    @Column(name = "failure_reason", length = 500)
+    private String failureReason;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @Version
-    @Column(name = "version")
     private Long version;
 
     public static OrderSaga create(UUID orderId) {
@@ -43,87 +60,84 @@ public class OrderSaga {
 
         return OrderSaga.builder()
                 .orderId(orderId)
-                .sagaStatus(OrderSagaStatus.PROCESSING)
-                .sagaStep(OrderSagaStep.STARTED)
+                .status (OrderSagaStatus.STARTED)
+                .currentStep(OrderSagaStep.STARTED)
                 .build();
     }
 
-    /**
-     * Saga Step 전이 (전이 규칙 강제)
-     */
-    public void markStep(OrderSagaStep nextStep) {
-        validateTransition(nextStep);
-        this.sagaStep = nextStep;
+    // 다음 단계로 진행
+    public void proceedToNextStep(OrderSagaStep nextStep) {
+        validateNotTerminated();
+        validateStepTransition(nextStep);
+
+        this.currentStep = nextStep;
     }
 
-    /**
-     * Saga 완료 처리
-     */
+    // Saga 완료 처리
     public void complete() {
-        ensureNotTerminal();
+        validateNotTerminated();
 
-        this.sagaStatus = OrderSagaStatus.COMPLETED;
-        this.sagaStep = OrderSagaStep.COMPLETED;
-        this.sagaFailReason = null;
+        this.status = OrderSagaStatus.COMPLETED;
+        this.currentStep = OrderSagaStep.COMPLETED;
     }
 
-    /**
-     * Saga 실패 처리
-     */
+    // Saga 실패 처리
     public void fail(String reason) {
-        ensureNotTerminal();
+        validateNotTerminated();
 
-        this.sagaStatus = OrderSagaStatus.FAILED;
-        this.sagaStep = OrderSagaStep.FAILED;
-        this.sagaFailReason = (reason == null || reason.isBlank())
+        this.status = OrderSagaStatus.FAILED;
+        this.currentStep = OrderSagaStep.FAILED;
+        this.failureReason = (reason == null || reason.isBlank())
                 ? "Saga 처리 중 오류가 발생했습니다."
                 : reason;
     }
 
-    /**
-     * Saga 종료 여부
-     */
-    public boolean isTerminal() {
-        return this.sagaStep.isTerminal();
+    // 보상 중 상태로 변경
+    public void startCompensation() {
+        validateNotTerminated();
+        this.status = OrderSagaStatus.COMPENSATING;
     }
 
-    /**
-     * 현재 Step 조회 (Order에서 getSagaStep() 하던 것 대체)
-     */
-    public OrderSagaStep currentStep() {
-        return this.sagaStep;
+    // Saga 종료 여부
+    public boolean isTerminated() {
+        return currentStep.isTerminal();
     }
 
-    /* =========================
-     * Validation
-     * ========================= */
+    public boolean isInProgress() {
+        return status == OrderSagaStatus.STARTED || status == OrderSagaStatus.COMPENSATING;
+    }
 
-    private void validateTransition(OrderSagaStep next) {
-        if (next == null) {
+    public boolean hasReachedStep(OrderSagaStep step) {
+        return this.currentStep.isAtLeast(step);
+    }
+
+    // ===== Validation =====
+
+    private void validateNotTerminated() {
+        if (isTerminated()) {
+            throw new IllegalStateException(
+                    String.format("이미 종료된 Saga입니다. sagaId=%s, status=%s", sagaId, status)
+            );
+        }
+    }
+
+    private void validateStepTransition(OrderSagaStep nextStep) {
+        if (nextStep == null) {
             throw new IllegalArgumentException("다음 Saga 단계는 필수입니다.");
         }
 
-        ensureNotTerminal();
+        // 종료된 Saga는 더 이상 진행 불가
+        validateNotTerminated();
 
-        // 동일 step 재설정 방지 (중복 호출이면 버그로 보고 막는다)
-        if (this.sagaStep == next) {
-            throw new IllegalStateException(
-                    String.format("Saga 단계가 이미 %s 입니다.", this.sagaStep)
-            );
+        // 동일 step이면 멱등 처리 (이미 처리됨 → 정상 종료)
+        if (this.currentStep == nextStep) {
+            return;
         }
 
         // 도메인 전이 규칙
-        if (!this.sagaStep.canTransitionTo(next)) {
+        if (!this.currentStep.canTransitionTo(nextStep)) {
             throw new IllegalStateException(
-                    String.format("허용되지 않은 Saga 단계 전이입니다. (%s → %s)", this.sagaStep, next)
-            );
-        }
-    }
-
-    private void ensureNotTerminal() {
-        if (isTerminal()) {
-            throw new IllegalStateException(
-                    String.format("이미 종료된 Saga 입니다. (status=%s, step=%s)", this.sagaStatus, this.sagaStep)
+                    String.format("허용되지 않은 Saga 단계 전이입니다. (%s → %s)", this.currentStep, nextStep)
             );
         }
     }
