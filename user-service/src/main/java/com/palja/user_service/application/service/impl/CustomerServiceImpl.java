@@ -2,6 +2,7 @@ package com.palja.user_service.application.service.impl;
 
 import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,9 +18,9 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
+import com.palja.user_service.application.event.dto.impl.DeleteCustomerEventReq;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
-import com.palja.user_service.application.port.ReviewClient;
 import com.palja.user_service.application.service.CustomerService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
@@ -35,7 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
 
-	private final ReviewClient reviewClient;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
@@ -117,7 +118,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 		User user = getCustomerByLoginId(loginId);
 		user.softDelete();
-		reviewClient.deleteAllReviews(user.getId());
+
+		applicationEventPublisher.publishEvent(DeleteCustomerEventReq.from(user.getId()));
 	}
 
 	@Override
@@ -127,7 +129,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 		User user = getCustomerByLoginId(currentUserLoginId);
 		user.softDelete();
-		reviewClient.deleteAllReviews(user.getId());
+
+		applicationEventPublisher.publishEvent(DeleteCustomerEventReq.from(user.getId()));
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
