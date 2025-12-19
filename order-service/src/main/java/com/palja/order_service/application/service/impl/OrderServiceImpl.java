@@ -239,7 +239,7 @@ public class OrderServiceImpl implements OrderService {
      * - 결제 생성 완료 후 호출
      * - 별도 트랜잭션으로 실행 (AFTER_COMMIT 이벤트에서 호출)
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void registerPayment(UUID orderId, UUID paymentId) {
         log.info("주문 결제 ID 등록 시작: orderId={}, paymentId={}", orderId, paymentId);
 
