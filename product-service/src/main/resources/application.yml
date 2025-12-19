@@ -13,3 +13,4 @@ spring:
       - redis
       - swagger
       - monitor
+      - kafka

@@ -9,6 +9,7 @@ import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
 import com.palja.product_service.application.event.ChangePriceEvent;
+import com.palja.product_service.application.event.DecreaseStockErrorEvent;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -215,6 +216,9 @@ public class ProductServiceImpl implements ProductService {
         boolean result = repository.adjustStock(
                 productId.toString(), product.getProductStock().getQuantity());
         validateRedisOperation(result);
+
+        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
+                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
 
         return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
     }
