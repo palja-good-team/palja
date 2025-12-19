@@ -1,7 +1,5 @@
 package com.palja.user_service.application.event.dto.impl;
 
-import java.util.UUID;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,12 +10,12 @@ import lombok.NoArgsConstructor;
 @Builder(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DeleteCompanyUserEvent {
+public class DeleteCustomerEventReq {
 
-	private UUID companyUserId;
+	private Long userId;
 
-	public static DeleteCompanyUserEvent from(UUID companyUserId) {
-		return DeleteCompanyUserEvent.builder().companyUserId(companyUserId).build();
+	public static DeleteCustomerEventReq from(Long userId) {
+		return DeleteCustomerEventReq.builder().userId(userId).build();
 	}
 
 }

@@ -18,7 +18,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCustomerDetailRes;
 import com.palja.user_service.application.dto.response.ReadCustomerSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCustomerDetailRes;
-import com.palja.user_service.application.event.dto.impl.DeleteCustomerEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCustomerEventReq;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CustomerService;
@@ -119,7 +119,7 @@ public class CustomerServiceImpl implements CustomerService {
 		User user = getCustomerByLoginId(loginId);
 		user.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCustomerEvent.from(user.getId()));
+		applicationEventPublisher.publishEvent(DeleteCustomerEventReq.from(user.getId()));
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class CustomerServiceImpl implements CustomerService {
 		User user = getCustomerByLoginId(currentUserLoginId);
 		user.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCustomerEvent.from(user.getId()));
+		applicationEventPublisher.publishEvent(DeleteCustomerEventReq.from(user.getId()));
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);

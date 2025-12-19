@@ -8,8 +8,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEvent;
-import com.palja.user_service.application.event.dto.impl.DeleteCustomerEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEventReq;
+import com.palja.user_service.application.event.dto.impl.DeleteCustomerEventReq;
 import com.palja.user_service.application.event.publisher.UserEventPublisher;
 
 import lombok.RequiredArgsConstructor;
@@ -37,12 +37,12 @@ public class UserKafkaProducer implements UserEventPublisher {
 	}
 
 	@Override
-	public void publishCustomerDeleteEvent(DeleteCustomerEvent event) {
+	public void publishCustomerDeleteEvent(DeleteCustomerEventReq event) {
 		publish(CUSTOMER_DELETE_REQUEST_TOPIC, event);
 	}
 
 	@Override
-	public void publishCompanyUserDeleteEvent(DeleteCompanyUserEvent event) {
+	public void publishCompanyUserDeleteEvent(DeleteCompanyUserEventReq event) {
 		publish(COMPANY_USER_DELETE_REQUEST_TOPIC, event);
 	}
 

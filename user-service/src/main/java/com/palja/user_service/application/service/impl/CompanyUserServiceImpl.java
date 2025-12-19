@@ -21,7 +21,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
-import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEvent;
+import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEventReq;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
@@ -137,7 +137,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCompanyUserEvent.from(companyUser.getId()));
+		applicationEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
 	}
 
 	@Override
@@ -148,7 +148,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCompanyUserEvent.from(companyUser.getId()));
+		applicationEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
