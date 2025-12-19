@@ -4,14 +4,22 @@ spring:
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      retries: 2147483647
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         acks: all
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
         compression.type: snappy
+        spring.json.add.type.headers: false
 
 app:
   outbox:
     publish-interval-ms: 30000
+
+payment:
+  saga:
+    consumer:
+      group-id: payment-service-saga
+      auto-offset-reset: earliest
+      max-retries: 3
+      retry-interval-ms: 1000
