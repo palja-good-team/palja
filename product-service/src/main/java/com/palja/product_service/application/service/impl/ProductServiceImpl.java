@@ -164,6 +164,9 @@ public class ProductServiceImpl implements ProductService {
         Product product = repository.findByIdFetchStockWithLock(productId, quantity);
         product.decreaseStock(quantity);
 
+        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
+                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
+
         return new SaleProductRes(productId, Boolean.TRUE);
     }
 
@@ -177,6 +180,9 @@ public class ProductServiceImpl implements ProductService {
                 productId.toString(), stock.getQuantity(), quantity);
         validateRedisOperation(result);
 
+        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
+                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
+
         return new SaleProductRes(productId, Boolean.TRUE);
     }
 
@@ -187,6 +193,9 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = repository.findByIdFetchStockWithLock(productId, quantity);
         product.increaseStock(quantity);
+
+        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
+                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
 
         return new RestoreStockRes(productId, Boolean.TRUE);
     }
@@ -201,6 +210,9 @@ public class ProductServiceImpl implements ProductService {
         boolean result = repository.adjustStock(
                 productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
+
+        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
+                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
 
         return new RestoreStockRes(productId, Boolean.TRUE);
     }

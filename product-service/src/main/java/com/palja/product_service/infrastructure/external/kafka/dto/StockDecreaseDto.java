@@ -10,9 +10,12 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TimeDealStockDto {
+public class StockDecreaseDto {
 
+    private UUID sagaId;
+    private UUID orderId;
     private UUID timeDealId;
+    private Boolean isTimeDeal;
     private UUID productId;
     private Long quantity;
 }
