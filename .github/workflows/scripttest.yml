@@ -62,8 +62,6 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name:
-
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
