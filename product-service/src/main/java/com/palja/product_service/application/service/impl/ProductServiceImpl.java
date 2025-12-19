@@ -219,39 +219,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId,
-                                                                Long quantity) {
-
-        Product product = repository.findProduct(productId);
-        product.decreaseStock(quantity);
-
-        boolean result = repository.adjustStock(
-                productId.toString(), product.getProductStock().getQuantity());
-        validateRedisOperation(result);
-
-        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
-                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
-
-        return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    @Transactional
-    public IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId,
-                                                                Long quantity) {
-
-        Product product = repository.findProduct(productId);
-        product.increaseStock(quantity);
-
-        boolean result = repository.adjustStock(
-                productId.toString(), product.getProductStock().getQuantity());
-        validateRedisOperation(result);
-
-        return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    @Transactional
     public void deleteProduct(UUID productId) {
 
         Product product = repository.findProduct(productId);

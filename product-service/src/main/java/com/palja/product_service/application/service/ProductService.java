@@ -33,10 +33,6 @@ public interface ProductService {
 
     RestoreStockRes stockRestore(UUID productId, Long quantity);
 
-    DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId, Long quantity);
-
-    IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId, Long quantity);
-
     void deleteProduct(UUID productId);
 
     void deleteProductForUser(UUID companyUserId);
