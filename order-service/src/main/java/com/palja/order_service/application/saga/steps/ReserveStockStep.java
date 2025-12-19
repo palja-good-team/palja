@@ -89,9 +89,9 @@ public class ReserveStockStep implements SagaStep {
                 saga.getSagaId(),
                 order.getOrderId(),
                 item.getProductId(),
-                item.getTimeDealId(),
+                timeDealId,
                 item.getQuantity(),
-                order.isTimeDealOrder()
+                isTimeDeal
         );
 
         try {
