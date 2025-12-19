@@ -6,18 +6,19 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
-import com.palja.order_service.application.dto.event.OrderCreatedEvent;
+import com.palja.order_service.application.dto.event.request.SagaStartEventReq;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.*;
+import com.palja.order_service.application.port.client.*;
+import com.palja.order_service.application.port.kafka.OrderEventPublisher;
+import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
-import com.palja.order_service.application.service.publisher.OrderSagaEventPublisher;
+import com.palja.order_service.application.service.publisher.OrderInternalEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
-import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
 import com.palja.order_service.domain.vo.OrderStatus;
@@ -25,7 +26,6 @@ import com.palja.order_service.domain.vo.Recipient;
 import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -51,14 +51,16 @@ public class OrderServiceImpl implements OrderService {
     private final TimeDealClient timeDealClient;
     private final CouponClient couponClient;
     private final UserClient userClient;
-    private final PaymentClient paymentClient;
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
-
-    private final ApplicationEventPublisher eventPublisher;
-    private final OrderSagaEventPublisher sagaEventPublisher;
+    private final OrderEventPublisher orderEventPublisher;
     private final OrderSagaService orderSagaService;
+
+    // Spring Event
+    private final OrderInternalEventPublisher internalEventPublisher;
+
+    public static final String SAGA = "SYSTEM_SAGA";
 
     // ====== Order Creation Workflow ======
     /**
@@ -70,7 +72,6 @@ public class OrderServiceImpl implements OrderService {
      * - 외부 시스템 처리 (재고, 쿠폰, 결제 생성)
      * - 영속화
      */
-    // TODO: Kafka Event 기반 비동기 처리 및 Saga 패턴 적용
     @Transactional
     public OrderCreateRes createOrder(CreateOrderCommand command) {
         log.info("주문 생성 시작: loginId={}, productId={}, quantity={}",
@@ -88,13 +89,15 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("주문 생성 완료: orderId={}, status={}", order.getOrderId(), order.getStatus());
 
-        // SAGA 초기화
-        OrderSaga saga = orderSagaService.findOrCreate(order.getOrderId());
+        // OrderSaga 생성
+        OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
 
-        // TODO: Kafka Event 발행으로 전환
-        // SAGA 트리거 (AFTER_COMMIT + @Async)
-        // 커밋 이후(AFTER_COMMIT) Saga Orchestrator가 처리하도록 이벤트 발행
-        sagaEventPublisher.publishOrderCreated(order.getOrderId());
+        // Saga 시작 이벤트 발행 (비동기 시작점)
+        // publishOrderCreatedSagaEvent(order.getOrderId(), saga.getSagaId());
+
+        // Spring ApplicationEvent 발행
+        // 실제 Kafka 발행은 트랜잭션 커밋 후 처리
+        internalEventPublisher.publishOrderCreated(order.getOrderId(), saga.getSagaId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
                 order.getOrderId(), order.getStatus(), order.getOrderAmount().getFinalAmount());
@@ -222,29 +225,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 주문 생성 이벤트 발행
-     * - 트랜잭션이 커밋된 후 리스너가 실행됨
-     */
-    private void publishOrderCreatedEventV1(Order order) {
-        OrderCreatedEvent event = OrderCreatedEvent.from(order);
-        eventPublisher.publishEvent(event);
-        log.debug("주문 생성 이벤트 발행 완료: orderId={}", order.getOrderId());
-    }
-
-    /**
      * 주문에 결제 ID 등록
      * - 결제 생성 완료 후 호출
      * - 별도 트랜잭션으로 실행 (AFTER_COMMIT 이벤트에서 호출)
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void registerPaymentId(UUID orderId, UUID paymentId) {
+    @Transactional
+    public void registerPayment(UUID orderId, UUID paymentId) {
         log.info("주문 결제 ID 등록 시작: orderId={}, paymentId={}", orderId, paymentId);
 
         Order order = findByOrderIdAndDeletedAtIsNull(orderId);
-
         order.registerPaymentId(paymentId);
+        orderRepository.save(order);
 
         log.info("주문 결제 ID 등록 완료: orderId={}, paymentId={}", orderId, paymentId);
+    }
+
+    // 주문 저장
+    @Transactional
+    public void save(Order order) {
+        orderRepository.save(order);
     }
 
     // ====== Order Cancellation Workflow ======
@@ -253,9 +252,8 @@ public class OrderServiceImpl implements OrderService {
      * - 주문 조회 및 권한 검증
      * - 취소 가능 상태 검증 (도메인)
      * - 주문 취소 처리 (도메인)
-     * - 보상 트랜잭션 (환불, 재고, 쿠폰)
+     * - 트랜잭션 커밋 후 보상 이벤트 발행 (환불, 재고, 쿠폰)
      */
-    // TODO: Kafka Event 기반 비동기 처리 및 자동 보상 트랜잭션
     @Transactional
     public OrderCancelRes cancelOrder(CancelOrderCommand command) {
         log.info("주문 취소 시작: orderId={}, requestedBy={}",
@@ -272,93 +270,46 @@ public class OrderServiceImpl implements OrderService {
                 authContext.productSellerId()
         );
 
+        // 도메인 로직: 주문 취소
         order.cancel(command.cancelReason(), command.CurrentUserLoginId());
-
-        // TODO: Kafka Event 발행으로 전환
-        processOrderCancellationExternalEvents(order, command.cancelReason());
-
         orderRepository.save(order);
+
+        // 트랜잭션 커밋 후 보상 이벤트 발행
+        internalEventPublisher.publishOrderCanceled(order);
+
         log.info("주문 취소 완료: orderId={}", command.orderId());
 
         return OrderCancelRes.from(order);
     }
 
-    // 주문 취소
-    private void processOrderCancellationExternalEvents(Order order, String cancelReason) {
-        // TODO: 이벤트 발행으로 대체
-        refundPayment(order, cancelReason);
-        restoreInventory(order);
-        restoreCoupon(order);
-    }
-
-    // 결제 환불
-    // TODO: 이벤트 기반 처리
-    private void refundPayment(Order order, String cancelReason) {
-        if (order.getPaymentId() == null) {
-            log.debug("환불할 결제 정보 없음: orderId={}", order.getOrderId());
-            return;
-        }
-
-        try {
-            paymentClient.cancelPayment(order.getOrderId(), order.getPaymentId(), order.getOrderAmount().getFinalAmount(), cancelReason);
-            log.info("결제 환불 완료: paymentId={}, amount={}",
-                    order.getPaymentId(), order.getOrderAmount().getFinalAmount());
-        } catch (Exception e) {
-            log.error("결제 환불 실패: orderId={}, paymentId={}",
-                    order.getOrderId(), order.getPaymentId(), e);
-            // TODO: 결제 환불 실패 (보상 트랜잭션 처리)
-            throw new BusinessException(OrderErrorCode.REFUND_FAILED);
-        }
-    }
-
+    // ====== Order Cancellation By Saga Workflow ======
     /**
-     * 재고 복구
-     * - 타임딜 주문: 타임딜 재고만 복구
-     * - 일반 주문: 상품 재고만 복구
+     * Saga 실패로 인한 주문 취소 확정
+     * - 외부 보상은 이미 수행되었으므로 이벤트 발행 X
+     * - 주문 상태만 최종 CANCELED 로 확정
      */
-    // TODO: 이벤트 기반 처리
-    private void restoreInventory(Order order) {
-        UUID productId = order.getOrderItem().getProductId();
-        Long quantity = order.getOrderItem().getQuantity();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void cancelOrderBySaga(UUID orderId, String reason) {
+        log.info("[SAGA][ORDER][CANCEL][START] orderId={}, reason={}", orderId, reason);
 
-        try {
-            if (order.isTimeDealOrder()) {
-                // 타임딜 재고만 복구
-                UUID timeDealId = order.getOrderItem().getTimeDealId();
-                timeDealClient.restoreTimeDealStock(timeDealId, quantity);
-                log.info("타임딜 재고 복구 완료: timeDealId={}, quantity={}",
-                        timeDealId, quantity);
-            } else {
-                // 일반 상품 재고만 복구
-                productClient.restoreProductStock(productId, quantity);
-                log.info("상품 재고 복구 완료: productId={}, quantity={}",
-                        productId, quantity);
-            }
-        } catch (Exception e) {
-            log.error("재고 복구 실패: orderId={}, productId={}, isTimeDeal={}",
-                    order.getOrderId(), productId, order.isTimeDealOrder(), e);
-            // TODO: 재고 복구 실패 (보상 트랜젝션 처리)
-            throw new BusinessException(OrderErrorCode.INVENTORY_RESTORE_FAILED);
+        Order order = findByOrderIdAndDeletedAtIsNull(orderId);
+
+        // 멱등성: 이미 취소/종료 상태면 스킵
+        if (order.getStatus().isCanceled()) {
+            log.warn("[SAGA][[ORDER][CANCEL][ALREADY_CANCELED] orderId={}", orderId);
+            return;
         }
-    }
-
-    // 쿠폰 복구
-    // TODO: 이벤트 기반 처리
-    private void restoreCoupon(Order order) {
-        if (order.getCouponUserId() == null) {
+        if (order.getStatus().isFinalState()) {
+            log.warn("[SAGA][ORDER][CANCEL][SKIP_TERMINAL] orderId={}, status={}",
+                    orderId, order.getStatus());
             return;
         }
 
-        try {
-            couponClient.cancelCoupon(order.getCouponUserId(), order.getOrderId());
-            log.info("쿠폰 복구 완료: couponUserId={}, orderId={}",
-                    order.getCouponUserId(), order.getOrderId());
-        } catch (Exception e) {
-            log.error("쿠폰 복구 실패: orderId={}, couponUserId={}",
-                    order.getOrderId(), order.getCouponUserId(), e);
-            // TODO: 쿠폰 복구 실패 (보상 트랜젝션 처리)
-            throw new BusinessException(OrderErrorCode.COUPON_RESTORE_FAILED);
-        }
+        // 주문 상태 변경
+        order.cancel(reason, SAGA);
+        orderRepository.save(order);
+
+        log.info("[SAGA][ORDER][CANCEL][COMPLETED] orderId={}", orderId);
     }
 
     // ====== Order Read Workflow ======

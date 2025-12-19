@@ -13,4 +13,6 @@ public interface OrderSagaRepository {
 
     // 주문 ID로 Saga 조회
     Optional<OrderSaga> findByOrderId(UUID orderId);
+
+    Optional<OrderSaga> findBySagaId(UUID sagaId);
 }

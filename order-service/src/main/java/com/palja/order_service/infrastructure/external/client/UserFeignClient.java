@@ -1,0 +1,25 @@
+package com.palja.order_service.infrastructure.external.client;
+
+import com.palja.common.response.ApiResponse;
+import com.palja.order_service.infrastructure.external.client.dto.response.CompanyUserDTO;
+import com.palja.order_service.infrastructure.external.client.dto.response.CustomerUserDTO;
+import com.palja.order_service.infrastructure.external.client.dto.response.ManagerUserDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@FeignClient(name = "user-service", path = "/api/v1")
+public interface UserFeignClient {
+
+    // customer: 회원 단건 조회 (본인)
+    @GetMapping("/customers/me")
+    ApiResponse<CustomerUserDTO> getMyCustomer();
+
+    // company-user: 회원 단건 조회 (본인)
+    @GetMapping("/company-users/me")
+    ApiResponse<CompanyUserDTO> getMyCompanyUser();
+
+    // manager: 회원 단건 조회 (본인)
+    @GetMapping("/managers/me")
+    ApiResponse<ManagerUserDTO> getMyManager();
+
+}

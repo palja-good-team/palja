@@ -1,12 +1,13 @@
 package com.palja.coupon_service.domain.repository;
 
+import com.palja.coupon_service.domain.vo.IssuePeriod;
 import org.redisson.api.RLock;
 
 import java.util.UUID;
 
 public interface RedisRepository {
 
-    void initIssuedCount(UUID couponId, Integer issuedQuantity);
+    void initIssuedCount(UUID couponId, Integer issuedQuantity, IssuePeriod issuePeriod);
 
     void issued(UUID couponId, String userId);
 

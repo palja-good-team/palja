@@ -18,4 +18,6 @@ public interface CouponRepository {
     void delete(Coupon coupon);
 
     boolean existsByNameAndDeletedAtIsNull(String couponName);
+
+    void increaseIssuedQuantity(UUID id);
 }

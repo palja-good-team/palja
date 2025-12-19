@@ -12,3 +12,4 @@ spring:
       - swagger
       - eureka
       - monitor
+      - kafka

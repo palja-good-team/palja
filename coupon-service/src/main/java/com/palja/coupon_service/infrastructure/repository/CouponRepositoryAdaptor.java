@@ -40,4 +40,9 @@ public class CouponRepositoryAdaptor implements CouponRepository {
     public boolean existsByNameAndDeletedAtIsNull(String couponName) {
         return jpaCouponRepository.existsByNameAndDeletedAtIsNull(couponName);
     }
+
+    @Override
+    public void increaseIssuedQuantity(UUID id) {
+        jpaCouponRepository.increaseIssuedQuantity(id);
+    }
 }

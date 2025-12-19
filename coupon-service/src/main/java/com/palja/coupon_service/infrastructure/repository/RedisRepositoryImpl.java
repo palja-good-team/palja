@@ -1,6 +1,7 @@
 package com.palja.coupon_service.infrastructure.repository;
 
 import com.palja.coupon_service.domain.repository.RedisRepository;
+import com.palja.coupon_service.domain.vo.IssuePeriod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -9,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Slf4j
@@ -23,12 +26,13 @@ public class RedisRepositoryImpl implements RedisRepository {
     private static final String COUPON_LOCK_KEY_PREFIX = "lock:coupon:issue:";
     private static final String COUPON_ISSUED_USERS_KEY = "coupon:issued:users:";
 
-    private static final int DurationDays = 7;
+    private static final int Default_DurationDays = 90;
 
     @Override
-    public void initIssuedCount(UUID couponId, Integer issuedQuantity) {
+    public void initIssuedCount(UUID couponId, Integer issuedQuantity, IssuePeriod issuePeriod) {
         String quantityKey = COUPON_ISSUED_COUNT_KEY + couponId;
         String usersKey = COUPON_ISSUED_USERS_KEY + couponId;
+        Duration ttl = calculateDuration(issuePeriod);
 
         if (redisTemplate.hasKey(quantityKey))
             return;
@@ -36,13 +40,29 @@ public class RedisRepositoryImpl implements RedisRepository {
         redisTemplate.opsForValue().setIfAbsent(
                 quantityKey,
                 String.valueOf(issuedQuantity),
-                Duration.ofDays(DurationDays)
+                ttl
         );
 
         if (!redisTemplate.hasKey(usersKey))
-            redisTemplate.expire(usersKey, Duration.ofDays(DurationDays));
+            redisTemplate.expire(usersKey, ttl);
 
-        log.info("Redis 쿠폰 발급 카운트 초기화 - couponId: {}, quantity: {}", couponId, issuedQuantity);
+        log.info("Redis 쿠폰 발급 카운트 초기화 - couponId: {}, quantity: {}, ttl: {}", couponId, issuedQuantity, ttl);
+    }
+
+    private Duration calculateDuration(IssuePeriod issuePeriod) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endAt = issuePeriod.getIssueEndAt();
+
+        if (endAt == null)
+            return Duration.ofDays(Default_DurationDays);
+
+        long duration = ChronoUnit.DAYS.between(now, endAt);
+
+        // 최소 유효 시간 1시간 보장
+        if (duration <= 0)
+            return Duration.ofHours(1);
+
+        return Duration.ofDays(duration).plusDays(1);
     }
 
     @Override

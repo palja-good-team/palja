@@ -3,7 +3,7 @@ package com.palja.order_service.application.saga.config;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.steps.ApplyCouponStep;
 import com.palja.order_service.application.saga.steps.CreatePaymentStep;
-import com.palja.order_service.application.saga.steps.ReserveInventoryStep;
+import com.palja.order_service.application.saga.steps.ReserveStockStep;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,12 +14,12 @@ public class SagaConfiguration {
 
     @Bean
     public List<SagaStep> sagaSteps(
-            ReserveInventoryStep reserveInventoryStep,
+            ReserveStockStep reserveStockStep,
             ApplyCouponStep applyCouponStep,
             CreatePaymentStep createPaymentStep
     ) {
         return List.of(
-                reserveInventoryStep,
+                reserveStockStep,
                 applyCouponStep,
                 createPaymentStep
         );
