@@ -62,17 +62,6 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: set-yml
-        uses: im-open/variable-substitution@v2.1.0
-        with:
-          files: '${{ env.SERVICE }}/src/main/resources/*datasource.yml, ${{ env.SERVICE }}/src/main/resources/*security.yml'
-        env:
-          spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
-          spring.datasource.username: ${{ secrets.RDS_USERNAME }}
-          spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
-          jwt.access.secret: ${{ secrets.USER_ACCESS_SECRET_KEY }}
-          jwt.refresh.secret: ${{ secrets.USER_REFRESH_SECRET_KEY }}
-
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
