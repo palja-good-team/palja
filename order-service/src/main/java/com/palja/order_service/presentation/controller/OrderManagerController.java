@@ -1,34 +1,33 @@
 package com.palja.order_service.presentation.controller;
 
-import com.palja.common.annotation.RequiredRole;
-import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
-import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.dto.response.OrderStatusChangeRes;
-import com.palja.order_service.application.service.OrderManagerService;
 import com.palja.order_service.presentation.dto.request.OrderStatusChangeReq;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.UUID;
 
-@RestController
+@Tag(name = "Orders (Manager)", description = "주문 관리자 API")
 @RequestMapping("/api/v1/orders/manager")
-@RequiredArgsConstructor
-public class OrderManagerController {
+public interface OrderManagerController {
 
-    private final OrderManagerService orderManagerService;
-
-    // 주문 상태 변경 (관리자)
-    @PutMapping("/{orderId}/status")
-    @RequiredRole(value = {UserRole.MANAGER})
-    public ResponseEntity<ApiResponse<OrderStatusChangeRes>> changeOrderStatus(
+    @Operation(
+            summary = "주문 상태 변경(관리자)",
+            description = """
+                    관리자가 주문 상태를 변경합니다.
+                    - 권한: MANAGER
+                    """
+    )
+    ResponseEntity<ApiResponse<OrderStatusChangeRes>> changeOrderStatus(
+            @Parameter(description = "주문 ID", required = true)
             @PathVariable UUID orderId,
             @Valid @RequestBody OrderStatusChangeReq request
-    ) {
-        OrderStatusChangeRes response = orderManagerService.changeOrderStatus(request.toCommand(orderId, CurrentUser.getLoginId()));
-        return ResponseEntity.ok(ApiResponse.success(response, "주문 상태가 변경되었습니다."));
-    }
+    );
 }
