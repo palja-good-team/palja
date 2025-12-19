@@ -68,13 +68,14 @@ public class CouponServiceImpl implements CouponService {
         RLock lock = redisRepository.getLock(lockKey);
 
         try {
-            boolean locked = lock.tryLock(1, 3, TimeUnit.SECONDS);
+            boolean locked = lock.tryLock(3, 3, TimeUnit.SECONDS);
             if (!locked)
                 throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
 
-            // Redis 쿠폰 발급 카운트 초기화
-            redisRepository.initIssuedCount(coupon.getId(), coupon.getIssuedQuantity());
+            // Redis 쿠폰 키 검증
+            redisRepository.initIssuedCount(coupon.getId(), coupon.getIssuedQuantity(), coupon.getIssuePeriod());
 
+            // 중복 발급 검증
             if (redisRepository.isDuplicated(coupon.getId(), command.userId()))
                 throw new BusinessException(CouponErrorCode.DUPLICATE_COUPON_ISSUE);
 
@@ -88,28 +89,38 @@ public class CouponServiceImpl implements CouponService {
 
             redisRepository.issued(coupon.getId(), command.userId());
 
-            coupon.increaseIssuedQuantity();
+            try {
+                couponRepository.increaseIssuedQuantity(coupon.getId());
+                CouponUser couponUser = CouponUser.issue(coupon, command.userId());
+                CouponUser issuedCoupon = couponUserRepository.save(couponUser);
 
-            CouponUser couponUser = CouponUser.issue(coupon, command.userId());
+                log.info("선착순 쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
+                return CreateCouponUserRes.from(issuedCoupon);
 
-            CouponUser issuedCoupon = couponUserRepository.save(couponUser);
+            } catch (Exception e) {
+                log.error("DB 저장 실패 Redis 롤백 userId={} couponId={}", command.userId(), command.couponId());
+                redisRepository.rollbackQuantity(coupon.getId(), command.userId());
+                throw e;
+            }
 
-            log.info("선착순 쿠폰 발급 성공 issuedCouponID={}", issuedCoupon.getCoupon().getId());
-            return CreateCouponUserRes.from(issuedCoupon);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.error("락 획득 중 인터럽트 발생. userId={}, couponId={}", command.userId(), command.couponId());
             throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
         } catch (BusinessException e) {
-            log.error("선착순 쿠폰 발급 실패 userId={} couponId={}", command.userId(), command.couponId());
-            redisRepository.rollbackQuantity(coupon.getId(), command.userId());
             throw e;
         } catch (Exception e) {
             log.error("선착순 쿠폰 발급 중 예상치 못한 오류 userId={} couponId={}", command.userId(), command.couponId());
-            redisRepository.rollbackQuantity(coupon.getId(), command.userId());
             throw new BusinessException(CouponErrorCode.COUPON_ISSUE_LOCK_FAILED);
+
         } finally {
-            if (lock.isHeldByCurrentThread())
+            try {
                 lock.unlock();
+            } catch (IllegalMonitorStateException e) {
+                log.error("락 선점 해제 실패 lockKey={}", lockKey);
+            } catch (Exception e) {
+                log.error("예상치 못한 락 선점 해제 실패 lockKey={}", lockKey, e);
+            }
         }
     }
 
