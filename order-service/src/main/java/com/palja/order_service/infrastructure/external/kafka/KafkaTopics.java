@@ -23,6 +23,18 @@ public class KafkaTopics {
     public static final String PAYMENT_CREATE_SUCCESS = "order.payment.create.success";
     public static final String PAYMENT_CREATE_FAILURE = "order.payment.create.failure";
 
+    // ====== DLT Topics (자동 생성) ======
+    // 규칙: {원본토픽}.DLT
+    //
+    // 예시:
+    // - saga.start.request.DLT
+    // - order.stock.decrease.success.DLT
+    // - order.stock.decrease.failure.DLT
+    // - order.coupon.use.success.DLT
+    // - order.coupon.use.failure.DLT
+    // - order.payment.create.success.DLT
+    // - order.payment.create.failure.DLT
+
     private KafkaTopics() {
         throw new AssertionError("Cannot instantiate");
     }}

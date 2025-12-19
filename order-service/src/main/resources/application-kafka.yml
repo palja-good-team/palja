@@ -20,3 +20,8 @@ spring:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: com.palja.*
+
+    # DLQ 설정
+    listener:
+      # 메시지 처리 실패 시 자동으로 DLT(Dead Letter Topic)로 전송
+      ack-mode: record  # 메시지 하나씩 처리
