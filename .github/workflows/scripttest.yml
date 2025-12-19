@@ -63,9 +63,9 @@ jobs:
           cache: gradle
 
       - name: set-yml
-        uses: microsoft/variable-substitution@v1
+        uses: im-open/variable-substitution@v2.1.0
         with:
-          files: '$SERVICE/src/main/resources/*datasource.yml, $SERVICE/src/main/resources/*security.yml'
+          files: '$${{ env.SERVICE }}/src/main/resources/*datasource.yml, $${{ env.SERVICE }}/src/main/resources/*security.yml'
         env:
           spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
           spring.datasource.username: ${{ secrets.RDS_USERNAME }}
