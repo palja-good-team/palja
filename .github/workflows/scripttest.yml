@@ -62,6 +62,8 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name:
+
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
@@ -103,6 +105,9 @@ jobs:
             export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
             export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            export RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }}
+            export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+            export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
             
             cd palja
             docker compose pull ${{ secrets.DOCKER_USERNAME }}/${SERVICE}:latest
