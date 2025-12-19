@@ -7,5 +7,3 @@ spring:
 
   profiles:
     include:
-      - datasource
-      - zipkin
