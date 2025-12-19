@@ -110,4 +110,5 @@ jobs:
             
             cd palja
             docker compose pull ${{ secrets.DOCKER_USERNAME }}/${SERVICE}:latest
+            docker compose down ${SERVICE}
             docker compose up -d ${SERVICE}
