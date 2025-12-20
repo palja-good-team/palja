@@ -1,4 +1,4 @@
 jwt:
   access:
-    secret: ${GATEWAY_ACCESS_SECRET_KEY}
+    secret: ${ACCESS_SECRET_KEY}
     expiration: 1h

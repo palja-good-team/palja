@@ -100,7 +100,8 @@ jobs:
           script: |
             echo ${{env.SERVICE}}
             export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
-            export GATEWAY_ACCESS_SECRET_KEY=${{ secrets.GATEWAY_ACCESS_SECRET_KEY }}
+            export ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
+            export REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY }}
             export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
             export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
             export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
