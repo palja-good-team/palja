@@ -63,6 +63,7 @@ public class DslProductRepository {
                         product.avgRating
                 ))
                 .from(product)
+                .join(product.category).fetchJoin()
                 .where(nameLike(condition.getName()),
                         priceBetween(condition.getMinPrice(), condition.getMaxPrice()),
                         categoryEq(condition.getCategory()),
@@ -101,8 +102,7 @@ public class DslProductRepository {
     }
 
     private BooleanExpression categoryEq(String category) {
-//        return category != null ? product.category.eq(Category.fromString(category)) : null;
-        return null;
+        return category != null ? product.category.categoryNumber.eq(category) : null;
     }
 
     private BooleanExpression ratingBetween(BigDecimal minRating, BigDecimal maxRating) {

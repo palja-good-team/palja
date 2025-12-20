@@ -10,12 +10,12 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DecreaseStockErrorEvent {
+public class DecreaseStockTimeDealErrorEvent {
 
     private UUID productId;
     private String message;
 
-    public static DecreaseStockErrorEvent create(UUID productId, String message) {
-        return new DecreaseStockErrorEvent(productId, message);
+    public static DecreaseStockTimeDealErrorEvent create(UUID productId, String message) {
+        return new DecreaseStockTimeDealErrorEvent(productId, message);
     }
 }

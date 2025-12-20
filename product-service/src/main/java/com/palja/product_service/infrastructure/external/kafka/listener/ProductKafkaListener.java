@@ -2,7 +2,9 @@ package com.palja.product_service.infrastructure.external.kafka.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.product_service.application.service.ProductService;
-import com.palja.product_service.infrastructure.external.kafka.dto.TimeDealStockDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderEventDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseTimeDealDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -20,24 +22,38 @@ public class ProductKafkaListener {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = DECREASE_STOCK_TIMEDEAL)
-    public void handleDecreaseStockEvent(ConsumerRecord<String, Object> dto) {
+    public void handleDecreaseStockTimeDealEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        TimeDealStockDto event = test(value, TimeDealStockDto.class);
+        StockDecreaseTimeDealDto event = Deserialization(value, StockDecreaseTimeDealDto.class);
 
         productService.decreaseStockForTimeDeal(event.getProductId(), event.getQuantity());
     }
 
-    @KafkaListener(topics = INCREASE_STOCK_TIMEDEAL)
+    @KafkaListener(topics = SALE_STOCK_ORDER)
+    public void handleDecreaseStockOrderEvent(ConsumerRecord<String, Object> dto) {
+
+        String value = (String) dto.value();
+        StockDecreaseOrderEventDto event = Deserialization(value, StockDecreaseOrderEventDto.class);
+
+        if (event.getIsTimeDeal().equals(Boolean.FALSE)) {
+            productService.saleProduct(
+                    event.getSagaId(), event.getProductId(), event.getOrderId(), event.getQuantity());
+        }
+    }
+
+    @KafkaListener(topics = {INCREASE_STOCK_TIMEDEAL, RESTORE_STOCK_ORDER, ORDER_CANCEL})
     public void handleIncreaseStockEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        TimeDealStockDto event = test(value, TimeDealStockDto.class);
+        StockRestoreEventDto event = Deserialization(value, StockRestoreEventDto.class);
 
-        productService.increaseStockForTimeDeal(event.getProductId(), event.getQuantity());
+        if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(Boolean.FALSE)) {
+            productService.stockRestore(event.getProductId(), event.getQuantity());
+        }
     }
 
-    private <T> T test(Object value, Class<T> type) {
+    private <T> T Deserialization(Object value, Class<T> type) {
 
         return objectMapper.convertValue(value, type);
     }
