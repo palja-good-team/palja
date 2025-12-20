@@ -1,7 +1,10 @@
 package com.palja.payment_service.infrastructure.saga.config;
 
+import com.palja.common.interceptor.KafkaProducerInterceptor;
+import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +23,11 @@ public class SagaKafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
+    public KafkaProducerInterceptor<Object> sagaKafkaProducerInterceptor(Tracer tracer) {
+        return new KafkaProducerInterceptor<>(tracer);
+    }
+
+    @Bean
     public ProducerFactory<String, Object> sagaProducerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -30,7 +38,11 @@ public class SagaKafkaProducerConfig {
     }
 
     @Bean(name = "sagaKafkaTemplate")
-    public KafkaTemplate<String, Object> sagaKafkaTemplate() {
-        return new KafkaTemplate<>(sagaProducerFactory());
+    public KafkaTemplate<String, Object> sagaKafkaTemplate(
+            @Qualifier("sagaKafkaProducerInterceptor") KafkaProducerInterceptor<Object> interceptor
+    ) {
+        KafkaTemplate<String, Object> template = new KafkaTemplate<>(sagaProducerFactory());
+        template.setProducerInterceptor(interceptor);
+        return template;
     }
 }
