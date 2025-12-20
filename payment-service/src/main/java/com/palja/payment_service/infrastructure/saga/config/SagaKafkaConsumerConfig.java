@@ -1,6 +1,7 @@
 package com.palja.payment_service.infrastructure.saga.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palja.common.interceptor.KafkaRecordInterceptor;
 import com.palja.payment_service.infrastructure.saga.listener.PaymentSagaFailureRecoverer;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.*;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.RecordInterceptor;
@@ -50,17 +52,16 @@ public class SagaKafkaConsumerConfig {
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-
         props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
-        JsonDeserializer<Object> valueDeserializer = new JsonDeserializer<>(Object.class, objectMapper, false);
+        JsonDeserializer<Object> valueDeserializer =
+                new JsonDeserializer<>(Object.class, objectMapper, false);
         valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
         valueDeserializer.setUseTypeHeaders(false);
 
@@ -70,20 +71,21 @@ public class SagaKafkaConsumerConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> sagaKafkaListenerContainerFactory(
             ConsumerFactory<String, Object> sagaConsumerFactory,
-            DefaultErrorHandler sagaErrorHandler
+            DefaultErrorHandler sagaErrorHandler,
+            RecordInterceptor<String, Object> sagaRecordInterceptor
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+
         factory.setConsumerFactory(sagaConsumerFactory);
-
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-
         factory.setCommonErrorHandler(sagaErrorHandler);
+
+        factory.setRecordInterceptor(sagaRecordInterceptor);
+
         return factory;
     }
 
-    /*
-     재시도 후에도 실패하면 Recoverer에서 failure 응답 발행 + commit 처리
-     */
     @Bean
     public DefaultErrorHandler sagaErrorHandler(PaymentSagaFailureRecoverer recoverer) {
         FixedBackOff backOff = new FixedBackOff(retryIntervalMs, maxRetries);
@@ -100,6 +102,6 @@ public class SagaKafkaConsumerConfig {
 
     @Bean
     public RecordInterceptor<String, Object> sagaRecordInterceptor(Tracer tracer) {
-        return (record, consumer) -> record;
+        return new KafkaRecordInterceptor<>(tracer);
     }
 }

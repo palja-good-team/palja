@@ -1,6 +1,7 @@
 package com.palja.payment_service.infrastructure.saga.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.service.PaymentSagaService;
 import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCancelEventReq;
@@ -58,6 +59,8 @@ public class PaymentSagaKafkaListener {
             log.error("saga 결제 생성 요청 시스템 장애로 실패: sagaId={}, orderId={}",
                     req.getSagaId(), req.getOrderId(), e);
             throw e;
+        } finally {
+            AuditorContext.clear();
         }
     }
 
@@ -85,6 +88,8 @@ public class PaymentSagaKafkaListener {
             log.error("saga 결제 취소 요청 시스템 장애로 실패: sagaId={}, orderId={}",
                     req.getSagaId(), req.getOrderId(), e);
             throw e;
+        } finally {
+            AuditorContext.clear();
         }
     }
 }
