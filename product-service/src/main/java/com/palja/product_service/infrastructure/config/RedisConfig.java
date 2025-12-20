@@ -55,6 +55,6 @@ public class RedisConfig {
 
     @PostConstruct
     public void init() {
-        System.out.println("Redis host: " + hostName + ", port: " + port);
+        System.out.println("Redis host: " + hostName + ", port:" + port);
     }
 }
