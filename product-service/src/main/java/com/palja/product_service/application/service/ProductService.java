@@ -25,11 +25,7 @@ public interface ProductService {
 
     UpdateStockRes updateStock(UUID productId, Long stock);
 
-    SaleProductRes saleProductV1(UUID productId, Long quantity);
-
     SaleProductRes saleProduct(UUID productId, Long quantity);
-
-    RestoreStockRes stockRestoreV1(UUID productId, Long quantity);
 
     RestoreStockRes stockRestore(UUID productId, Long quantity);
 

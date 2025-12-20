@@ -38,8 +38,6 @@ public interface ProductRepository {
 
     boolean deleteStockFromRedis(String productId);
 
-    Product findByIdFetchStockWithLock(UUID productId, Long quantity);
-
     List<UUID> findAllIdsByCompanyUserId(UUID companyUserId);
 
     boolean deleteAllStockFromRedis(List<UUID> productIds);

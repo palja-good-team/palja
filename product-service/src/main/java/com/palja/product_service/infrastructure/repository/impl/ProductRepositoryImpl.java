@@ -118,15 +118,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public Product findByIdFetchStockWithLock(UUID productId,
-                                              Long quantity) {
-
-        return jpaProductRepository
-                .findByIdFetchStockWithLock(productId)
-                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
-    }
-
-    @Override
     public List<UUID> findAllIdsByCompanyUserId(UUID companyUserId) {
 
         return jpaProductRepository.findAllIdsByCompanyUserId(companyUserId);

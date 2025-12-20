@@ -157,20 +157,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional
-    public SaleProductRes saleProductV1(UUID productId,
-                                        Long quantity) {
-
-        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
-        product.decreaseStock(quantity);
-
-        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
-                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
-
-        return new SaleProductRes(productId, Boolean.TRUE);
-    }
-
-    @Override
     public SaleProductRes saleProduct(UUID productId,
                                       Long quantity) {
 
@@ -184,20 +170,6 @@ public class ProductServiceImpl implements ProductService {
                 productId,ProductErrorCode.INVALID_STOCK.getMessage()));
 
         return new SaleProductRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    @Transactional
-    public RestoreStockRes stockRestoreV1(UUID productId,
-                                          Long quantity) {
-
-        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
-        product.increaseStock(quantity);
-
-        applicationEventPublisher.publishEvent(DecreaseStockErrorEvent.create(
-                productId,ProductErrorCode.INVALID_STOCK.getMessage()));
-
-        return new RestoreStockRes(productId, Boolean.TRUE);
     }
 
     @Override

@@ -2,7 +2,8 @@ package com.palja.product_service.infrastructure.external.kafka.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.product_service.application.service.ProductService;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseEventDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,12 +24,11 @@ public class ProductKafkaListener {
     public void handleDecreaseStockEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        StockDecreaseDto event = test(value, StockDecreaseDto.class);
+        StockDecreaseEventDto event = test(value, StockDecreaseEventDto.class);
 
         // 타임딜이건 주문이건, 상품은 팔렸다고 가정.
         if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(false)) {
-            productService.saleProductV1(event.getProductId(), event.getQuantity());
-//            productService.saleProduct(event.getProductId(), event.getQuantity());
+            productService.saleProduct(event.getProductId(), event.getQuantity());
         }
     }
 
@@ -36,12 +36,10 @@ public class ProductKafkaListener {
     public void handleIncreaseStockEvent(ConsumerRecord<String, Object> dto) {
 
         String value = (String) dto.value();
-        StockDecreaseDto event = test(value, StockDecreaseDto.class);
-
+        StockRestoreEventDto event = test(value, StockRestoreEventDto.class);
 
         if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(false)) {
-            productService.stockRestoreV1(event.getProductId(), event.getQuantity());
-//            productService.stockRestore(event.getProductId(), event.getQuantity());
+            productService.stockRestore(event.getProductId(), event.getQuantity());
         }
     }
 
