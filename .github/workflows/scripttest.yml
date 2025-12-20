@@ -69,8 +69,8 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            $SERVICE/.gradle
-          key: ${{ runner.os }}-gradle-$SERVICE-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            ${{ env.SERVICE }}/.gradle
+          key: ${{ runner.os }}-gradle-${{ env.SERVICE }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: build gradle
         if: steps.cache.outputs.cache-hit != 'true'
@@ -83,6 +83,7 @@ jobs:
       - name: create-image
         run: |
           cd $SERVICE
+          chmod +x gradlew
           ./gradlew bootBuildImage --imageName=${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
 
       - name: docker-login
