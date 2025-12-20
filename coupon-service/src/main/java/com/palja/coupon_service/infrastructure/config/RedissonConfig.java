@@ -1,5 +1,6 @@
 package com.palja.coupon_service.infrastructure.config;
 
+import jakarta.annotation.PostConstruct;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -30,5 +31,10 @@ public class RedissonConfig {
                 .setRetryInterval(1500);                    // 재시도 간격 (ms)
 
         return Redisson.create(config);
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("RedissonConfig : host = "+host+", port = "+port);
     }
 }

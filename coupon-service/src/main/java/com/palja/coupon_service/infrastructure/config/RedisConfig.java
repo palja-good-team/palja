@@ -1,5 +1,6 @@
 package com.palja.coupon_service.infrastructure.config;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +32,10 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
         return template;
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("redisconfig : host = "+host+", port = "+port);
     }
 }

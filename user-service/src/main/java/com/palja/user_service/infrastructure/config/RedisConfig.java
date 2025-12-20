@@ -2,6 +2,7 @@ package com.palja.user_service.infrastructure.config;
 
 import java.time.Duration;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,5 +39,10 @@ public class RedisConfig {
 		redisTemplate.setValueSerializer(new StringRedisSerializer());
 		return redisTemplate;
 	}
+
+    @PostConstruct
+    public void init() {
+        System.out.println("RedisConfig : host = "+host+", port = "+port);
+    }
 
 }
