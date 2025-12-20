@@ -23,6 +23,8 @@ public class RedisConfig {
     private String hostName;
     @Value("${spring.data.redis.port}")
     private int port;
+    @Value("${spring.data.redis.password}")
+    private String password;
 
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
@@ -38,6 +40,10 @@ public class RedisConfig {
 
     @Bean
     public RedissonClient redisson(RedisConnectionFactory factory) {
+
+        System.out.println("=========================================="+hostName);
+        System.out.println("=========================================="+port);
+        System.out.println(password.substring(0,4));
 
         Config config = new Config();
         config.useSingleServer().setAddress("redis://" + hostName + ":" + port);
