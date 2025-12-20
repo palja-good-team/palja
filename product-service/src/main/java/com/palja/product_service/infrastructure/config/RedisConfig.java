@@ -1,5 +1,6 @@
 package com.palja.product_service.infrastructure.config;
 
+import jakarta.annotation.PostConstruct;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.LongCodec;
@@ -23,8 +24,6 @@ public class RedisConfig {
     private String hostName;
     @Value("${spring.data.redis.port}")
     private int port;
-    @Value("${spring.data.redis.password}")
-    private String password;
 
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
@@ -52,5 +51,10 @@ public class RedisConfig {
         ));
 
         return Redisson.create(config);
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("Redis host: " + hostName + ", port: " + port);
     }
 }
