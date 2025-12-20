@@ -10,6 +10,6 @@ public class test {
 
     @GetMapping
     public String test() {
-        return "asdf!";
+        return "asddf!";
     }
 }

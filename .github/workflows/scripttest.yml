@@ -72,6 +72,8 @@ jobs:
           spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
           spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
           jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
+          jwt.refresh.secret: ${{ secrets.REFRESH_SECRET_KEY }}
+          toss.secret-key: ${{ secrets.TOSS_SECRET_KEY }}
 
       - name: build gradle
         run: |

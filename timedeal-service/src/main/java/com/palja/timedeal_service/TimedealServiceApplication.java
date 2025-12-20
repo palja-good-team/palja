@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class TimedealServiceApplication {
 
 	public static void main(String[] args) {
+        System.out.println("a");
 		SpringApplication.run(TimedealServiceApplication.class, args);
 	}
 
