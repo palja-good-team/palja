@@ -62,6 +62,14 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: set-yml
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: './src/main/resources/application-*.yml'
+        env:
+          spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
+          jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
+
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
@@ -98,19 +106,16 @@ jobs:
           key:  ${{ secrets.EC2_SSH_KEY }}
           envs: ${{ matrix.package }}
           script: |
-            echo ${{env.SERVICE}}
             export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
-            export ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
-            export REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY }}
-            export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
-            export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
-            export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            export RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }}
-            export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
-            export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
-            export REDIS_ENDPOINT=${{ secrets.REDIS_ENDPOINT }}
-            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+#            export REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY }}
+#            export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
+#            export USER_ACCESS_SECRET_KEY=${{ secrets.USER_ACCESS_SECRET_KEY }}
+#            export USER_REFRESH_SECRET_KEY=${{ secrets.USER_REFRESH_SECRET_KEY }}
+#            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+#            export RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }}
+#            export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+#            export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+#            export REDIS_ENDPOINT=${{ secrets.REDIS_ENDPOINT }}
             
             cd palja
             docker compose pull ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
