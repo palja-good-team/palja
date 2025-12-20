@@ -42,7 +42,7 @@ public class RedisConfig {
     public RedissonClient redisson(RedisConnectionFactory factory) {
 
         System.out.println("=========================================="+hostName);
-        System.out.println("=========================================="+port);
+        System.out.println("=========================================d="+port);
         System.out.println(password.substring(0,4));
 
         Config config = new Config();

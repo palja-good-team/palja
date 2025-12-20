@@ -73,7 +73,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ env.SERVICE }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: build gradle
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "changed service = $SERVICE"
           cd $SERVICE
