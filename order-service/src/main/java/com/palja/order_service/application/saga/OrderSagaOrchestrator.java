@@ -97,23 +97,25 @@ public class OrderSagaOrchestrator {
             return;
         }
 
-        // 실행 가능한 Step 리스트
-        List<OrderSagaStep> executableSteps = OrderSagaStep.getExecutableSteps();
-        // 현재 Step의 인덱스
-        int currentIdx = executableSteps.indexOf(saga.getCurrentStep());
+        // 실행 가능한 Step 리스트: [STOCK_RESERVED, COUPON_APPLIED, PAYMENT_CREATED]
+        List<OrderSagaStep> steps = OrderSagaStep.getExecutableSteps();
+        // 현재 Step의 인덱스: STARTED는 실행 목록에 없으므로 인덱스를 -1
+        int currentIdx = (saga.getCurrentStep() == OrderSagaStep.STARTED)
+                ? -1 : steps.indexOf(saga.getCurrentStep());
 
-        if (currentIdx == -1) {
-            log.error("[SAGA][ORDER][STEP][ERROR] sagaId={} currentStep={} reason=STEP_NOT_IN_EXECUTABLE_LIST",
-                    sagaId, saga.getCurrentStep());
+        // STARTED가 아닌데 리스트에 없으면 이상 상태
+        if (currentIdx == -1 && saga.getCurrentStep() != OrderSagaStep.STARTED) {
             failSaga(sagaId, saga.getCurrentStep(), "현재 Step이 실행 목록에 없습니다.");
             return;
         }
 
-        // Out-of-order 이벤트 검증
-        OrderSagaStep expectedStep = executableSteps.get(currentIdx + 1);
-        if (completedStep != expectedStep) {
-            log.warn("[SAGA][ORDER][STEP][IGNORE_OUT_OF_ORDER] sagaId={} completedStep={} expectedStep={} reason=OUT_OF_ORDER_EVENT",
-                    sagaId, completedStep, expectedStep);
+        // Out-of-order 검증: 현재 Step 다음이 completedStep이어야 함
+        int expectedIdx = currentIdx + 1;
+        if (expectedIdx >= steps.size() || steps.get(expectedIdx) != completedStep) {
+            log.warn("[SAGA][ORDER][STEP][IGNORE_OUT_OF_ORDER] sagaId={} completedStep={} expectedStep={} currentStep={}",
+                    sagaId, completedStep,
+                    expectedIdx < steps.size() ? steps.get(expectedIdx) : null,
+                    saga.getCurrentStep());
             return;
         }
 
@@ -124,20 +126,22 @@ public class OrderSagaOrchestrator {
         log.info("[SAGA][ORDER][STEP][COMPLETED] sagaId={} orderId={} step={} newStep={}",
                 sagaId, saga.getOrderId(), completedStep, saga.getCurrentStep());
 
-        // 마지막 Step 완료 → Saga 완료
-        if (currentIdx >= executableSteps.size() - 1) {
+        // 다음 Step 실행
+        int nextIdx = expectedIdx + 1;
+        if (nextIdx >= steps.size()) {
             completeSaga(saga);
             return;
         }
 
+        OrderSagaStep nextStepEnum = steps.get(nextIdx);
+        SagaStep nextStep = stepMap.get(nextStepEnum);
+
         // 다음 Step 실행
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
-        SagaStep nextStep = stepMap.get(expectedStep);
-
         nextStep.execute(saga, order);
 
         log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepIndex={}",
-                sagaId, saga.getOrderId(), expectedStep, currentIdx + 1);
+                sagaId, saga.getOrderId(), nextStep.getName(), nextIdx);
     }
 
     /**
