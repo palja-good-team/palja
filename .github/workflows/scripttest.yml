@@ -70,6 +70,10 @@ jobs:
           spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
           jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
 
+      - name: debug
+        run: |
+          echo ${{ secrets.REDIS_PASSWORD }}
+          echo ${{ secrets.ACCESS_SECRET_KEY }}
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
