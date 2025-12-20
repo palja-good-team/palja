@@ -52,9 +52,4 @@ public class RedisConfig {
 
         return Redisson.create(config);
     }
-
-    @PostConstruct
-    public void init() {
-        System.out.println("Redis host: " + hostName + ", port:" + port);
-    }
 }
