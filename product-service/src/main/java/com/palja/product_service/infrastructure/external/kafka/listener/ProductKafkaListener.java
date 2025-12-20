@@ -48,7 +48,7 @@ public class ProductKafkaListener {
         String value = (String) dto.value();
         StockRestoreEventDto event = Deserialization(value, StockRestoreEventDto.class);
 
-        if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(false)) {
+        if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(Boolean.FALSE)) {
             productService.stockRestore(event.getProductId(), event.getQuantity());
         }
     }
