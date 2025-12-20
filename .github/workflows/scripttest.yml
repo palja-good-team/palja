@@ -65,7 +65,7 @@ jobs:
       - name: set-yml
         uses: microsoft/variable-substitution@v1
         with:
-          files: '${{ matrix.package }}/src/main/resources/application-*.yml'
+          files: '${{ matrix.package }}/src/main/resources/application*.yml'
         env:
           spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
           spring.datasource.username: ${{ secrets.RDS_USERNAME }}
