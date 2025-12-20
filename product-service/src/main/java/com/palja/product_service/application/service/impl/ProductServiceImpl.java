@@ -143,8 +143,8 @@ public class ProductServiceImpl implements ProductService {
     public UpdateStockRes updateStock(UUID productId,
                                       Long stock) {
 
-        Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
+        Product product = repository.findByIdFetchStockWithLock(productId);
 
         validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
@@ -153,6 +153,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product updateProduct = product.updateStock(stock);
+        repository.adjustStockToRedis(productId.toString(), updateProduct.getProductStock().getQuantity());
 
         return UpdateStockRes.fromEntity(updateProduct);
     }
@@ -180,7 +181,7 @@ public class ProductServiceImpl implements ProductService {
 
         ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
 
-        boolean result = repository.adjustStock(
+        boolean result = repository.adjustStockToRedis(
                 productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 
@@ -192,7 +193,7 @@ public class ProductServiceImpl implements ProductService {
 
         ProductStock restoredStock = repository.findProduct(productId).decreaseStock(quantity);
 
-        boolean result = repository.adjustStock(
+        boolean result = repository.adjustStockToRedis(
                 productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 

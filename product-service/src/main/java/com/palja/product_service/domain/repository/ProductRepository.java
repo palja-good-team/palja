@@ -20,6 +20,8 @@ public interface ProductRepository {
 
     Product findProduct(UUID productId);
 
+    Product findByIdFetchStockWithLock(UUID productId);
+
     ProductStock findProductStock(UUID productId);
 
     List<FindProductListByConditionDto> findProductsToCondition(FindListByConditionReq condition, long offset, int limit);
@@ -32,7 +34,7 @@ public interface ProductRepository {
 
     boolean decreaseStockBySale(String productId, Long stock, Long quantity);
 
-    boolean adjustStock(String productId, Long quantity);
+    boolean adjustStockToRedis(String productId, Long quantity);
 
     void stockBulkUpdateForSchedule(Collection<StockScheduleDto> dtos);
 

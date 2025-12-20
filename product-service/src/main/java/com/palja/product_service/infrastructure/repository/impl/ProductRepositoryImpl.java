@@ -55,6 +55,14 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public Product findByIdFetchStockWithLock(UUID productId) {
+
+        return jpaProductRepository
+                .findByIdFetchStockWithLock(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
     public ProductStock findProductStock(UUID productId) {
         return jpaProductRepository
                 .findStockByProductId(productId)
@@ -99,7 +107,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean adjustStock(String productId, Long quantity) {
+    public boolean adjustStockToRedis(String productId, Long quantity) {
 
         return redisRepository.adjustStock(productId, quantity);
     }

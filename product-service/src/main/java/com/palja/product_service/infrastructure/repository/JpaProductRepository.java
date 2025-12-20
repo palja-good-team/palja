@@ -26,9 +26,9 @@ public interface JpaProductRepository extends JpaRepository<Product, UUID> {
 
     Boolean existsByCompanyNameAndCategory_CategoryNumberAndNameAndDeletedAtIsNull(String companyName, String category, String name);
 
-//    @Lock(value = LockModeType.PESSIMISTIC_WRITE)
-//    @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")
-//    Optional<Product> findByIdFetchStockWithLock(@Param("productId") UUID productId);
+    @Lock(value = LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p JOIN FETCH p.productStock WHERE p.id = :productId AND p.deletedAt IS null")
+    Optional<Product> findByIdFetchStockWithLock(@Param("productId") UUID productId);
 
     @Query("SELECT p FROM Product p WHERE p.companyUserId = :companyUserId AND p.deletedAt IS null")
     List<UUID> findAllIdsByCompanyUserId(@Param("companyUserId")UUID companyUserId);
