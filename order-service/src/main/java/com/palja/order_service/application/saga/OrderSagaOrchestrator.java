@@ -28,7 +28,7 @@ public class OrderSagaOrchestrator {
 
     private final OrderService orderService;
     private final OrderSagaService sagaService;
-    private final List<com.palja.order_service.application.saga.SagaStep> steps;
+    private final List<SagaStep> steps;
 
     /**
      * Saga 시작
@@ -46,12 +46,22 @@ public class OrderSagaOrchestrator {
             return;
         }
 
+        // 설정 오류(등록된 Step 없음): 주문이 이미 존재할 수 있어 상태를 정리
+        if (steps.isEmpty()) {
+            String msg = "No SagaStep registered";
+            log.error("[SAGA][ORDER][START][CONFIG_ERROR] sagaId={} msg={}", sagaId, msg);
+            // Saga 실패 처리 + 주문 취소로 정리
+            failSaga(sagaId, saga.getCurrentStep(), msg);
+            return;
+        }
+
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
 
         // 첫 번째 Step 실행 (재고 예약)
         // Spring의 @Order 어노테이션으로 정렬된 Step 리스트
         // steps = [ReserveStockStep(1), ApplyCouponStep(2), CreatePaymentStep(3)]
-        SagaStep firstStep = steps.get(0);  // ReserveStockStep
+        SagaStep firstStep = steps.get(0); // ReserveStockStep
+
         // Step 실행 (이벤트만 발행하고 즉시 리턴)
         firstStep.execute(saga, order);
 
@@ -66,8 +76,8 @@ public class OrderSagaOrchestrator {
         // 3. 이 메서드는 즉시 종료
         //    - 트랜잭션 커밋
         //    - Kafka Listener는 다음 메시지 대기
-        log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepIndex=0",
-                sagaId, saga.getOrderId(), firstStep.getName());
+        log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepCode={}",
+                sagaId, saga.getOrderId(),  firstStep.getStepType(),  firstStep.getStepType().getCode());
     }
 
     /**
@@ -94,16 +104,25 @@ public class OrderSagaOrchestrator {
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
 
         // 다음 Step 실행
-        // TODO: status code 로 변경
-        int completedStepIndex = getStepIndex(completedStep);
-        int nextStepIndex = completedStepIndex + 1;
+        // completedStep.code보다 큰 첫 번째 Step 찾기
+        int completedCode = completedStep.getCode();
+        SagaStep nextStep = null;
+        int nextStepIndex = -1;
 
-        if (nextStepIndex >= steps.size()) {
+        for (int i = 0; i < steps.size(); i++) {
+            SagaStep step = steps.get(i);
+            if (step.getStepType().getCode() > completedCode) {
+                nextStep = step;
+                nextStepIndex = i;
+                break;
+            }
+        }
+
+        if (nextStep == null) {
             completeSaga(saga);
             return;
         }
 
-        SagaStep nextStep = steps.get(nextStepIndex);
         nextStep.execute(saga, order);
 
         log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepIndex={}",
@@ -165,12 +184,16 @@ public class OrderSagaOrchestrator {
      * - 실패한 Step 이전까지 역순으로 보상 (Best Effort)
      */
     private void compensate(OrderSaga saga, Order order, OrderSagaStep failedStep) {
-
-        int failedStepIndex = getStepIndex(failedStep);
+        int failedStepCode = failedStep.getCode();
 
         // 실패한 Step 이전까지 역순으로 보상
-        for (int i = failedStepIndex - 1; i >= 0; i--) {
+        for (int i = steps.size() - 1; i >= 0; i--) {
             SagaStep step = steps.get(i);
+
+            // failedStep.code 이상이면 스킵 (실패한 Step과 그 이후는 보상 불필요)
+            if (step.getStepType().getCode() >= failedStepCode) {
+                continue;
+            }
 
             try {
                 step.compensate(saga, order);
@@ -187,17 +210,5 @@ public class OrderSagaOrchestrator {
 
         log.warn("[SAGA][ORDER][COMPENSATE][END] sagaId={} orderId={}",
                 saga.getSagaId(), saga.getOrderId());
-    }
-
-    /**
-     * SagaStep enum -> Step 인덱스
-     */
-    private int getStepIndex(OrderSagaStep orderSagaStep) {
-        return switch (orderSagaStep) {
-            case STOCK_RESERVED -> 0;
-            case COUPON_APPLIED -> 1;
-            case PAYMENT_CREATED -> 2;
-            default -> throw new IllegalArgumentException("Invalid step: " + orderSagaStep);
-        };
     }
 }

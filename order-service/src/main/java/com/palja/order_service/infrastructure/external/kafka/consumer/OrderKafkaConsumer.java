@@ -1,4 +1,4 @@
-package com.palja.order_service.infrastructure.external.kafka.Consumer;
+package com.palja.order_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.order_service.application.dto.event.request.SagaStartEventReq;

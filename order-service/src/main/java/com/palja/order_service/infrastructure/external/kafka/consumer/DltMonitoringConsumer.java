@@ -1,4 +1,4 @@
-package com.palja.order_service.infrastructure.external.kafka.Consumer;
+package com.palja.order_service.infrastructure.external.kafka.consumer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
