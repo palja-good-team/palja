@@ -20,7 +20,7 @@ public class RedissonConfig {
     public RedissonClient redissonClient() {
         Config config = new Config();
         config.useSingleServer()
-                .setAddress("redis://" + host + ":" + port) // Redis 주소
+                .setAddress(host + ":" + port) // Redis 주소
                 .setConnectionMinimumIdleSize(10)           // 최소 유휴 연결 수
                 .setConnectionPoolSize(20)                  // 최대 연결 수
                 .setTimeout(3000)                           // Redis 명령 실행 제한 시간 (ms)
