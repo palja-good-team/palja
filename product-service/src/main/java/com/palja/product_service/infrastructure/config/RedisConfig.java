@@ -41,10 +41,6 @@ public class RedisConfig {
     @Bean
     public RedissonClient redisson(RedisConnectionFactory factory) {
 
-        System.out.println("=========================================="+hostName);
-        System.out.println("=========================================d="+port);
-        System.out.println(password.substring(0,4));
-
         Config config = new Config();
         config.useSingleServer().setAddress("redis://" + hostName + ":" + port);
         //기본값. 락을 획득한 채로 스프링 서버가 죽으면, 30초후에 락이 자동으로 해제됨
