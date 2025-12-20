@@ -65,7 +65,7 @@ jobs:
       - name: set-yml
         uses: microsoft/variable-substitution@v1
         with:
-          files: './src/main/resources/application-*.yml'
+          files: '${{ matrix.package }}/src/main/resources/application-*.yml'
         env:
           spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
           jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
