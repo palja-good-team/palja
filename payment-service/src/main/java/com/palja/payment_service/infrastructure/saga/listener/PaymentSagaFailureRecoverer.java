@@ -1,15 +1,18 @@
 package com.palja.payment_service.infrastructure.saga.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCancelEventReq;
 import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCreateEventReq;
 import com.palja.payment_service.infrastructure.saga.dto.response.PaymentCreateEventRes;
 import com.palja.payment_service.infrastructure.saga.producer.PaymentSagaReplyProducer;
 import com.palja.payment_service.infrastructure.saga.topics.OrderSagaKafkaTopics;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PaymentSagaFailureRecoverer implements ConsumerRecordRecoverer {
@@ -32,6 +35,9 @@ public class PaymentSagaFailureRecoverer implements ConsumerRecordRecoverer {
         }
 
         if (OrderSagaKafkaTopics.PAYMENT_CANCEL_REQUEST.equals(topic)) {
+            PaymentCancelEventReq req = objectMapper.convertValue(record.value(), PaymentCancelEventReq.class);
+            log.error("saga 결제 취소 요청 실패: sagaId={}, orderId={}, paymentId={}, error={}",
+                    req.getSagaId(), req.getOrderId(), req.getPaymentId(), ex.getMessage());
             return;
         }
     }
