@@ -3,7 +3,7 @@ spring:
     redis:
       host: palja-redis
       port: 6379
-      password: ${REDIS_PASSWORD}
+#      password: ${REDIS_PASSWORD}
 
 redis-key:
   map0: "productStock0"
