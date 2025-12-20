@@ -117,6 +117,7 @@ jobs:
             export RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }}
             export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
             export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+            export REDIS_ENDPOINT=${{ secrets.REDIS_ENDPOINT }}
             export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             
             cd palja
