@@ -49,7 +49,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 	implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'com.palja:common-module:0.8.6'
+    implementation 'com.palja:common-module:0.9.0'
     implementation 'io.github.openfeign:feign-micrometer'
     implementation 'io.github.openfeign.querydsl:querydsl-jpa:6.11'
     annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.11:jpa'

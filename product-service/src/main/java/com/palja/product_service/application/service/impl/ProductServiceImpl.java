@@ -8,6 +8,9 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
+import com.palja.product_service.application.event.ChangePriceEvent;
+import com.palja.product_service.application.event.DecreaseStockTimeDealErrorEvent;
+import com.palja.product_service.application.event.SaleProductErrorEvent;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -22,6 +25,7 @@ import com.palja.product_service.domain.service.ProductCategoryService;
 import com.palja.product_service.exception.CategoryErrorCode;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final ProductCategoryService productCategoryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserClient userClient;
 
     @Override
@@ -118,11 +123,17 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException(CategoryErrorCode.NOT_FOUND_CATEGORY);
         }
 
+        Long beforePrice = product.getPrice().getAmount();
         Product updateProduct = product.updateInfo(
                 updateCommand.name(),
                 updateCommand.description(),
                 updateCommand.price(),
                 optionalCategory.get());
+        Long afterPrice = updateProduct.getPrice().getAmount();
+
+        if(!beforePrice.equals(afterPrice)) {
+            applicationEventPublisher.publishEvent(ChangePriceEvent.create(productId, afterPrice));
+        }
 
         return UpdateProductInfoRes.fromEntity(updateProduct);
     }
@@ -132,8 +143,8 @@ public class ProductServiceImpl implements ProductService {
     public UpdateStockRes updateStock(UUID productId,
                                       Long stock) {
 
-        Product product = repository.findProduct(productId);
         CompanyUserInfoRes myInfo = userClient.getMyInfo();
+        Product product = repository.findByIdFetchStockWithLock(productId);
 
         validateIsSameUser(product.getCompanyUserId(), myInfo.getCompanyUserId());
 
@@ -142,24 +153,16 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product updateProduct = product.updateStock(stock);
+        repository.adjustStockToRedis(productId.toString(), updateProduct.getProductStock().getQuantity());
 
         return UpdateStockRes.fromEntity(updateProduct);
     }
 
     @Override
-    @Transactional
-    public SaleProductRes saleProductV1(UUID productId,
-                                        Long quantity) {
-
-        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
-        product.decreaseStock(quantity);
-
-        return new SaleProductRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    public SaleProductRes saleProduct(UUID productId,
-                                      Long quantity) {
+    public void saleProduct(UUID sagaId,
+                            UUID productId,
+                            UUID orderId,
+                            Long quantity) {
 
         ProductStock stock = repository.findProductStock(productId);
 
@@ -167,62 +170,37 @@ public class ProductServiceImpl implements ProductService {
                 productId.toString(), stock.getQuantity(), quantity);
         validateRedisOperation(result);
 
-        return new SaleProductRes(productId, Boolean.TRUE);
+        applicationEventPublisher.publishEvent(
+                SaleProductErrorEvent.create(sagaId, orderId));
     }
 
     @Override
     @Transactional
-    public RestoreStockRes stockRestoreV1(UUID productId,
-                                          Long quantity) {
-
-        Product product = repository.findByIdFetchStockWithLock(productId, quantity);
-        product.increaseStock(quantity);
-
-        return new RestoreStockRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    @Transactional
-    public RestoreStockRes stockRestore(UUID productId,
-                                        Long quantity) {
+    public void stockRestore(UUID productId,
+                             Long quantity) {
 
         ProductStock restoredStock = repository.findProduct(productId).increaseStock(quantity);
 
-        boolean result = repository.adjustStock(
+        boolean result = repository.adjustStockToRedis(
                 productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 
-        return new RestoreStockRes(productId, Boolean.TRUE);
     }
 
     @Override
     @Transactional
-    public DecreaseStockForTimeDealRes decreaseStockForTimeDeal(UUID productId,
-                                                                Long quantity) {
+    public void decreaseStockForTimeDeal(UUID productId, Long quantity) {
 
-        Product product = repository.findProduct(productId);
-        product.decreaseStock(quantity);
+        ProductStock restoredStock = repository.findProduct(productId).decreaseStock(quantity);
 
-        boolean result = repository.adjustStock(
-                productId.toString(), product.getProductStock().getQuantity());
+        boolean result = repository.adjustStockToRedis(
+                productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 
-        return new DecreaseStockForTimeDealRes(productId, Boolean.TRUE);
-    }
-
-    @Override
-    @Transactional
-    public IncreaseStockForTimeDealRes increaseStockForTimeDeal(UUID productId,
-                                                                Long quantity) {
-
-        Product product = repository.findProduct(productId);
-        product.increaseStock(quantity);
-
-        boolean result = repository.adjustStock(
-                productId.toString(), product.getProductStock().getQuantity());
-        validateRedisOperation(result);
-
-        return new IncreaseStockForTimeDealRes(productId, Boolean.TRUE);
+        applicationEventPublisher.publishEvent(
+                DecreaseStockTimeDealErrorEvent.create(
+                        productId, ProductErrorCode.INVALID_STOCK.getMessage()
+        ));
     }
 
     @Override

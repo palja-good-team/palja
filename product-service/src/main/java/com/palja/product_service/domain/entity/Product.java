@@ -97,28 +97,6 @@ public class Product extends BaseEntity {
         return this.productStock;
     }
 
-    public Money increaseFixPrice(Long amount) {
-        this.price = price.plus(amount);
-        return this.price;
-    }
-
-    public Money increaseRatePrice(Double amount) {
-        double rate = 1L + amount;
-        this.price = price.multiply(rate);
-        return this.price;
-    }
-
-    public Money discountFixPrice(Long amount) {
-        this.price = price.minus(amount);
-        return this.price;
-    }
-
-    public Money discountRatePrice(Double amount) {
-        double rate = 1L - amount;
-        this.price = price.multiply(rate);
-        return this.price;
-    }
-
     @Override
     public void softDelete() {
         this.productStock.mySoftDelete();

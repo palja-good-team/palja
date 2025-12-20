@@ -54,31 +54,7 @@ public interface ProductController {
             description = "상품의 ID에 해당하는 상품의 재고를 요청값으로 수정합니다.")
     @PutMapping("/manager/modifyStock/{productId}")
     ResponseEntity<ApiResponse<UpdateStockRes>> updateProductStock(@PathVariable UUID productId,
-                                                                   @RequestParam Integer stock);
-
-    @Operation(summary = "상품 판매 재고 차감",
-            description = "주문 서비스의 요청으로, 상품의 ID에 해당하는 상품이 판매되었을 때 판매수량만큼 재고를 차감합니다.")
-    @PutMapping("/order/sale/{productId}")
-    ResponseEntity<ApiResponse<SaleProductRes>> saleProduct(@PathVariable UUID productId,
-                                                            @RequestParam Integer quantity);
-
-    @Operation(summary = "상품 판매 취소 재고 복원",
-            description = "주문 서비스의 요청으로, 상품의 ID에 해당하는 상품의 판매가 취소되었을 때 수량만큼 재고를 복원합니다.")
-    @PutMapping("/order/cancel/{productId}")
-    ResponseEntity<ApiResponse<RestoreStockRes>> restoreStockByCancel(@PathVariable UUID productId,
-                                                                      @RequestParam Integer quantity);
-
-    @Operation(summary = "타임딜 생성 재고 차감",
-            description = "타임딜 서비스의 요청으로, 상품의 ID에 해당하는 상품의 타임딜을 위한 재고를 차감합니다.")
-    @PutMapping("/time-deal/decrease/{productId}")
-    ResponseEntity<ApiResponse<DecreaseStockForTimeDealRes>> decreaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                                      @RequestParam Integer quantity);
-
-    @Operation(summary = "타임딜 생성 재고 복원",
-            description = "타임딜 서비스의 요청으로, 상품의 ID에 해당하는 상품의 재고를 복원합니다.")
-    @PutMapping("/time-deal/increase/{productId}")
-    ResponseEntity<ApiResponse<IncreaseStockForTimeDealRes>> increaseStockForTimeDeal(@PathVariable UUID productId,
-                                                                                      @RequestParam Integer quantity);
+                                                                   @RequestParam Long stock);
 
     @Operation(summary = "상품 삭제",
             description = "상품 ID에 해당하는 상품의 논리적 삭제를 진행합니다.")
