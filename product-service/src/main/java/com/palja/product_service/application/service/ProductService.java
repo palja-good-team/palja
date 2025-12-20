@@ -26,7 +26,7 @@ public interface ProductService {
 
     UpdateStockRes updateStock(UUID productId, Long stock);
 
-    void saleProduct(UUID sagaId, UUID productId, Long quantity);
+    void saleProduct(UUID sagaId, UUID productId, UUID orderId, Long quantity);
 
     void decreaseStockForTimeDeal(UUID productId, Long quantity);
 

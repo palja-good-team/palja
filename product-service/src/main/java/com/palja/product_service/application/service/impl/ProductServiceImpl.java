@@ -160,6 +160,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void saleProduct(UUID sagaId,
                             UUID productId,
+                            UUID orderId,
                             Long quantity) {
 
         ProductStock stock = repository.findProductStock(productId);
@@ -169,7 +170,7 @@ public class ProductServiceImpl implements ProductService {
         validateRedisOperation(result);
 
         applicationEventPublisher.publishEvent(
-                SaleProductErrorEvent.create(sagaId, productId));
+                SaleProductErrorEvent.create(sagaId, orderId));
     }
 
     @Override

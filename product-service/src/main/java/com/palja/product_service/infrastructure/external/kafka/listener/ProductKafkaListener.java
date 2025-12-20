@@ -27,7 +27,9 @@ public class ProductKafkaListener {
         String value = (String) dto.value();
         StockDecreaseTimeDealDto event = Deserialization(value, StockDecreaseTimeDealDto.class);
 
+        productService.decreaseStockForTimeDeal(event.getProductId(), event.getQuantity());
     }
+
     @KafkaListener(topics = SALE_STOCK_ORDER)
     public void handleDecreaseStockOrderEvent(ConsumerRecord<String, Object> dto) {
 
@@ -35,7 +37,8 @@ public class ProductKafkaListener {
         StockDecreaseOrderEventDto event = Deserialization(value, StockDecreaseOrderEventDto.class);
 
         if (event.getIsTimeDeal().equals(Boolean.FALSE)) {
-            productService.saleProduct(event.getSagaId(), event.getProductId(), event.getQuantity());
+            productService.saleProduct(
+                    event.getSagaId(), event.getProductId(), event.getOrderId(), event.getQuantity());
         }
     }
 

@@ -13,9 +13,9 @@ import java.util.UUID;
 public class SaleProductErrorEvent {
 
     private UUID sagaId;
-    private UUID productId;
+    private UUID orderId;
 
-    public static SaleProductErrorEvent create(UUID sagaId, UUID productId) {
-        return new SaleProductErrorEvent(sagaId, productId);
+    public static SaleProductErrorEvent create(UUID sagaId, UUID orderId) {
+        return new SaleProductErrorEvent(sagaId, orderId);
     }
 }

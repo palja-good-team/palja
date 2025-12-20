@@ -44,7 +44,7 @@ public class ProductKafkaProducer implements ProductEventPublisher {
     @Override
     public void handleSaleProductErrorEvent(SaleProductErrorEvent event) {
 
-        publish(SALE_STOCK_ORDER, event);
+        publish(SALE_STOCK_ORDER_ERROR, event);
     }
 
     @Override

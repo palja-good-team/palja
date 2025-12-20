@@ -28,7 +28,7 @@ public class ProductDomainEventListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEvent event) {
+    public void handleDecreaseStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEvent event) {
 
         productEventPublisher.handleDecreaseStockTimeDealErrorEvent(event);
     }
