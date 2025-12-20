@@ -67,6 +67,9 @@ jobs:
         with:
           files: '${{ matrix.package }}/src/main/resources/application-*.yml'
         env:
+          spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
+          spring.datasource.username: ${{ secrets.RDS_USERNAME }}
+          spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
           spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
           jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
 
