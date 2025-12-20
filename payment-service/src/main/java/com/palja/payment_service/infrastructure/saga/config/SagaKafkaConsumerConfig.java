@@ -60,9 +60,6 @@ public class SagaKafkaConsumerConfig {
         props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES);
-        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-
         JsonDeserializer<Object> valueDeserializer = new JsonDeserializer<>(Object.class, objectMapper, false);
         valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
         valueDeserializer.setUseTypeHeaders(false);
