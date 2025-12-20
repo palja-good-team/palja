@@ -62,16 +62,6 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: gradle-caching
-        uses: actions/cache@v4
-        id: cache
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ env.SERVICE }}/.gradle
-          key: ${{ runner.os }}-gradle-${{ env.SERVICE }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
       - name: build gradle
         run: |
           echo "changed service = $SERVICE"
