@@ -1,91 +1,89 @@
 package com.palja.order_service.presentation.controller;
 
-import com.palja.common.annotation.RequiredInternal;
-import com.palja.common.annotation.RequiredRole;
-import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
-import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.dto.response.*;
-import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.presentation.dto.request.CancelOrderReq;
 import com.palja.order_service.presentation.dto.request.CompleteOrderPaymentReq;
 import com.palja.order_service.presentation.dto.request.CreateOrderReq;
 import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.UUID;
 
-@RestController
+@Tag(name = "Orders", description = "주문 API")
 @RequestMapping("/api/v1/orders")
-@RequiredArgsConstructor
-public class OrderController {
+public interface OrderController {
 
-    private final OrderService orderService;
-
-    // 주문 생성
-    @PostMapping
-    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER})
-    public ResponseEntity<ApiResponse<OrderCreateRes>> createOrder(
+    @Operation(
+            summary = "주문 생성",
+            description = """
+                주문을 생성합니다.
+                - 권한: CUSTOMER, MANAGER
+                """
+    )
+    ResponseEntity<ApiResponse<OrderCreateRes>> createOrder(
             @Valid @RequestBody CreateOrderReq request
-        ) {
-        OrderCreateRes response = orderService.createOrder(request.toCommand(CurrentUser.getLoginId(), CurrentUser.getRole()));
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "주문이 생성되었습니다."));
-    }
+    );
 
-    // 주문 상세 조회
-    @GetMapping("/{orderId}")
-    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<OrderDetailRes>> getOrderDetail(
+    @Operation(
+            summary = "주문 상세 조회",
+            description = """
+                    주문 단건을 상세 조회합니다.
+                    - 권한: CUSTOMER, MANAGER, COMPANY_USER
+                    """
+    )
+    ResponseEntity<ApiResponse<OrderDetailRes>> getOrderDetail(
+            @Parameter(description = "주문 ID", required = true)
             @PathVariable UUID orderId
-    ) {
-        OrderDetailRes response = orderService.getOrderDetail(orderId, CurrentUser.getLoginId(), CurrentUser.getRole());
-        return ResponseEntity.ok(ApiResponse.success(response, "주문이 조회되었습니다."));
-    }
+    );
 
-    // 주문 취소
-    @PostMapping("/{orderId}/cancel")
-    @RequiredRole(value = {UserRole.MANAGER, UserRole.CUSTOMER, UserRole.COMPANY_USER})
-    public ResponseEntity<ApiResponse<OrderCancelRes>> cancelOrder(
+    @Operation(
+            summary = "주문 취소",
+            description = """
+                    주문을 취소합니다.
+                    - 권한: CUSTOMER, MANAGER, COMPANY_USER
+                    """
+    )
+    ResponseEntity<ApiResponse<OrderCancelRes>> cancelOrder(
+            @Parameter(description = "주문 ID", required = true)
             @PathVariable UUID orderId,
             @Valid @RequestBody CancelOrderReq request
-    ) {
-        OrderCancelRes response = orderService.cancelOrder(request.toCommand(orderId, CurrentUser.getLoginId(), CurrentUser.getRole()));
-        return ResponseEntity.ok(ApiResponse.success(response,"주문이 취소되었습니다."));
-    }
+    );
 
-    // 내 주문 목록 조회
-    @GetMapping("/customer/me")
-    @RequiredRole({UserRole.CUSTOMER})
-    public ResponseEntity<ApiResponse<PageResponse<CustomerOrderSummaryRes>>> getMyOrdersByCustomer(
-            @ModelAttribute CustomerOrderSearchReq request,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable
-    ) {
-        PageResponse<CustomerOrderSummaryRes> response = orderService.getMyOrdersByCustomer(
-                CurrentUser.getLoginId(), request, pageable
-        );
-        return ResponseEntity.ok(ApiResponse.success(response, "고객용 주문 목록이 조회되었습니다.")
-        );
-    }
+    @Operation(
+            summary = "내 주문 목록 조회(고객)",
+            description = """
+                    고객 본인의 주문 목록을 조회합니다.
+                    - 권한: CUSTOMER
+                    - 정렬 기본값: createdAt DESC
+                    """
+    )
+    ResponseEntity<ApiResponse<PageResponse<CustomerOrderSummaryRes>>> getMyOrdersByCustomer(
+            @ParameterObject @ModelAttribute CustomerOrderSearchReq request,
+            @ParameterObject Pageable pageable
+    );
 
-    // 주문 결제 완료
-    @RequiredInternal
-    @PutMapping("/{orderId}/payment/complete")
-    public ResponseEntity<ApiResponse<OrderPaymentCompleteRes>> completeOrderPayment(
+    @Operation(
+            summary = "주문 결제 완료 처리(내부 호출)",
+            description = """
+                    결제 서비스 등 내부 시스템에서 주문 결제 완료 상태로 변경할 때 사용합니다.
+                    - 권한: 내부 호출(RequiredInternal)
+                    """
+    )
+    ResponseEntity<ApiResponse<OrderPaymentCompleteRes>> completeOrderPayment(
+            @Parameter(description = "주문 ID", required = true)
             @PathVariable UUID orderId,
-            @RequestBody @Valid CompleteOrderPaymentReq request
-    ) {
-        OrderPaymentCompleteRes response = orderService.completeOrderPayment(request.toCommand(orderId));
-        return ResponseEntity.ok(ApiResponse.success(response, "주문이 결제 완료되었습니다."));
-    }
+            @Valid @RequestBody CompleteOrderPaymentReq request
+    );
 }
