@@ -108,6 +108,9 @@ jobs:
           script: |
             echo ${{env.SERVICE}}
             
+            export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            
             cd palja
             docker compose pull ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
             docker compose down ${{ env.SERVICE }}
