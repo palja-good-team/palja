@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class CouponServiceApplication {
 
     public static void main(String[] args) {
-        System.out.println("asdddddd");
+        System.out.println("asddddddd");
         SpringApplication.run(CouponServiceApplication.class, args);
     }
 
