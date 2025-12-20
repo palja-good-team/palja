@@ -79,6 +79,7 @@ jobs:
 
       - name: create-image
         run: |
+          cd $SERVICE
           ./gradlew bootBuildImage --imageName=${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
 
       - name: docker-login
