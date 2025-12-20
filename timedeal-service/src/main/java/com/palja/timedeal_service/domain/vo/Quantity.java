@@ -44,13 +44,7 @@ public class Quantity {
     }
 
     public Quantity updateTotalQuantity(long newTotalQuantity) {
-        long soldQuantity = calculateSoldQuantity();
-
-        validateTotalQuantityUpdate(newTotalQuantity, soldQuantity);
-
-        long newRemaining = calculateNewRemaining(newTotalQuantity, soldQuantity);
-
-        return new Quantity(newTotalQuantity, newRemaining);
+        return new Quantity(newTotalQuantity);
     }
 
     public Quantity decreaseRemainingQuantity(long decreaseQuantity) {

@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.external.adapter;
+package com.palja.timedeal_service.infrastructure.external.adapter.feign;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -40,30 +40,6 @@ public class ProductClientAdapter implements ProductClient {
 
         } catch (Exception e) {
             log.error("[ProductClient] 상품 조회 실패: {}", e.getMessage());
-            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
-        }
-    }
-
-    @Override
-    public void decreaseStock(UUID productId, long decreaseQuantity) {
-        log.info("상품 재고 차감 요청: productId = {}", productId);
-
-        try {
-            productFeignClient.decreaseProductStock(productId, decreaseQuantity);
-        } catch (Exception e) {
-            log.error("[ProductClient] 상품 재고 차감 실패: {}", e.getMessage());
-            throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
-        }
-    }
-
-    @Override
-    public void restoreStock(UUID productId, long restoreQuantity) {
-        log.info("상품 재고 복구 요청: productId = {}", productId);
-
-        try {
-            productFeignClient.restoreProductStock(productId, restoreQuantity);
-        } catch (Exception e) {
-            log.error("[ProductClient] 상품 재고 복구 실패: {}", e.getMessage());
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
     }

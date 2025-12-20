@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.external.adapter;
+package com.palja.timedeal_service.infrastructure.external.adapter.feign;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -11,8 +11,6 @@ import com.palja.timedeal_service.infrastructure.external.dto.CompanyUserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Slf4j
 @Component
