@@ -1,4 +1,4 @@
-package com.palja.order_service.application.port.kafka;
+package com.palja.order_service.application.port;
 
 import com.palja.order_service.application.dto.event.request.*;
 

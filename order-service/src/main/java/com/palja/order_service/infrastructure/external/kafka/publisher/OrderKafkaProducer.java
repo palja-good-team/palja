@@ -1,7 +1,7 @@
 package com.palja.order_service.infrastructure.external.kafka.publisher;
 
 import com.palja.order_service.application.dto.event.request.*;
-import com.palja.order_service.application.port.kafka.OrderEventPublisher;
+import com.palja.order_service.application.port.OrderEventPublisher;
 import com.palja.order_service.infrastructure.external.kafka.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

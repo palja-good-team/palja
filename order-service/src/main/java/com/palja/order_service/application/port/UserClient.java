@@ -1,4 +1,4 @@
-package com.palja.order_service.application.port.client;
+package com.palja.order_service.application.port;
 
 import com.palja.order_service.application.dto.external.CompanyUserRes;
 import com.palja.order_service.application.dto.external.CustomerUserRes;

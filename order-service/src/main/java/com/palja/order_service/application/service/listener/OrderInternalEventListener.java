@@ -2,8 +2,7 @@ package com.palja.order_service.application.service.listener;
 
 
 import com.palja.order_service.application.dto.event.request.*;
-import com.palja.order_service.application.port.kafka.OrderEventPublisher;
-import com.palja.order_service.infrastructure.external.kafka.KafkaTopics;
+import com.palja.order_service.application.port.OrderEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
