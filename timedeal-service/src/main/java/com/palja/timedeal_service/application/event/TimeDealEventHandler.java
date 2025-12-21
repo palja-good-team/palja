@@ -1,11 +1,10 @@
 package com.palja.timedeal_service.application.event;
 
-import com.palja.timedeal_service.application.event.publisher.ProductEventPublisher;
-import com.palja.timedeal_service.application.event.impl.TimeDealStockDecreaseEventReq;
-import com.palja.timedeal_service.application.event.impl.TimeDealStockIncreaseEventReq;
+import com.palja.timedeal_service.application.event.internal.TimeDealStockDecreaseEventReq;
+import com.palja.timedeal_service.application.event.internal.TimeDealStockIncreaseEventReq;
+import com.palja.timedeal_service.application.port.ProductEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
