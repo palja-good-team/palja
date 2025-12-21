@@ -25,7 +25,7 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public KafkaProducerInterceptor<Object> kafkaEventProducerInterceptor(Tracer tracer) {
+    public KafkaProducerInterceptor<Object> producerInterceptor(Tracer tracer) {
         return new KafkaProducerInterceptor<>(tracer);
     }
 
@@ -37,11 +37,8 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-        // 멱등성 (중복 전송 방지)
+        // 멱등성 (중복 전송 방지) 활성화
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-
-        // 타입 헤더 제거
-        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaProducerFactory<>(config);
     }

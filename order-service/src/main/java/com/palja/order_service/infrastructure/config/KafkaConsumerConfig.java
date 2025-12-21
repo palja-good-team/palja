@@ -51,8 +51,6 @@ public class KafkaConsumerConfig {
 
         // JSON 설정
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.palja.*");
-
-        // 컨슈머가 타입 헤더를 무시
         config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(config);

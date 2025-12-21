@@ -20,9 +20,13 @@ import org.springframework.util.backoff.FixedBackOff;
 @Configuration
 public class KafkaErrorHandlerConfig {
 
+    // 재시도 시간 간격 (2초)
+    private static final long BACKOFF_MS = 2000L;
+    // 추가 재시도 횟수 (최초 1회 + 재시도 3회 = 총 4회 시도)
+    private static final long MAX_RETRY = 3L;
+
     @Bean
     public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
-
         // DLT(Dead Letter Topic)로 메시지 전송
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
                 kafkaTemplate,
@@ -38,18 +42,15 @@ public class KafkaErrorHandlerConfig {
                 }
         );
 
-        // 전략: 2초 간격, 3회 재시도
+        // 2초 간격으로 3번 "재시도" 후에도 실패하면 recoverer로 DLT 발행
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(
                 recoverer,
-                new FixedBackOff(2000L, 3L)     // 2초 간격, 3회 재시도
+                new FixedBackOff(BACKOFF_MS, MAX_RETRY)
         );
 
-        // 재시도 무의미한 케이스는 즉시 DLT
-        errorHandler.addNotRetryableExceptions(
-                IllegalArgumentException.class  // 잘못된 인자
-        );
+        // 재시도해도 성공 못할 케이스는 바로 DLT로 보냄
+        errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
 
-        // 재시도 로깅
         errorHandler.setRetryListeners((record, ex, deliveryAttempt) -> {
             log.warn("[KAFKA][ORDER][RETRY][ATTEMPT] topic={} key={} partition={} offset={} attempt={}/3 reason={}",
                     record.topic(), record.key(), record.partition(), record.offset(),
