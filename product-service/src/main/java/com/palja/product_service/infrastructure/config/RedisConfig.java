@@ -24,6 +24,8 @@ public class RedisConfig {
     private String hostName;
     @Value("${spring.data.redis.port}")
     private int port;
+    @Value("${spring.data.redis.password}")
+    private String password;
 
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
@@ -55,6 +57,6 @@ public class RedisConfig {
 
     @PostConstruct
     public void init() {
-        System.out.println("host = "+hostName+", port = "+port);
+        System.out.println("host = "+hostName+", port = "+ port + ", password = "+password);
     }
 }
