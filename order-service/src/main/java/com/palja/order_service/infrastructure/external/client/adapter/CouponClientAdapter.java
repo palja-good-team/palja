@@ -3,7 +3,7 @@ package com.palja.order_service.infrastructure.external.client.adapter;
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.CouponUserRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.CouponClient;
+import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.infrastructure.external.client.CouponFeignClient;
 import com.palja.order_service.infrastructure.external.client.dto.request.UseCouponDTO;
 import com.palja.order_service.infrastructure.external.client.dto.response.CancelCouponUserDTO;

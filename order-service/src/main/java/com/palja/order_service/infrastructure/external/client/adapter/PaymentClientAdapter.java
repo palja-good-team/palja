@@ -4,7 +4,7 @@ import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.PaymentCancelRes;
 import com.palja.order_service.application.dto.external.PaymentCreateRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.PaymentClient;
+import com.palja.order_service.application.port.PaymentClient;
 import com.palja.order_service.domain.vo.OrderStatus;
 import com.palja.order_service.infrastructure.external.client.PaymentFeignClient;
 import com.palja.order_service.infrastructure.external.client.dto.request.CancelPaymentDTO;

@@ -1,10 +1,10 @@
 package com.palja.order_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palja.order_service.application.dto.event.request.SagaStartEventReq;
-import com.palja.order_service.application.dto.event.response.CouponUseEventRes;
-import com.palja.order_service.application.dto.event.response.PaymentCreateEventRes;
-import com.palja.order_service.application.dto.event.response.StockDecreaseEventRes;
+import com.palja.order_service.application.event.dto.request.SagaStartEventReq;
+import com.palja.order_service.application.event.dto.response.CouponUseEventRes;
+import com.palja.order_service.application.event.dto.response.PaymentCreateEventRes;
+import com.palja.order_service.application.event.dto.response.StockDecreaseEventRes;
 import com.palja.order_service.application.saga.OrderSagaOrchestrator;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
 import com.palja.order_service.application.service.OrderService;

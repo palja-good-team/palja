@@ -1,8 +1,8 @@
 package com.palja.order_service.application.saga.steps;
 
-import com.palja.order_service.application.dto.event.request.StockDecreaseEventReq;
-import com.palja.order_service.application.dto.event.request.StockRestoreEventReq;
-import com.palja.order_service.application.port.kafka.OrderEventPublisher;
+import com.palja.order_service.application.event.dto.request.StockDecreaseEventReq;
+import com.palja.order_service.application.event.dto.request.StockRestoreEventReq;
+import com.palja.order_service.application.port.OrderEventPublisher;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
