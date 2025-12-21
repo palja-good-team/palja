@@ -2,26 +2,5 @@ spring:
   kafka:
     # Kafka Broker 주소
     bootstrap-servers: localhost:9092
-    
-    # Producer 설정
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        enable.idempotence: true
-        spring.json.add.type.headers: true
-    
-    # Consumer 설정
     consumer:
       group-id: order-service
-      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      properties:
-        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: com.palja.*
-
-    # DLQ 설정
-    listener:
-      # 메시지 처리 실패 시 자동으로 DLT(Dead Letter Topic)로 전송
-      ack-mode: record  # 메시지 하나씩 처리

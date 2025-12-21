@@ -3,7 +3,7 @@ package com.palja.order_service.infrastructure.external.client.adapter;
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.TimeDealRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.TimeDealClient;
+import com.palja.order_service.application.port.TimeDealClient;
 import com.palja.order_service.infrastructure.external.client.TimeDealFeignClient;
 import com.palja.order_service.infrastructure.external.client.dto.request.TimeDealStockDecreaseDTO;
 import com.palja.order_service.infrastructure.external.client.dto.request.TimeDealStockRestoreDTO;

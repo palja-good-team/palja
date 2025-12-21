@@ -9,7 +9,7 @@ import com.palja.order_service.application.dto.CouponDiscountType;
 import com.palja.order_service.application.dto.CouponUserStatus;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.UserClient;
+import com.palja.order_service.application.port.UserClient;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;

@@ -3,7 +3,7 @@ package com.palja.order_service.infrastructure.external.client.adapter;
 import com.palja.common.exception.BusinessException;
 import com.palja.order_service.application.dto.external.ProductRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.ProductClient;
+import com.palja.order_service.application.port.ProductClient;
 import com.palja.order_service.infrastructure.external.client.ProductFeignClient;
 import com.palja.order_service.infrastructure.external.client.dto.response.ProductDTO;
 import feign.FeignException;

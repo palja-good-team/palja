@@ -5,7 +5,7 @@ import com.palja.order_service.application.dto.external.CompanyUserRes;
 import com.palja.order_service.application.dto.external.CustomerUserRes;
 import com.palja.order_service.application.dto.external.ManagerUserRes;
 import com.palja.order_service.application.exception.OrderErrorCode;
-import com.palja.order_service.application.port.client.UserClient;
+import com.palja.order_service.application.port.UserClient;
 import com.palja.order_service.infrastructure.external.client.UserFeignClient;
 import com.palja.order_service.infrastructure.external.client.dto.response.CompanyUserDTO;
 import com.palja.order_service.infrastructure.external.client.dto.response.CustomerUserDTO;
