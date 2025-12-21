@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.event.dto;
+package com.palja.payment_service.application.event.dto.request;
 
 import lombok.Builder;
 
@@ -7,15 +7,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
-public record PaymentCancelFailedPayload(
+public record PaymentApprovedEventReq(
         UUID paymentId,
         UUID orderId,
         Long userId,
-        BigDecimal amount,
-        String cancelReason,
+        BigDecimal paidAmount,
         String paymentKey,
         String pgResponseCode,
         String pgResponseMessage,
-        LocalDateTime failedAt
+        LocalDateTime approvedAt
 ) {
 }

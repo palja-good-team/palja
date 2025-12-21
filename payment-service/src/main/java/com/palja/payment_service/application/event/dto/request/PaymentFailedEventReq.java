@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.event.dto;
+package com.palja.payment_service.application.event.dto.request;
 
 import lombok.Builder;
 
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
-public record PaymentFailedPayload(
+public record PaymentFailedEventReq(
         UUID paymentId,
         UUID orderId,
         Long userId,

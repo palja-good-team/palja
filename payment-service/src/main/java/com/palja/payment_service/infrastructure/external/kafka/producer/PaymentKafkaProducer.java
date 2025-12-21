@@ -1,8 +1,10 @@
-package com.palja.payment_service.infrastructure.event;
+package com.palja.payment_service.infrastructure.external.kafka.producer;
 
 import com.palja.payment_service.application.event.PaymentEventPublisher;
 import com.palja.payment_service.domain.entity.PaymentOutbox;
 import com.palja.payment_service.domain.event.vo.PaymentEventType;
+import com.palja.payment_service.infrastructure.external.kafka.KafkaTopics;
+import com.palja.payment_service.infrastructure.event.OutboxStatusUpdater;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;

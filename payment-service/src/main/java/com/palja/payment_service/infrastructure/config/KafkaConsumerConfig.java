@@ -1,8 +1,8 @@
-package com.palja.payment_service.infrastructure.saga.config;
+package com.palja.payment_service.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.interceptor.KafkaRecordInterceptor;
-import com.palja.payment_service.infrastructure.saga.listener.PaymentSagaFailureRecoverer;
+import com.palja.payment_service.infrastructure.external.kafka.consumer.PaymentSagaFailureRecoverer;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -14,6 +14,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.RecordInterceptor;
@@ -27,7 +28,7 @@ import java.util.Map;
 @EnableKafka
 @Configuration
 @RequiredArgsConstructor
-public class SagaKafkaConsumerConfig {
+public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -52,25 +53,32 @@ public class SagaKafkaConsumerConfig {
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
         JsonDeserializer<Object> valueDeserializer =
                 new JsonDeserializer<>(Object.class, objectMapper, false);
+
         valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
         valueDeserializer.setUseTypeHeaders(false);
 
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), valueDeserializer);
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                valueDeserializer
+        );
     }
 
-    @Bean
+    @Bean(name = "sagaKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> sagaKafkaListenerContainerFactory(
             ConsumerFactory<String, Object> sagaConsumerFactory,
-            DefaultErrorHandler sagaErrorHandler,
+            CommonErrorHandler sagaErrorHandler,
             RecordInterceptor<String, Object> sagaRecordInterceptor
     ) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
@@ -78,15 +86,20 @@ public class SagaKafkaConsumerConfig {
 
         factory.setConsumerFactory(sagaConsumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-        factory.setCommonErrorHandler(sagaErrorHandler);
 
         factory.setRecordInterceptor(sagaRecordInterceptor);
+        factory.setCommonErrorHandler(sagaErrorHandler);
 
         return factory;
     }
 
     @Bean
-    public DefaultErrorHandler sagaErrorHandler(PaymentSagaFailureRecoverer recoverer) {
+    public RecordInterceptor<String, Object> sagaRecordInterceptor(Tracer tracer) {
+        return new KafkaRecordInterceptor<>(tracer);
+    }
+
+    @Bean
+    public CommonErrorHandler sagaErrorHandler(PaymentSagaFailureRecoverer recoverer) {
         FixedBackOff backOff = new FixedBackOff(retryIntervalMs, maxRetries);
 
         DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backOff);
@@ -97,10 +110,5 @@ public class SagaKafkaConsumerConfig {
         );
 
         return handler;
-    }
-
-    @Bean
-    public RecordInterceptor<String, Object> sagaRecordInterceptor(Tracer tracer) {
-        return new KafkaRecordInterceptor<>(tracer);
     }
 }

@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.event;
+package com.palja.payment_service.application.event.dto;
 
 import com.palja.payment_service.domain.event.vo.PaymentEventType;
 import lombok.Builder;

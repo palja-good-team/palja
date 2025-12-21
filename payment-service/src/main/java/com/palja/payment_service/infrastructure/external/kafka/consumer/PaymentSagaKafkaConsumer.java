@@ -1,14 +1,14 @@
-package com.palja.payment_service.infrastructure.saga.listener;
+package com.palja.payment_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.service.PaymentSagaService;
-import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCancelEventReq;
-import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCreateEventReq;
-import com.palja.payment_service.infrastructure.saga.dto.response.PaymentCreateEventRes;
-import com.palja.payment_service.infrastructure.saga.producer.PaymentSagaReplyProducer;
-import com.palja.payment_service.infrastructure.saga.topics.OrderSagaKafkaTopics;
+import com.palja.payment_service.application.event.dto.request.PaymentCancelEventReq;
+import com.palja.payment_service.application.event.dto.request.PaymentCreateEventReq;
+import com.palja.payment_service.application.event.dto.response.PaymentCreateEventRes;
+import com.palja.payment_service.infrastructure.external.kafka.KafkaTopics;
+import com.palja.payment_service.infrastructure.external.kafka.producer.PaymentSagaReplyProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -21,14 +21,14 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PaymentSagaKafkaListener {
+public class PaymentSagaKafkaConsumer {
 
     private final ObjectMapper objectMapper;
     private final PaymentSagaService paymentSagaService;
     private final PaymentSagaReplyProducer replyProducer;
 
     @KafkaListener(
-            topics = OrderSagaKafkaTopics.PAYMENT_CREATE_REQUEST,
+            topics = KafkaTopics.PAYMENT_CREATE_REQUEST,
             containerFactory = "sagaKafkaListenerContainerFactory"
     )
     public void onPaymentCreateRequest(ConsumerRecord<String, Object> record, Acknowledgment ack) {
@@ -65,7 +65,7 @@ public class PaymentSagaKafkaListener {
     }
 
     @KafkaListener(
-            topics = OrderSagaKafkaTopics.PAYMENT_CANCEL_REQUEST,
+            topics = KafkaTopics.PAYMENT_CANCEL_REQUEST,
             containerFactory = "sagaKafkaListenerContainerFactory"
     )
     public void onPaymentCancelRequest(ConsumerRecord<String, Object> record, Acknowledgment ack) {
