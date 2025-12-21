@@ -2,15 +2,13 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      retries: 2147483647
-      properties:
-        acks: all
-        enable.idempotence: true
-        max.in.flight.requests.per.connection: 5
-        compression.type: snappy
+payment:
+  saga:
+    consumer:
+      group-id: payment-service-saga
+      auto-offset-reset: earliest
+      max-retries: 3
+      retry-interval-ms: 1000
 
 app:
   outbox:
