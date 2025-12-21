@@ -18,8 +18,6 @@ public class LoginQueueRepositoryImpl implements LoginQueueRepository {
 	private final String LOGIN_QUEUE_KEY = "AUTH:LQ";
 	private final String QUEUE_RANK_KEY_PREFIX = "AUTH:WL:QT:";
 
-	public final static Long MAX_CONCURRENT = 100L;
-
 	@Override
 	public void enqueueLogin(String loginId, long currentTimeMillis) {
 		redisRepository.zadd(LOGIN_QUEUE_KEY, loginId, currentTimeMillis);

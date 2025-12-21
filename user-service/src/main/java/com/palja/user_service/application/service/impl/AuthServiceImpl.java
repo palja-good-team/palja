@@ -1,7 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import static com.palja.user_service.infrastructure.external.redis.impl.LoginQueueRepositoryImpl.*;
-
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -37,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+
+	private final Long MAX_CONCURRENT = 100L;
 
 	@Override
 	public String login(LoginUserCommand command) {
