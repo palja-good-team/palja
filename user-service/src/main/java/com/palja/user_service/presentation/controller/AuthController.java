@@ -4,6 +4,7 @@ import static com.palja.user_service.presentation.util.AuthResponseExamples.*;
 
 import org.springframework.http.ResponseEntity;
 
+import com.palja.user_service.application.dto.response.ReadQueueRankRes;
 import com.palja.user_service.presentation.dto.request.LoginUserReq;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,7 @@ public interface AuthController {
 	);
 
 	@Operation(summary = "토큰 발급", description = "임시 토큰을 통해 액세스 토큰과 리프레시 토큰을 발급합니다.")
-	ResponseEntity<com.palja.common.response.ApiResponse<Void>> issue(String authToken, HttpServletResponse response);
+	ResponseEntity<com.palja.common.response.ApiResponse<Void>> issue(String queueToken, HttpServletResponse response);
 
 	@Operation(summary = "토큰 재발급", description = "리프레시 토큰을 통해 액세스 토큰을 재발급합니다.")
 	@ApiResponses({
@@ -74,5 +75,8 @@ public interface AuthController {
 	ResponseEntity<com.palja.common.response.ApiResponse<Void>> logout(
 		String accessToken, HttpServletResponse response
 	);
+
+	@Operation(summary = "대기열 확인", description = "자신의 로그인 대기열 순서를 확인합니다.")
+	ResponseEntity<com.palja.common.response.ApiResponse<ReadQueueRankRes>> getQueue(String queueToken);
 
 }

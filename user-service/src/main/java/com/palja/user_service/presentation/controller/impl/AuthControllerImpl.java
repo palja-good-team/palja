@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,6 +19,7 @@ import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.LoginUserCommand;
+import com.palja.user_service.application.dto.response.ReadQueueRankRes;
 import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.presentation.controller.AuthController;
@@ -41,9 +43,9 @@ public class AuthControllerImpl implements AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<Void>> login(@Valid @RequestBody LoginUserReq requestDto, HttpServletResponse response) {
 		LoginUserCommand command = LoginUserReq.of(requestDto);
-		String authToken = authService.login(command);
+		String queueToken = authService.login(command);
 
-		HeaderUtil.setHeader(response, "X-AUTH-TOKEN", authToken);
+		HeaderUtil.setHeader(response, "X-QUEUE-TOKEN", queueToken);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그인 되었습니다."));
 	}
@@ -52,9 +54,9 @@ public class AuthControllerImpl implements AuthController {
 	@RequiredAnonymous
 	@PostMapping("/tokens")
 	public ResponseEntity<ApiResponse<Void>> issue(
-		@RequestHeader(value = "X-AUTH-TOKEN", required = false) String authToken, HttpServletResponse response
+		@RequestHeader(value = "X-QUEUE-TOKEN", required = false) String queueToken, HttpServletResponse response
 	) {
-		TokenRes tokens = authService.issueTokens(authToken);
+		TokenRes tokens = authService.issueTokens(queueToken);
 
 		String accessToken = tokens.getAccessToken();
 		HeaderUtil.setHeader(response, "Authorization", accessToken);
@@ -90,6 +92,17 @@ public class AuthControllerImpl implements AuthController {
 		CookieUtil.addCookieToHeader(response, "refresh_token", "", 0);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그아웃 되었습니다."));
+	}
+
+	@Override
+	@RequiredAnonymous
+	@GetMapping("/queue")
+	public ResponseEntity<ApiResponse<ReadQueueRankRes>> getQueue(
+		@RequestHeader(value = "X-QUEUE-TOKEN", required = false) String queueToken
+	) {
+		ReadQueueRankRes responseDto = authService.getQueueRank(queueToken);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseDto, "대기열 순서를 조회했습니다."));
 	}
 
 }

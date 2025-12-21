@@ -1,6 +1,7 @@
 package com.palja.user_service.application.service.impl;
 
 import static com.palja.user_service.application.util.RedisKeyConstants.*;
+import static com.palja.user_service.infrastructure.external.redis.impl.LoginQueueRepositoryImpl.*;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.user_service.application.command.LoginUserCommand;
+import com.palja.user_service.application.dto.response.ReadQueueRankRes;
 import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.service.AuthService;
@@ -52,8 +54,8 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public TokenRes issueTokens(String authToken) {
-		String loginId = getLoginIdFromAuthToken(authToken);
+	public TokenRes issueTokens(String queueToken) {
+		String loginId = getLoginIdFromQueueToken(queueToken);
 
 		User user = getUserByLoginId(loginId);
 
@@ -99,23 +101,49 @@ public class AuthServiceImpl implements AuthService {
 		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
 	}
 
+	@Override
+	public ReadQueueRankRes getQueueRank(String queueToken) {
+		String loginId = getLoginIdFromQueueToken(queueToken);
+
+		long rank = getQueueRankFromLoginId(loginId);
+
+		if (rank < MAX_CONCURRENT) {
+			loginQueueRepository.deleteQueue(loginId);
+			loginQueueRepository.addWhiteList(loginId, queueToken);
+			rank = 0L;
+		} else {
+			rank = MAX_CONCURRENT - rank + 1;
+		}
+
+		return ReadQueueRankRes.from(loginId, rank);
+	}
+
 	private User getUserByLoginId(String loginId) {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(AuthErrorCode.INVALID_USER_INFO)
 		);
 	}
 
-	private String getLoginIdFromAuthToken(String authToken) {
-		if (authToken == null) {
+	private String getLoginIdFromQueueToken(String queueToken) {
+		if (queueToken == null) {
 			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
 		}
 
-		String[] parts = new String(Base64.getDecoder().decode(authToken), StandardCharsets.UTF_8).split(":");
+		String[] parts = new String(Base64.getDecoder().decode(queueToken), StandardCharsets.UTF_8).split(":");
 		if (parts.length != 2) {
 			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
 		}
 
 		return parts[1];
+	}
+
+	private Long getQueueRankFromLoginId(String loginId) {
+		Long rank = loginQueueRepository.getQueueRank(loginId);
+		if (rank == null) {
+			throw new BusinessException(AuthErrorCode.NOT_ENQUEUED_USER);
+		}
+
+		return rank;
 	}
 
 	private void validateUserPassword(String password, String userPassword) {
