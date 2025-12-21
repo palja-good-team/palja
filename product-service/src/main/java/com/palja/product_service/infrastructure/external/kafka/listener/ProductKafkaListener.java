@@ -22,39 +22,25 @@ public class ProductKafkaListener {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = DECREASE_STOCK_TIMEDEAL)
-    public void handleDecreaseStockTimeDealEvent(ConsumerRecord<String, Object> dto) {
+    public void handleDecreaseStockTimeDealEvent(StockDecreaseTimeDealDto dto) {
 
-        String value = (String) dto.value();
-        StockDecreaseTimeDealDto event = Deserialization(value, StockDecreaseTimeDealDto.class);
-
-        productService.decreaseStockForTimeDeal(event.getProductId(), event.getQuantity());
+        productService.decreaseStockForTimeDeal(dto.getProductId(), dto.getQuantity());
     }
 
     @KafkaListener(topics = SALE_STOCK_ORDER)
-    public void handleDecreaseStockOrderEvent(ConsumerRecord<String, Object> dto) {
+    public void handleDecreaseStockOrderEvent(StockDecreaseOrderEventDto dto) {
 
-        String value = (String) dto.value();
-        StockDecreaseOrderEventDto event = Deserialization(value, StockDecreaseOrderEventDto.class);
-
-        if (event.getIsTimeDeal().equals(Boolean.FALSE)) {
+        if (dto.getIsTimeDeal().equals(Boolean.FALSE)) {
             productService.saleProduct(
-                    event.getSagaId(), event.getProductId(), event.getOrderId(), event.getQuantity());
+                    dto.getSagaId(), dto.getProductId(), dto.getOrderId(), dto.getQuantity());
         }
     }
 
     @KafkaListener(topics = {INCREASE_STOCK_TIMEDEAL, RESTORE_STOCK_ORDER, ORDER_CANCEL})
-    public void handleIncreaseStockEvent(ConsumerRecord<String, Object> dto) {
+    public void handleIncreaseStockEvent(StockRestoreEventDto dto) {
 
-        String value = (String) dto.value();
-        StockRestoreEventDto event = Deserialization(value, StockRestoreEventDto.class);
-
-        if(event.getIsTimeDeal() == null || event.getIsTimeDeal().equals(Boolean.FALSE)) {
-            productService.stockRestore(event.getProductId(), event.getQuantity());
+        if(dto.getIsTimeDeal() == null || dto.getIsTimeDeal().equals(Boolean.FALSE)) {
+            productService.stockRestore(dto.getProductId(), dto.getQuantity());
         }
-    }
-
-    private <T> T Deserialization(Object value, Class<T> type) {
-
-        return objectMapper.convertValue(value, type);
     }
 }

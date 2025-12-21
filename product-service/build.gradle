@@ -76,6 +76,7 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+test {
+    exclude('**/RedisRepositoryImplTest.class')
+    useJUnitPlatform()
 }

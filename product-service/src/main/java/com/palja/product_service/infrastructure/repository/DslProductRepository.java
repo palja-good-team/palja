@@ -29,7 +29,7 @@ public class DslProductRepository {
                         product.id,
                         product.companyUserId,
                         product.price.amount.longValue(),
-                        product.productStock.quantity.longValue()))
+                        product.productStock.quantity))
                 .from(product)
                 .where(product.id.eq(productId).and(product.deletedAt.isNull()))
                 .fetchOne();
