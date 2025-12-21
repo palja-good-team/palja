@@ -1,6 +1,7 @@
 package com.palja.timedeal_service.infrastructure.config.kafka;
 
 import com.palja.common.interceptor.KafkaProducerInterceptor;
+import com.palja.common.interceptor.KafkaRecordInterceptor;
 import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -28,12 +29,12 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
+    // producer 설정
     @Bean
     public KafkaProducerInterceptor<Object> kafkaEventProducerInterceptor(Tracer tracer) {
         return new KafkaProducerInterceptor<>(tracer);
     }
 
-    // producer 설정
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> config = new HashMap<>();
@@ -61,6 +62,11 @@ public class KafkaConfig {
 
     // consumer 설정
     @Bean
+    public KafkaRecordInterceptor<Object> consumerInterceptor(Tracer tracer) {
+        return new KafkaRecordInterceptor<>(tracer);
+    }
+
+    @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
@@ -76,10 +82,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
+            KafkaRecordInterceptor<Object> consumerInterceptor,
             ConsumerFactory<String, Object> consumerFactory
     ) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
+        factory.setRecordInterceptor(consumerInterceptor);
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(1);
 
