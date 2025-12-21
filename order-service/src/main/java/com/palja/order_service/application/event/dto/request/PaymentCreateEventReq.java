@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto.event.request;
+package com.palja.order_service.application.event.dto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

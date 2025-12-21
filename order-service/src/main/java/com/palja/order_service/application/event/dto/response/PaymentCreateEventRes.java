@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto.event.response;
+package com.palja.order_service.application.event.dto.response;
 
 import lombok.*;
 

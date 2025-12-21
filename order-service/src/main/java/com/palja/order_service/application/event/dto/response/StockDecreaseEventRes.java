@@ -1,4 +1,4 @@
-package com.palja.order_service.application.dto.event.response;
+package com.palja.order_service.application.event.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,13 +8,13 @@ import lombok.Setter;
 import java.util.UUID;
 
 /**
- * 쿠폰 사용 응답 이벤트
+ * 재고 차감 응답 이벤트
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CouponCancelEventRes {
+public class StockDecreaseEventRes {
     private UUID sagaId;
     private UUID orderId;
 }

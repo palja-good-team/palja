@@ -1,6 +1,6 @@
 package com.palja.order_service.application.port;
 
-import com.palja.order_service.application.dto.event.request.*;
+import com.palja.order_service.application.event.dto.request.*;
 
 /**
  * Saga 이벤트 발행 포트 (아웃바운드)

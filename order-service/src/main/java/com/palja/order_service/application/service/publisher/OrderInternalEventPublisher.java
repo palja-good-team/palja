@@ -1,7 +1,7 @@
 package com.palja.order_service.application.service.publisher;
 
-import com.palja.order_service.application.dto.event.request.OrderCanceledEventReq;
-import com.palja.order_service.application.dto.event.request.OrderCreatedEventReq;
+import com.palja.order_service.application.event.dto.request.OrderCanceledEventReq;
+import com.palja.order_service.application.event.dto.request.OrderCreatedEventReq;
 import com.palja.order_service.domain.entity.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
