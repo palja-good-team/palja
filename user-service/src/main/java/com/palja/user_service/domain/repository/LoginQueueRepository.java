@@ -10,4 +10,6 @@ public interface LoginQueueRepository {
 
 	void addWhiteList(String loginId, String queueToken);
 
+	String getQueueToken(String loginId);
+
 }

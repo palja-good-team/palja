@@ -57,6 +57,8 @@ public class AuthServiceImpl implements AuthService {
 	public TokenRes issueTokens(String queueToken) {
 		String loginId = getLoginIdFromQueueToken(queueToken);
 
+		validateQueueTokenWithRedis(loginId);
+
 		User user = getUserByLoginId(loginId);
 
 		String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
@@ -175,6 +177,12 @@ public class AuthServiceImpl implements AuthService {
 
 		if (!redisRefreshToken.equals(refreshToken)) {
 			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+		}
+	}
+
+	private void validateQueueTokenWithRedis(String loginId) {
+		if (loginQueueRepository.getQueueToken(loginId) == null) {
+			throw new BusinessException(AuthErrorCode.NOT_ALLOWED_TOKEN);
 		}
 	}
 
