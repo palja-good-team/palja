@@ -1,10 +1,10 @@
 package com.palja.order_service.infrastructure.external.client.dto.response;
 
 import com.palja.order_service.application.dto.external.TimeDealRes;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -17,24 +17,22 @@ public class TimeDealDTO {
     private UUID companyUserId;
     private String title;
     private String description;
-    private LocalDateTime startAt;
-    private LocalDateTime endAt;
-    private BigDecimal originalPrice;
-    private BigDecimal timeDealPrice;
-    private int discountRate;
-    private Long totalQuantity;
-    private Long remainingQuantity;
-    private String timeDealStatus;  // ENUM(PENDING, OPEN, SOLD_OUT, CLOSED)
+
+    private TimeDealPeriodDTO period;
+    private TimeDealAmountDTO amount;
+    private TimeDealQuantityDTO quantity;
+
+    private String timeDealStatus; // ENUM(PENDING, OPEN, SOLD_OUT, CLOSED)
 
     public TimeDealRes toResponse() {
         return TimeDealRes.builder()
                 .timeDealId(timeDealId)
                 .productId(productId)
-                .startAt(startAt)
-                .endAt(endAt)
-                .timeDealPrice(timeDealPrice)
-                .discountRate(discountRate)
-                .timeDealStockQuantity(remainingQuantity)
+                .startAt(period != null ? period.getStartAt() : null)
+                .endAt(period != null ? period.getEndAt() : null)
+                .timeDealPrice(amount != null ? amount.getTimeDealPrice() : null)
+                .discountRate(amount != null ? amount.getDiscountRate() : 0)
+                .timeDealStockQuantity(quantity != null ? quantity.getRemainingQuantity() : null)
                 .status(timeDealStatus)
                 .build();
     }
