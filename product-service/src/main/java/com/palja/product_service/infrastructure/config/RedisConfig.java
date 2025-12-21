@@ -30,20 +30,23 @@ public class RedisConfig {
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
 
-        LettuceClientConfiguration config = LettuceClientConfiguration.builder()
+        LettuceClientConfiguration lettuceConfig = LettuceClientConfiguration.builder()
                 .commandTimeout(Duration.ofSeconds(3))
                 .shutdownTimeout(Duration.ofSeconds(5))
                 .build();
 
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(hostName, port);
+        redisConfig.setPassword(password);
+
         return new LettuceConnectionFactory(
-                new RedisStandaloneConfiguration(hostName, port), config);
+                redisConfig, lettuceConfig);
     }
 
     @Bean
     public RedissonClient redisson(RedisConnectionFactory factory) {
 
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://" + hostName + ":" + port).setPassword(password);
+        config.useSingleServer().setAddress("redis://" + hostName + ":" + port);
         //기본값. 락을 획득한 채로 스프링 서버가 죽으면, 30초후에 락이 자동으로 해제됨
         config.setLockWatchdogTimeout(30000);
         config.setCodec(new CompositeCodec(
