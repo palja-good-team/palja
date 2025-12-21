@@ -1,20 +1,16 @@
 package com.palja.product_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaProducerInterceptor;
-import com.palja.common.interceptor.KafkaRecordInterceptor;
 import io.micrometer.tracing.Tracer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.*;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.Map;
@@ -23,9 +19,8 @@ import static com.palja.product_service.infrastructure.external.kafka.ProductKaf
 import static com.palja.product_service.infrastructure.external.kafka.ProductKafkaTopic.DECREASE_STOCK_TIMEDEAL;
 import static org.springframework.kafka.core.KafkaAdmin.NewTopics;
 
-@EnableKafka
 @Configuration
-public class KafkaConfig {
+public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
@@ -59,39 +54,6 @@ public class KafkaConfig {
     public ProducerFactory<String, Object> producerFactory() {
 
         return new DefaultKafkaProducerFactory<>(producerConfigs());
-    }
-
-    @Bean
-    public KafkaRecordInterceptor<Object> consumerInterceptor(Tracer tracer) {
-
-        return new KafkaRecordInterceptor<>(tracer);
-    }
-
-    @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
-
-        return new DefaultKafkaConsumerFactory<>(
-                Map.of(
-                        ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS,
-                        ConsumerConfig.GROUP_ID_CONFIG, "product-service",
-                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-                        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class
-                )
-        );
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(Tracer tracer) {
-        //빈 이름도 동일하게..
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory
-                = new ConcurrentKafkaListenerContainerFactory<>();
-
-        factory.setConsumerFactory(consumerFactory());
-        factory.setRecordInterceptor(consumerInterceptor(tracer));
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
-
-        return factory;
     }
 
     @Bean

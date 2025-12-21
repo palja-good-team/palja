@@ -13,6 +13,6 @@ public class ProductInfoForOrderDto {
     private UUID productId;
     private UUID companyUserId;
     private String productName;
-    private BigDecimal price;
-    private int stockQuantity;
+    private Long price;
+    private Long stockQuantity;
 }

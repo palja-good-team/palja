@@ -14,8 +14,8 @@ public class ProductInfoForOrderRes {
     private UUID productId;
     private UUID companyUserId;
     private String productName;
-    private BigDecimal price;
-    private int stockQuantity;
+    private Long price;
+    private Long stockQuantity;
 
     public static ProductInfoForOrderRes fromDto(ProductInfoForOrderDto dto) {
 
