@@ -2,14 +2,10 @@ package com.palja.timedeal_service.application.validator;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
-import com.palja.common.vo.UserRole;
-import com.palja.timedeal_service.application.command.CreateTimeDealCommand;
 import com.palja.timedeal_service.application.dto.external.CompanyUserInfo;
-import com.palja.timedeal_service.application.dto.external.ProductInfo;
 import com.palja.timedeal_service.application.port.UserClient;
 import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
-import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
