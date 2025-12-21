@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Tag(name = "Auth-Controller", description = "인증 관련 API")
 public interface AuthController {
 
-	@Operation(summary = "로그인", description = "아이디와 비밀번호를 통해 로그인하고 토큰을 발급합니다.")
+	@Operation(summary = "로그인", description = "아이디와 비밀번호를 통해 로그인하고 임시 토큰을 발급합니다.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "로그인 되었습니다.",
 			content = @Content(mediaType = "application/json", examples = @ExampleObject(value = LOGIN_SUCCESS))),
@@ -40,6 +40,9 @@ public interface AuthController {
 	ResponseEntity<com.palja.common.response.ApiResponse<Void>> login(
 		LoginUserReq requestDto, HttpServletResponse response
 	);
+
+	@Operation(summary = "토큰 발급", description = "임시 토큰을 통해 액세스 토큰과 리프레시 토큰을 발급합니다.")
+	ResponseEntity<com.palja.common.response.ApiResponse<Void>> issue(String authToken, HttpServletResponse response);
 
 	@Operation(summary = "토큰 재발급", description = "리프레시 토큰을 통해 액세스 토큰을 재발급합니다.")
 	@ApiResponses({

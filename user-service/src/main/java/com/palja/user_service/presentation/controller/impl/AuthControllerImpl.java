@@ -41,17 +41,30 @@ public class AuthControllerImpl implements AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<Void>> login(@Valid @RequestBody LoginUserReq requestDto, HttpServletResponse response) {
 		LoginUserCommand command = LoginUserReq.of(requestDto);
-		TokenRes tokenResponse = authService.login(command);
+		String authToken = authService.login(command);
 
-		String accessToken = tokenResponse.getAccessToken();
-		HeaderUtil.setHeader(response, "Authorization", accessToken);
-
-		String refreshToken = tokenResponse.getRefreshToken();
-		String encodedRefreshToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8).replace("\\+", "%20");
-		long refreshKeyExpirationTime = tokenResponse.getRefreshKeyExpirationTime();
-		CookieUtil.addCookieToHeader(response, "refresh_token", encodedRefreshToken, refreshKeyExpirationTime);
+		HeaderUtil.setHeader(response, "X-AUTH-TOKEN", authToken);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그인 되었습니다."));
+	}
+
+	@Override
+	@RequiredAnonymous
+	@PostMapping("/tokens")
+	public ResponseEntity<ApiResponse<Void>> issue(
+		@RequestHeader(value = "X-AUTH-TOKEN", required = false) String authToken, HttpServletResponse response
+	) {
+		TokenRes tokens = authService.issueTokens(authToken);
+
+		String accessToken = tokens.getAccessToken();
+		HeaderUtil.setHeader(response, "Authorization", accessToken);
+
+		String refreshToken = tokens.getRefreshToken();
+		String encodedRefreshToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8).replace("\\+", "%20");
+		long refreshKeyExpirationTime = tokens.getRefreshKeyExpirationTime();
+		CookieUtil.addCookieToHeader(response, "refresh_token", encodedRefreshToken, refreshKeyExpirationTime);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("토큰이 발급 되었습니다."));
 	}
 
 	@Override

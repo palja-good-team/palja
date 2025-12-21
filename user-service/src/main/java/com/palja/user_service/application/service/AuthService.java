@@ -5,7 +5,9 @@ import com.palja.user_service.application.dto.response.TokenRes;
 
 public interface AuthService {
 
-	TokenRes login(LoginUserCommand command);
+	String login(LoginUserCommand command);
+
+	TokenRes issueTokens(String authToken);
 
 	String refreshAccessToken(String accessToken, String refreshToken);
 

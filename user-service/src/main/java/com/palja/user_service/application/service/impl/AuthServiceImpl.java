@@ -4,6 +4,8 @@ import static com.palja.user_service.application.util.RedisKeyConstants.*;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.service.AuthService;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.repository.LoginQueueRepository;
 import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 import com.palja.user_service.domain.vo.UserStatus;
@@ -29,18 +32,30 @@ public class AuthServiceImpl implements AuthService {
 
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
+	private final LoginQueueRepository loginQueueRepository;
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
 
 	@Override
-	public TokenRes login(LoginUserCommand command) {
+	public String login(LoginUserCommand command) {
 		String loginId = command.loginId();
 		String password = command.password();
 
 		User user = getUserByLoginId(loginId);
 		validateUserPassword(password, user.getPassword());
 		validateUserStatus(user);
+
+		loginQueueRepository.enqueueLogin(loginId, System.currentTimeMillis());
+
+		return Base64.getEncoder().encodeToString((UUID.randomUUID() + ":" + loginId).getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Override
+	public TokenRes issueTokens(String authToken) {
+		String loginId = getLoginIdFromAuthToken(authToken);
+
+		User user = getUserByLoginId(loginId);
 
 		String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
 		String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
@@ -88,6 +103,19 @@ public class AuthServiceImpl implements AuthService {
 		return userRepository.findByLoginIdAndDeletedAtIsNull(loginId).orElseThrow(
 			() -> new BusinessException(AuthErrorCode.INVALID_USER_INFO)
 		);
+	}
+
+	private String getLoginIdFromAuthToken(String authToken) {
+		if (authToken == null) {
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
+		}
+
+		String[] parts = new String(Base64.getDecoder().decode(authToken), StandardCharsets.UTF_8).split(":");
+		if (parts.length != 2) {
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
+		}
+
+		return parts[1];
 	}
 
 	private void validateUserPassword(String password, String userPassword) {
