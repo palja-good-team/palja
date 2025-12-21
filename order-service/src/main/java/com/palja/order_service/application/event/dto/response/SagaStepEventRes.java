@@ -14,7 +14,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockDecreaseEventRes {
+public class SagaStepEventRes {
     private UUID sagaId;
     private UUID orderId;
 }
