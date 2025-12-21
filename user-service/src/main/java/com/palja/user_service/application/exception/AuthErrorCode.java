@@ -17,6 +17,7 @@ public enum AuthErrorCode implements ErrorCode {
 	NOT_FOUND_TOKEN(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다."),
 	NOT_ENQUEUED_USER(HttpStatus.BAD_REQUEST, "대기열에 존재하지 않는 계정입니다."),
 	NOT_ALLOWED_TOKEN(HttpStatus.BAD_REQUEST, "대기열을 확인해주세요."),
+	NOT_FOUND_SHA_256(HttpStatus.INTERNAL_SERVER_ERROR, "SHA-256 알고리즘을 찾을 수 없습니다."),
 	;
 
 	private final HttpStatus httpStatus;
