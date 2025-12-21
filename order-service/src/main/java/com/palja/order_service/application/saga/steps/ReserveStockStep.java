@@ -5,6 +5,7 @@ import com.palja.order_service.application.dto.event.request.StockRestoreEventRe
 import com.palja.order_service.application.port.kafka.OrderEventPublisher;
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.model.OrderSaga;
+import com.palja.order_service.application.saga.model.OrderSagaStep;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.entity.OrderItem;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,11 @@ public class ReserveStockStep implements SagaStep {
     @Override
     public String getName() {
         return "재고예약";
+    }
+
+    @Override
+    public OrderSagaStep getStepType() {
+        return OrderSagaStep.STOCK_RESERVED;
     }
 
     @Override

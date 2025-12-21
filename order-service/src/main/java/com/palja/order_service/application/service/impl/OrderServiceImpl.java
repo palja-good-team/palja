@@ -54,7 +54,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
-    private final OrderEventPublisher orderEventPublisher;
     private final OrderSagaService orderSagaService;
 
     // Spring Event
@@ -91,9 +90,6 @@ public class OrderServiceImpl implements OrderService {
 
         // OrderSaga 생성
         OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
-
-        // Saga 시작 이벤트 발행 (비동기 시작점)
-        // publishOrderCreatedSagaEvent(order.getOrderId(), saga.getSagaId());
 
         // Spring ApplicationEvent 발행
         // 실제 Kafka 발행은 트랜잭션 커밋 후 처리
