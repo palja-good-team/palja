@@ -1,7 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import static com.palja.user_service.application.util.RedisKeyConstants.*;
-
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -153,10 +151,10 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
-		tokenRepository.save(
-			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		tokenRepository.addAccessTokenToBlackList(
+			currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
+		tokenRepository.deleteRefreshToken(currentUserLoginId);
 	}
 
 	@Override

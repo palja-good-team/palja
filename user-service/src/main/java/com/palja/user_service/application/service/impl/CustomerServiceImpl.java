@@ -1,7 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import static com.palja.user_service.application.util.RedisKeyConstants.*;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -135,10 +133,10 @@ public class CustomerServiceImpl implements CustomerService {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
-		tokenRepository.save(
-			ACCESS_TOKEN_BLACKLIST_PREFIX + currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		tokenRepository.addAccessTokenToBlackList(
+			currentUserLoginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
+		tokenRepository.deleteRefreshToken(currentUserLoginId);
 	}
 
 	private User getCustomerByLoginId(String loginId) {

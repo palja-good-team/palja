@@ -1,6 +1,5 @@
 package com.palja.user_service.application.service.impl;
 
-import static com.palja.user_service.application.util.RedisKeyConstants.*;
 import static com.palja.user_service.infrastructure.external.redis.impl.LoginQueueRepositoryImpl.*;
 
 import java.net.URLDecoder;
@@ -64,8 +63,8 @@ public class AuthServiceImpl implements AuthService {
 		String accessToken = jwtUtil.generateAccessToken(user.getLoginId(), user.getRole().name());
 		String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
 
-		tokenRepository.save(
-			REFRESH_TOKEN_WHITELIST_PREFIX + loginId,
+		tokenRepository.addRefreshTokenToWhiteList(
+			loginId,
 			jwtUtil.substringToken(refreshToken),
 			jwtUtil.getRefreshKeyExpirationTime()
 		);
@@ -100,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
 		getUserByLoginId(currentUserLoginId);
 
 		addAccessTokenToBlackList(currentUserLoginId, accessToken);
-		tokenRepository.remove(REFRESH_TOKEN_WHITELIST_PREFIX + currentUserLoginId);
+		tokenRepository.deleteRefreshToken(currentUserLoginId);
 	}
 
 	@Override
@@ -173,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	private void validateRefreshTokenWithRedis(String loginId, String refreshToken) {
-		String redisRefreshToken = tokenRepository.get(REFRESH_TOKEN_WHITELIST_PREFIX + loginId);
+		String redisRefreshToken = tokenRepository.getRefreshToken(loginId);
 
 		if (!redisRefreshToken.equals(refreshToken)) {
 			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
@@ -190,8 +189,8 @@ public class AuthServiceImpl implements AuthService {
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
 
-		tokenRepository.save(
-			ACCESS_TOKEN_BLACKLIST_PREFIX + loginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
+		tokenRepository.addAccessTokenToBlackList(
+			loginId + ":" + hashKey, substringAccessToken, jwtUtil.getAccessKeyExpirationTime()
 		);
 	}
 
