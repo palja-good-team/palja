@@ -73,6 +73,8 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_RECIPIENT_INFO(HttpStatus.BAD_REQUEST, "수령인 정보가 유효하지 않습니다."),
     INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "배송 주소가 유효하지 않습니다."),
     INVALID_TRACKING_NUMBER(HttpStatus.BAD_REQUEST, "운송장 번호가 유효하지 않습니다."),
+    TRACKING_ALREADY_REGISTERED(HttpStatus.CONFLICT, "이미 송장 번호가 등록된 주문입니다."),
+    DELIVERY_STATUS_CANNOT_REGISTER_TRACKING(HttpStatus.BAD_REQUEST, "현재 배송 상태에서는 송장을 등록할 수 없습니다."),
 
     // ===== 결제 관련 =====
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "결제 시간이 초과되었습니다."),
