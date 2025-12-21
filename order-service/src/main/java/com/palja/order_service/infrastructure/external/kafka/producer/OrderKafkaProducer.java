@@ -1,4 +1,4 @@
-package com.palja.order_service.infrastructure.external.kafka.publisher;
+package com.palja.order_service.infrastructure.external.kafka.producer;
 
 import com.palja.order_service.application.event.dto.request.*;
 import com.palja.order_service.application.port.OrderEventPublisher;
@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Kafka Saga Event Publisher (Adapter)
- *
- * 역할:
  * - SagaEventPublisher 인터페이스 구현
  * - Kafka로 이벤트 발행
  * - sagaId를 Key로 사용 (파티셔닝)
