@@ -43,7 +43,7 @@ public class RedisConfig {
     public RedissonClient redisson(RedisConnectionFactory factory) {
 
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://" + hostName + ":" + port);
+        config.useSingleServer().setAddress("redis://" + hostName + ":" + port).setPassword(password);
         //기본값. 락을 획득한 채로 스프링 서버가 죽으면, 30초후에 락이 자동으로 해제됨
         config.setLockWatchdogTimeout(30000);
         config.setCodec(new CompositeCodec(
