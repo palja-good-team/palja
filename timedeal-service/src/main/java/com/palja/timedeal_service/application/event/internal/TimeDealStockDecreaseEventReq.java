@@ -1,14 +1,14 @@
 package com.palja.timedeal_service.application.event.internal;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class TimeDealStockDecreaseEventReq {
-    private final UUID timeDealId;
-    private final UUID productId;
-    private final long quantity;
+    private UUID timeDealId;
+    private UUID productId;
+    private long quantity;
 }
