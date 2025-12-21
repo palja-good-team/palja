@@ -5,6 +5,11 @@ spring:
   application:
     name: coupon-service
 
+  kafka:
+    bootstrap-servers: "localhost:9092"
+    consumer:
+      group-id: coupon-service
+
   profiles:
     include:
       - datasource
@@ -13,3 +18,4 @@ spring:
       - eureka
       - swagger
       - monitor
+      - kafka
