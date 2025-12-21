@@ -17,7 +17,7 @@ import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
-import com.palja.order_service.application.service.publisher.OrderInternalEventPublisher;
+import com.palja.order_service.application.event.publisher.OrderInternalEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;

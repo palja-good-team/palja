@@ -1,4 +1,4 @@
-package com.palja.order_service.application.service.listener;
+package com.palja.order_service.application.event.listener;
 
 
 import com.palja.order_service.application.event.dto.request.OrderCanceledEventReq;
