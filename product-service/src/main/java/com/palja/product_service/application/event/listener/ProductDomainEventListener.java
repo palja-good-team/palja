@@ -1,9 +1,9 @@
 package com.palja.product_service.application.event.listener;
 
-import com.palja.product_service.application.event.ChangePriceEvent;
-import com.palja.product_service.application.event.DecreaseStockTimeDealErrorEvent;
-import com.palja.product_service.application.event.SaleProductErrorEvent;
-import com.palja.product_service.application.event.publisher.ProductEventPublisher;
+import com.palja.product_service.application.event.dto.request.ChangePriceEventReq;
+import com.palja.product_service.application.event.dto.request.DecreaseStockTimeDealErrorEventReq;
+import com.palja.product_service.application.event.dto.request.SaleProductErrorEventReq;
+import com.palja.product_service.application.port.ProductEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -16,19 +16,19 @@ public class ProductDomainEventListener {
     private final ProductEventPublisher productEventPublisher;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleChangePriceEvent(ChangePriceEvent event) {
+    public void handleChangePriceEvent(ChangePriceEventReq event) {
 
         productEventPublisher.handleChangePriceEvent(event);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleSaleProductErrorEvent(SaleProductErrorEvent event) {
+    public void handleSaleProductErrorEvent(SaleProductErrorEventReq event) {
 
         productEventPublisher.handleSaleProductErrorEvent(event);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleDecreaseStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEvent event) {
+    public void handleDecreaseStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEventReq event) {
 
         productEventPublisher.handleDecreaseStockTimeDealErrorEvent(event);
     }

@@ -1,13 +1,12 @@
-package com.palja.product_service.infrastructure.external.kafka.listener;
+package com.palja.product_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.product_service.application.service.ProductService;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderEventDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderDto;
 import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseTimeDealDto;
 import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,7 @@ import static com.palja.product_service.infrastructure.external.kafka.ProductKaf
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductKafkaListener {
+public class ProductKafkaConsumer {
 
     private final ProductService productService;
     private final ObjectMapper objectMapper;
@@ -28,7 +27,7 @@ public class ProductKafkaListener {
     }
 
     @KafkaListener(topics = SALE_STOCK_ORDER)
-    public void handleDecreaseStockOrderEvent(StockDecreaseOrderEventDto dto) {
+    public void handleDecreaseStockOrderEvent(StockDecreaseOrderDto dto) {
 
         if (dto.getIsTimeDeal().equals(Boolean.FALSE)) {
             productService.saleProduct(
