@@ -2,6 +2,7 @@ package com.palja.order_service.application.dto.response;
 
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.vo.DeliveryStatus;
+import com.palja.order_service.domain.vo.OrderStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,8 +24,11 @@ public class DeliveryRegisterRes {
     @Schema(description = "주문 ID", example = "550e8400-e29b-41d4-a716-446655440100")
     private UUID orderId;
 
+    @Schema(description = "주문 상태", example = "PREPARING")
+    private OrderStatus orderStatus;
+
     @Schema(description = "배송 상태", example = "IN_TRANSIT")
-    private DeliveryStatus status;
+    private DeliveryStatus deliveryStatus;
 
     @Schema(description = "수령인 정보")
     private RecipientRes recipient;
@@ -42,7 +46,8 @@ public class DeliveryRegisterRes {
     public static DeliveryRegisterRes from(Order order) {
         return DeliveryRegisterRes.builder()
                 .orderId(order.getOrderId())
-                .status(order.getDelivery().getStatus())
+                .orderStatus(order.getStatus())
+                .deliveryStatus(order.getDelivery().getStatus())
                 .recipient(RecipientRes.from(order.getDelivery().getRecipient()))
                 .tracking(TrackingRes.from(order.getDelivery()))
                 .createdAt(order.getCreatedAt())
