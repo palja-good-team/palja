@@ -49,6 +49,7 @@ dependencies {
 
 	// ===== DB =====
 	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// ===== Cloud & Infra =====
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
