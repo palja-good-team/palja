@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ public class PaymentCancelEventRes {
     private UUID orderId;
     private Long userId;
 
-    private Long canceledAmount;
+    private BigDecimal canceledAmount;
     private String cancelReason;
     private String paymentKey;
 
