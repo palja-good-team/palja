@@ -43,6 +43,7 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_CANNOT_BE_DELETED(HttpStatus.BAD_REQUEST, "PENDING 상태인 결제만 삭제할 수 있습니다."),
 
     // 결제 처리 실패 & 시스템 오류
+    PAYMENT_RETRY_BLOCKED(HttpStatus.TOO_MANY_REQUESTS, "PG 오류로 결제 요청이 임시 차단되었습니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
     PAYMENT_CANCEL_FAILED(HttpStatus.BAD_REQUEST, "결제 취소에 실패했습니다."),
     PAYMENT_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "결제 시스템 내부 오류가 발생했습니다.");
