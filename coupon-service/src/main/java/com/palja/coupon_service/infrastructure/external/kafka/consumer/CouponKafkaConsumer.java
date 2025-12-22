@@ -70,14 +70,11 @@ public class CouponKafkaConsumer {
 
             CouponCancelEventRes response = CouponCancelEventRes.of(event.getSagaId(), event.getOrderId());
 
-            kafkaTemplate.send(KafkaTopics.COUPON_CANCEL_SUCCESS, response);
             log.info("쿠폰 취소 성공 - sagaId: {}, orderId: {}, couponUserId: {}",
                     event.getSagaId(), event.getOrderId(), event.getCouponUserId());
 
         } catch (Exception e) {
             CouponCancelEventRes response = CouponCancelEventRes.of(event.getSagaId(), event.getOrderId());
-
-            kafkaTemplate.send(KafkaTopics.COUPON_CANCEL_FAILURE, response);
 
             log.error("쿠폰 취소 실패 - sagaId: {}, orderId: {}, couponUserId: {}",
                     event.getSagaId(), event.getOrderId(), event.getCouponUserId(), e);
