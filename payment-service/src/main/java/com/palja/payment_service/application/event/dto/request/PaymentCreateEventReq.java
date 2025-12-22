@@ -1,4 +1,4 @@
-package com.palja.payment_service.infrastructure.saga.dto.request;
+package com.palja.payment_service.application.event.dto.request;
 
 import lombok.*;
 
@@ -10,11 +10,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentCancelEventReq {
+public class PaymentCreateEventReq {
     private UUID sagaId;
     private UUID orderId;
 
-    private UUID paymentId;
+    private Long userId;
     private BigDecimal amount;
-    private String reason;
+    private String orderStatus;
 }
