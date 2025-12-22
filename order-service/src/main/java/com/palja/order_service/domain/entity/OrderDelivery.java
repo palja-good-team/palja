@@ -55,11 +55,15 @@ public class OrderDelivery {
                 .recipient(recipient)
                 .build();
     }
-
     // 송장 등록
     public void registerTracking(String trackingNumber, String courierCompany) {
+        // 이미 등록됐는지 검증 (중복 등록 방지)
+        if (isTrackingRegistered()) {
+            throw new IllegalStateException("이미 송장이 등록된 배송입니다.");
+        }
+
         if (!this.status.canRegisterTracking()) {
-            throw new IllegalStateException("배송 준비 상태에서만 송장을 등록할 수 있습니다.");
+            throw new IllegalStateException("송장 등록이 불가능한 배송 상태입니다: " + this.status);
         }
 
         validateTrackingNumber(trackingNumber);
@@ -71,6 +75,11 @@ public class OrderDelivery {
         // 송장 발행/배송요청 상태로 변경
         transitionTo(DeliveryStatus.REQUESTED);
     }
+
+    public boolean isTrackingRegistered() {
+        return this.trackingNumber != null && !this.trackingNumber.isBlank();
+    }
+
 
     // 배송 정보 수정 (READY 상태에서만)
     public void updateRecipient(Recipient newRecipient) {

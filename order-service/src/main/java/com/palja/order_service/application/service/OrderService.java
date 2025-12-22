@@ -13,8 +13,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface OrderService {
-    void save(Order order);
-
     OrderCreateRes createOrder(CreateOrderCommand command);
 
     void registerPayment(UUID orderId, UUID paymentId);
