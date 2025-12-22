@@ -14,11 +14,11 @@ import com.palja.payment_service.application.command.FindPaymentListByConditionC
 import com.palja.payment_service.application.dto.external.OrderRes;
 import com.palja.payment_service.application.dto.external.UserRes;
 import com.palja.payment_service.application.dto.response.*;
-import com.palja.payment_service.application.event.PaymentEventEnvelope;
-import com.palja.payment_service.application.event.dto.PaymentApprovedPayload;
-import com.palja.payment_service.application.event.dto.PaymentCancelFailedPayload;
-import com.palja.payment_service.application.event.dto.PaymentCanceledPayload;
-import com.palja.payment_service.application.event.dto.PaymentFailedPayload;
+import com.palja.payment_service.application.event.dto.PaymentEventEnvelope;
+import com.palja.payment_service.application.event.dto.request.PaymentApprovedEventReq;
+import com.palja.payment_service.application.event.dto.request.PaymentCancelFailedEventReq;
+import com.palja.payment_service.application.event.dto.request.PaymentCanceledEventReq;
+import com.palja.payment_service.application.event.dto.request.PaymentFailedEventReq;
 import com.palja.payment_service.application.port.OrderClient;
 import com.palja.payment_service.application.port.UserClient;
 import com.palja.payment_service.application.service.PGPaymentService;
@@ -301,7 +301,7 @@ public class PaymentServiceImpl implements PaymentService {
         outbox enqueue
      */
     private void enqueueOutboxApproved(Payment payment, PGPaymentRes pgRes) {
-        PaymentApprovedPayload payload = PaymentApprovedPayload.builder()
+        PaymentApprovedEventReq payload = PaymentApprovedEventReq.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
@@ -316,7 +316,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void enqueueOutboxFailed(Payment payment, PGPaymentRes pgRes) {
-        PaymentFailedPayload payload = PaymentFailedPayload.builder()
+        PaymentFailedEventReq payload = PaymentFailedEventReq.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
@@ -331,7 +331,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void enqueueOutboxCanceled(Payment payment, CancelPaymentCommand command, PGPaymentRes pgRes) {
-        PaymentCanceledPayload payload = PaymentCanceledPayload.builder()
+        PaymentCanceledEventReq payload = PaymentCanceledEventReq.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
@@ -347,7 +347,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void enqueueOutboxCancelFailed(Payment payment, CancelPaymentCommand command, PGPaymentRes pgRes) {
-        PaymentCancelFailedPayload payload = PaymentCancelFailedPayload.builder()
+        PaymentCancelFailedEventReq payload = PaymentCancelFailedEventReq.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
                 .userId(payment.getUserId())

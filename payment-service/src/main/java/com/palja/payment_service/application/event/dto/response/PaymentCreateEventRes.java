@@ -1,4 +1,4 @@
-package com.palja.payment_service.infrastructure.saga.dto.response;
+package com.palja.payment_service.application.event.dto.response;
 
 import lombok.*;
 

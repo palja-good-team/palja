@@ -1,11 +1,11 @@
-package com.palja.payment_service.infrastructure.saga.listener;
+package com.palja.payment_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCancelEventReq;
-import com.palja.payment_service.infrastructure.saga.dto.request.PaymentCreateEventReq;
-import com.palja.payment_service.infrastructure.saga.dto.response.PaymentCreateEventRes;
-import com.palja.payment_service.infrastructure.saga.producer.PaymentSagaReplyProducer;
-import com.palja.payment_service.infrastructure.saga.topics.OrderSagaKafkaTopics;
+import com.palja.payment_service.application.event.dto.request.PaymentCancelEventReq;
+import com.palja.payment_service.application.event.dto.request.PaymentCreateEventReq;
+import com.palja.payment_service.application.event.dto.response.PaymentCreateEventRes;
+import com.palja.payment_service.infrastructure.external.kafka.KafkaTopics;
+import com.palja.payment_service.infrastructure.external.kafka.producer.PaymentSagaReplyProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -24,7 +24,7 @@ public class PaymentSagaFailureRecoverer implements ConsumerRecordRecoverer {
     public void accept(ConsumerRecord<?, ?> record, Exception ex) {
         String topic = record.topic();
 
-        if (OrderSagaKafkaTopics.PAYMENT_CREATE_REQUEST.equals(topic)) {
+        if (KafkaTopics.PAYMENT_CREATE_REQUEST.equals(topic)) {
             PaymentCreateEventReq req = objectMapper.convertValue(record.value(), PaymentCreateEventReq.class);
 
             replyProducer.publishCreateFailure(
@@ -34,7 +34,7 @@ public class PaymentSagaFailureRecoverer implements ConsumerRecordRecoverer {
             return;
         }
 
-        if (OrderSagaKafkaTopics.PAYMENT_CANCEL_REQUEST.equals(topic)) {
+        if (KafkaTopics.PAYMENT_CANCEL_REQUEST.equals(topic)) {
             PaymentCancelEventReq req = objectMapper.convertValue(record.value(), PaymentCancelEventReq.class);
             log.error("saga 결제 취소 요청 실패: sagaId={}, orderId={}, paymentId={}, error={}",
                     req.getSagaId(), req.getOrderId(), req.getPaymentId(), ex.getMessage());
