@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderDeliveryControllerImpl implements OrderDeliveryController {
 
-    private final OrderDeliveryService orderService;
+    private final OrderDeliveryService orderDeliveryService;
 
     @Override
     @PostMapping
@@ -29,7 +29,7 @@ public class OrderDeliveryControllerImpl implements OrderDeliveryController {
             @PathVariable UUID orderId,
             @Valid @RequestBody RegisterDeliveryReq request
     ) {
-        DeliveryRegisterRes response = orderService.registerDeliveryTracking(
+        DeliveryRegisterRes response = orderDeliveryService.registerDeliveryTracking(
                 request.toCommand(orderId, CurrentUser.getLoginId(), CurrentUser.getRole())
         );
 

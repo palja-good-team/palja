@@ -10,6 +10,7 @@ import com.palja.order_service.application.dto.CouponUserStatus;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.UserClient;
+import com.palja.order_service.application.support.ExternalIdentityResolver;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 public class OrderValidator {
 
     private final UserClient userClient;
+    private final ExternalIdentityResolver identityResolver;
 
     // 검증 상수
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -422,7 +424,7 @@ public class OrderValidator {
         if (!companyUserId.equals(sellerId)) {
             log.warn("판매자 소유권 검증 실패: companyUserId={}, sellerId={}",
                     companyUserId, sellerId);
-            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+            throw new BusinessException(OrderErrorCode.SELLER_NOT_OWNER);
         }
     }
 
@@ -490,5 +492,19 @@ public class OrderValidator {
 
         log.debug("결제 완료 검증 성공: orderId={}, paymentId={}, amount={}",
                 order.getOrderId(), command.paymentId(), command.paidAmount());
+    }
+
+    // 판매자가 특정 상품의 소유자인지 검증
+    public void validateSellerOwnsProduct(String loginId, UUID productId) {
+        // 현재 로그인한 판매자 ID
+        UUID sellerId = identityResolver.resolveCompanyUserId(loginId);
+        // 해당 상품의 실제 판매자 ID
+        UUID productOwnerId = identityResolver.resolveProductSellerId(productId);
+
+        if (!sellerId.equals(productOwnerId)) {
+            log.warn("판매자 소유권 검증 실패: sellerId={}, productOwnerId={}",
+                    sellerId, productOwnerId);
+            throw new BusinessException(OrderErrorCode.SELLER_NOT_OWNER);
+        }
     }
 }
