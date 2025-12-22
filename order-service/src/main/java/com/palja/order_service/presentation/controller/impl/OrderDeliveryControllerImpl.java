@@ -23,7 +23,7 @@ public class OrderDeliveryControllerImpl implements OrderDeliveryController {
     private final OrderDeliveryService orderDeliveryService;
 
     @Override
-    @PostMapping
+    @PutMapping
     @RequiredRole(value = {UserRole.COMPANY_USER, UserRole.MANAGER})
     public ResponseEntity<ApiResponse<DeliveryRegisterRes>> registerDelivery(
             @PathVariable UUID orderId,
