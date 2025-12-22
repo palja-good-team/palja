@@ -1,10 +1,9 @@
 package com.palja.order_service.infrastructure.external.kafka.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.order_service.application.event.dto.request.SagaStartEventReq;
-import com.palja.order_service.application.event.dto.response.CouponUseEventRes;
-import com.palja.order_service.application.event.dto.response.PaymentCreateEventRes;
-import com.palja.order_service.application.event.dto.response.StockDecreaseEventRes;
+import com.palja.order_service.application.event.dto.response.*;
 import com.palja.order_service.application.saga.OrderSagaOrchestrator;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
 import com.palja.order_service.application.service.OrderService;
@@ -54,7 +53,7 @@ public class OrderKafkaConsumer {
     @KafkaListener(topics = KafkaTopics.STOCK_DECREASE_SUCCESS)
     public void onStockDecreaseSuccess(ConsumerRecord<String, Object> record) {
 
-        StockDecreaseEventRes event = objectMapper.convertValue(record.value(), StockDecreaseEventRes.class);
+        SagaStepEventRes event = objectMapper.convertValue(record.value(), SagaStepEventRes.class);
 
         log.info("[KAFKA][ORDER][INVENTORY_DECREASE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
                 record.topic(), record.partition(), record.offset(),
@@ -70,7 +69,7 @@ public class OrderKafkaConsumer {
     @KafkaListener(topics = KafkaTopics.STOCK_DECREASE_FAILURE)
     public void onStockDecreaseFailure(ConsumerRecord<String, Object> record) {
 
-        StockDecreaseEventRes event = objectMapper.convertValue(record.value(), StockDecreaseEventRes.class);
+        SagaStepEventRes event = objectMapper.convertValue(record.value(), SagaStepEventRes.class);
 
         log.info("[KAFKA][ORDER][INVENTORY_DECREASE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
                 record.topic(), record.partition(), record.offset(),
@@ -90,7 +89,7 @@ public class OrderKafkaConsumer {
     @KafkaListener(topics = KafkaTopics.COUPON_USE_SUCCESS)
     public void onCouponUseSuccess(ConsumerRecord<String, Object> record) {
 
-        CouponUseEventRes event = objectMapper.convertValue(record.value(), CouponUseEventRes.class);
+        SagaStepEventRes event = objectMapper.convertValue(record.value(), SagaStepEventRes.class);
 
         log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
                 record.topic(), record.partition(), record.offset(),
@@ -106,7 +105,7 @@ public class OrderKafkaConsumer {
     @KafkaListener(topics = KafkaTopics.COUPON_USE_FAILURE)
     public void onCouponUseFailure(ConsumerRecord<String, Object> record) {
 
-        CouponUseEventRes event = objectMapper.convertValue(record.value(), CouponUseEventRes.class);
+        SagaStepEventRes event = objectMapper.convertValue(record.value(), SagaStepEventRes.class);
 
         log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
                 record.topic(), record.partition(), record.offset(),
@@ -152,5 +151,78 @@ public class OrderKafkaConsumer {
 
         log.warn("[SAGA][ORDER][PAYMENT_CREATE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
                 OrderSagaStep.PAYMENT_CREATED, event.getSagaId(), event.getOrderId());
+    }
+
+    // ====== payment event consumer  ======
+    private static final String TYPE_PAYMENT_APPROVED = "PAYMENT_APPROVED";
+    private static final String TYPE_PAYMENT_CANCELED = "PAYMENT_CANCELED";
+
+    /**
+     * 결제 승인 성공
+     * topic: payment.order.approve.success
+     */
+    @KafkaListener(topics = KafkaTopics.PAYMENT_ORDER_APPROVE_SUCCESS)
+    public void onPaymentApproveSuccess(ConsumerRecord<String, Object> record) {
+
+        PaymentBaseEventRes event = toBaseEvent(record);
+
+        log.info("[KAFKA][ORDER][PAYMENT_APPROVE][CONSUMED] topic={} partition={} offset={} type={} eventId={} orderId={} paymentId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getType(), event.getEventId(), event.getOrderId(), event.getPaymentId());
+
+        if (!TYPE_PAYMENT_APPROVED.equals(event.getType())) {
+            log.warn("[KAFKA][ORDER][PAYMENT_APPROVED][SKIP] unexpected type={} eventId={}",
+                    event.getType(), event.getEventId());
+            return;
+        }
+
+        PaymentApproveEventRes payload = readPayload(event, PaymentApproveEventRes.class);
+        // 주문 결제완료 반영 (CREATED -> PAID, paymentId 세팅)
+        orderService.completeOrderPayment(payload.toCommand());
+    }
+
+    /**
+     * 결제 취소 성공
+     * topic: payment.order.cancel.success
+     */
+    @KafkaListener(topics = KafkaTopics.PAYMENT_ORDER_CANCEL_SUCCESS)
+    public void onPaymentCancelSuccess(ConsumerRecord<String, Object> record) {
+
+        PaymentBaseEventRes event = toBaseEvent(record);
+
+        log.info("[KAFKA][ORDER][PAYMENT_CANCELED][CONSUMED] topic={} partition={} offset={} type={} eventId={} orderId={} paymentId={}",
+                record.topic(), record.partition(), record.offset(),
+                event.getType(), event.getEventId(), event.getOrderId(), event.getPaymentId());
+
+        if (!TYPE_PAYMENT_CANCELED.equals(event.getType())) {
+            log.warn("[KAFKA][ORDER][PAYMENT_CANCELED][SKIP] unexpected type={} eventId={}",
+                    event.getType(), event.getEventId());
+            return;
+        }
+
+        PaymentCancelEventRes payload = readPayload(event, PaymentCancelEventRes.class);
+        // 주문 취소 반영 (PAID -> CANCELED)
+        orderService.cancelOrder(payload.toCommand());
+    }
+
+    // ===== payment 공통 파싱 유틸 =====
+    private PaymentBaseEventRes toBaseEvent(ConsumerRecord<String, Object> record) {
+        try {
+            return objectMapper.convertValue(record.value(), PaymentBaseEventRes.class);
+        } catch (IllegalArgumentException e) {
+            log.error("[KAFKA][ORDER][PAYMENT][BASE_EVENT_CONVERT_FAILED] topic={} partition={} offset={} value={}",
+                    record.topic(), record.partition(), record.offset(), record.value(), e);
+            throw e;
+        }
+    }
+
+    private <T> T readPayload(PaymentBaseEventRes event, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(event.getPayloadJson(), clazz);
+        } catch (JsonProcessingException e) {
+            log.error("[KAFKA][ORDER][PAYMENT][PAYLOAD_DESERIALIZE_FAILED] type={} eventId={} payloadJson={}",
+                    event.getType(), event.getEventId(), event.getPayloadJson(), e);
+            throw new IllegalStateException(event.getType() + " payloadJson deserialize failed", e);
+        }
     }
 }
