@@ -35,11 +35,6 @@ public class OrderDeliveryServiceImpl implements OrderDeliveryService {
         // 권한 검증
         orderDeliveryValidator.validateDeliveryRegistrationAuthority(order, command.userRole(), command.loginId());
 
-        // 주문 상태 검증 (PAID 상태만 가능)
-        if (!order.getStatus().isPaid()) {
-            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_PAYMENT);
-        }
-
         // 배송 정보 존재 확인
         OrderDelivery delivery = order.requireDelivery();
 
