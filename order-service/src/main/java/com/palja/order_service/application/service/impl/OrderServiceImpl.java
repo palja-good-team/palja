@@ -8,6 +8,7 @@ import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
+import com.palja.order_service.application.event.publisher.OrderInternalEventPublisher;
 import com.palja.order_service.application.exception.OrderErrorCode;
 import com.palja.order_service.application.port.CouponClient;
 import com.palja.order_service.application.port.ProductClient;
@@ -17,8 +18,8 @@ import com.palja.order_service.application.saga.model.OrderSaga;
 import com.palja.order_service.application.service.OrderSagaService;
 import com.palja.order_service.application.service.OrderService;
 import com.palja.order_service.application.service.calculator.OrderPriceCalculator;
-import com.palja.order_service.application.event.publisher.OrderInternalEventPublisher;
 import com.palja.order_service.application.service.validator.OrderValidator;
+import com.palja.order_service.application.support.ExternalIdentityResolver;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.domain.repository.OrderRepository;
 import com.palja.order_service.domain.service.OrderDomainService;
@@ -56,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderValidator orderValidator;
     private final OrderPriceCalculator orderPriceCalculator;
     private final OrderSagaService orderSagaService;
+
+    private final ExternalIdentityResolver identityResolver;
 
     // Spring Event
     private final OrderInternalEventPublisher internalEventPublisher;
@@ -237,12 +240,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("주문 결제 ID 등록 완료: orderId={}, paymentId={}", orderId, paymentId);
     }
 
-    // 주문 저장
-    @Transactional
-    public void save(Order order) {
-        orderRepository.save(order);
-    }
-
     // ====== Order Cancellation Workflow ======
     /**
      * 주문 취소
@@ -353,7 +350,7 @@ public class OrderServiceImpl implements OrderService {
     ) {
         log.info("고객 주문 목록 조회 시작: loginId={}", loginId);
 
-        Long userId = resolveCustomerId(loginId);
+        Long userId = identityResolver.resolveCustomerId(loginId);
 
         OrderStatus orderStatus = OrderStatus.from(request.getStatus());
         LocalDateTime startDateTime = toStartDateTimeOrMin(request.getStartDate());
@@ -440,11 +437,11 @@ public class OrderServiceImpl implements OrderService {
 
         switch (userRole) {
             case CUSTOMER -> {
-                customerId = resolveCustomerId(loginId);
+                customerId = identityResolver.resolveCustomerId(loginId);
             }
             case COMPANY_USER -> {
-                companyUserId = resolveCompanyUserId(loginId);
-                productSellerId = resolveProductSellerId(order.getOrderItem().getProductId());
+                companyUserId = identityResolver.resolveCompanyUserId(loginId);
+                productSellerId = identityResolver.resolveProductSellerId(order.getOrderItem().getProductId());
             }
         }
 
@@ -458,18 +455,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // ===== Private: Utility =====
-    private Long resolveCustomerId(String loginId) {
-        return userClient.getMyCustomer(loginId).getUserId();
-    }
-
-    private UUID resolveCompanyUserId(String loginId) {
-        return userClient.getMyCompanyUser(loginId).getCompanyUserId();
-    }
-
-    private UUID resolveProductSellerId(UUID productId) {
-        return productClient.getProduct(productId).getCompanyUserId();
-    }
-
     // 배송 정보 생성
     private Recipient createRecipient(CreateOrderCommand command) {
         return Recipient.create(

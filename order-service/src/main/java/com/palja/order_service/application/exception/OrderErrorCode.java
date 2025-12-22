@@ -26,6 +26,7 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "주문 금액이 올바르지 않습니다."),
     ORDER_CANNOT_BE_CANCELED(HttpStatus.BAD_REQUEST, "현재 상태에서는 주문을 취소할 수 없습니다."),
     NO_CANCEL_PERMISSION(HttpStatus.FORBIDDEN, "해당 주문을 취소할 권한이 없습니다."),
+    SELLER_NOT_OWNER(HttpStatus.FORBIDDEN, "해당 상품에 대한 판매자 권한이 없습니다."),
 
     INVENTORY_DEDUCTION_FAILED(HttpStatus.BAD_REQUEST, "재고 차감에 실패했습니다."),
     INVENTORY_RESTORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "재고 복구에 실패했습니다."),
@@ -73,6 +74,9 @@ public enum OrderErrorCode implements ErrorCode {
     INVALID_RECIPIENT_INFO(HttpStatus.BAD_REQUEST, "수령인 정보가 유효하지 않습니다."),
     INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "배송 주소가 유효하지 않습니다."),
     INVALID_TRACKING_NUMBER(HttpStatus.BAD_REQUEST, "운송장 번호가 유효하지 않습니다."),
+    TRACKING_ALREADY_REGISTERED(HttpStatus.CONFLICT, "이미 송장 번호가 등록된 주문입니다."),
+    DELIVERY_STATUS_CANNOT_REGISTER_TRACKING(HttpStatus.BAD_REQUEST, "현재 배송 상태에서는 송장을 등록할 수 없습니다."),
+    DELIVERY_REGISTRATION_DENIED(HttpStatus.FORBIDDEN, "배송 정보 등록 권한이 없습니다."),
 
     // ===== 결제 관련 =====
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "결제 시간이 초과되었습니다."),

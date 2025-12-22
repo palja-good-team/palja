@@ -310,4 +310,18 @@ public class Order extends BaseEntity {
                             this.orderAmount.getFinalAmount(), paidAmount));
         }
     }
+
+    // 송장 등록 -> 배송 준비 시작
+    public void onTrackingRegistered(String trackingNumber, String courierCompany) {
+        // 주문 상태 기준으로 송장 등록 가능한지 검증
+        if (!this.status.canRegisterTracking()) {
+            throw new IllegalStateException("송장 등록이 불가능한 주문 상태입니다: " + this.status);
+        }
+
+        // 배송에 위임 (중복 등록/값 검증/배송 상태 전이)
+        delivery.registerTracking(trackingNumber, courierCompany);
+
+        // 주문 상태 전환 규칙 적용
+        transitionTo(OrderStatus.PREPARING);
+    }
 }

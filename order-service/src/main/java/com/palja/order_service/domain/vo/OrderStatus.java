@@ -201,6 +201,14 @@ public enum OrderStatus {
         return this == DELIVERED;
     }
 
+    /**
+     * 송장 등록 가능 여부
+     * - 결제 완료(PAID) 이후 물류 처리가 시작될 때 송장 등록
+     */
+    public boolean canRegisterTracking() {
+        return this == PAID;
+    }
+
     // ======= 관리자 권한 검증 =======
     /**
      * 관리자 권한으로 변경 가능한 상태인지 검증
