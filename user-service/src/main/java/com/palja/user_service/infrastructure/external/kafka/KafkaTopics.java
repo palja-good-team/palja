@@ -1,4 +1,4 @@
-package com.palja.user_service.infrastructure.util;
+package com.palja.user_service.infrastructure.external.kafka;
 
 public class KafkaTopics {
 

@@ -1,6 +1,6 @@
-package com.palja.user_service.infrastructure.external.kafka;
+package com.palja.user_service.infrastructure.external.kafka.producer;
 
-import static com.palja.user_service.infrastructure.util.KafkaTopics.*;
+import static com.palja.user_service.infrastructure.external.kafka.KafkaTopics.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -8,9 +8,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEventReq;
-import com.palja.user_service.application.event.dto.impl.DeleteCustomerEventReq;
-import com.palja.user_service.application.event.publisher.UserEventPublisher;
+import com.palja.user_service.application.event.dto.request.DeleteCompanyUserEventReq;
+import com.palja.user_service.application.event.dto.request.DeleteCustomerEventReq;
+import com.palja.user_service.application.port.UserEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

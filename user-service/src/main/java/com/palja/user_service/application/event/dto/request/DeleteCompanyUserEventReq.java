@@ -1,4 +1,4 @@
-package com.palja.user_service.application.event.dto.impl;
+package com.palja.user_service.application.event.dto.request;
 
 import java.util.UUID;
 
