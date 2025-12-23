@@ -64,6 +64,7 @@ jobs:
 
       - name: set-yml
         uses: microsoft/variable-substitution@v1
+        if: matrix.package != 'discovery-service'
         with:
           files: '${{ matrix.package }}/src/main/resources/application*.yml'
         env:
