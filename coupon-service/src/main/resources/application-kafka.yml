@@ -2,17 +2,17 @@ spring:
   config:
     activate:
       on-profile: local
-kafka:
-  bootstrap-servers: "localhost:9092"
-  consumer:
-    group-id: coupon-service
+  kafka:
+    bootstrap-servers: "localhost:9092"
+    consumer:
+      group-id: coupon-service
 
 ---
 spring:
   config:
     activate:
       on-profile: prod
-kafka:
-  bootstrap-servers: "localhost:9092"
-  consumer:
-    group-id: coupon-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+    consumer:
+      group-id: coupon-service

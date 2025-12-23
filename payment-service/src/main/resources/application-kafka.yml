@@ -23,7 +23,7 @@ spring:
     activate:
       on-profile: prod
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
 
 payment:
   saga:

@@ -1,0 +1,124 @@
+name: palja_cicd
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+
+  change-detect:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      detected: ${{ steps.changes.outputs.changes }}
+    steps:
+      - name: code-checkout
+        uses: actions/checkout@v4
+
+      - name: find-change-module
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          base: release
+          filters: |
+            discovery-service: discovery-service/**
+            gateway-service: gateway-service/**
+            infra: infra/**
+            coupon-service: coupon-service/**
+            order-service: order-service/**
+            payment-service: payment-service/**
+            product-service: product-service/**
+            review-service: review-service/**
+            timedeal-service: timedeal-service/**
+            user-service: user-service/**
+
+  build-and-deploy:
+    needs: change-detect
+    if: needs.change-detect.outputs.detected != '[]'
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.change-detect.outputs.detected) }}
+    runs-on: ubuntu-latest
+    env:
+      SERVICE: ${{ matrix.package }}
+      PACKAGES_URL: ${{ secrets.COMMON_PACKAGES_URL }}
+      USERNAME: ${{ secrets.COMMON_USERNAME }}
+      TOKEN: ${{ secrets.COMMON_TOKEN }}
+    steps:
+      - name: print-change-module
+        run: |
+          echo '${{ needs.change-detect.outputs.detected }}' | jq 'length'
+      - name: code-checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install-java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: set-yml
+        uses: microsoft/variable-substitution@v1
+        if: matrix.package != 'discovery-service'
+        with:
+          files: '${{ matrix.package }}/src/main/resources/application*.yml'
+        env:
+          spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
+          spring.datasource.username: ${{ secrets.RDS_USERNAME }}
+          spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
+          spring.data.redis.host: ${{ secrets.REDIS_HOST }}
+          spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
+          spring.kafka.bootstrap-servers: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+          jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
+          jwt.refresh.secret: ${{ secrets.REFRESH_SECRET_KEY }}
+          toss.secret-key: ${{ secrets.TOSS_SECRET_KEY }}
+
+      - name: build gradle
+        run: |
+          echo "changed service = $SERVICE"
+          cd $SERVICE
+          chmod +x gradlew
+          ./gradlew clean build -x test
+
+      - name: create-image
+        run: |
+          cd $SERVICE
+          ./gradlew bootBuildImage --imageName=${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
+
+      - name: docker-login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: push-image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest
+
+      - name: Debug SERVICE
+        run: |
+          echo "imagename = '${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest'"
+
+      - name: deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          port: ${{ secrets.EC2_PORT }}
+          key:  ${{ secrets.EC2_SSH_KEY }}
+          envs: ${{ matrix.package }}
+          script: |
+            echo ${{env.SERVICE}}
+            
+            export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            
+            cd palja
+            docker compose down ${{ env.SERVICE }}
+            docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
+            docker compose up -d ${{ env.SERVICE }}

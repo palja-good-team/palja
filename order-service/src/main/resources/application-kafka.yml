@@ -36,7 +36,7 @@ spring:
       on-profile: prod
   kafka:
     # Kafka Broker 주소
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
 
     # Producer 설정
     producer:

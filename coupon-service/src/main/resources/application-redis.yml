@@ -14,5 +14,6 @@ spring:
       on-profile: prod
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST}
       port: 6379
+      password: ${REDIS_PASSWORD}
