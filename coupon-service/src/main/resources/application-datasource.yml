@@ -19,7 +19,6 @@ spring:
         show_sql: true
         default_schema: palja_coupon
 
-
 ---
 spring:
   config:
