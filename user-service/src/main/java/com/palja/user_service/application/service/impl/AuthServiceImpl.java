@@ -113,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
 			loginQueueRepository.addWhiteList(loginId, queueToken);
 			rank = 0L;
 		} else {
-			rank = MAX_CONCURRENT - rank + 1;
+			rank = rank - MAX_CONCURRENT + 1;
 		}
 
 		return ReadQueueRankRes.from(loginId, rank);
