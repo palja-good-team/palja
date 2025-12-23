@@ -20,6 +20,7 @@ spring:
         default_schema: palja_coupon
 
 ---
+
 spring:
   config:
     activate:

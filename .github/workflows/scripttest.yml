@@ -5,6 +5,17 @@ on:
     branches:
       - release
 
+env:
+  RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+  RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+  RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+  ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+  REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+  TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+
 jobs:
 
   change-detect:
@@ -62,21 +73,21 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: set-yml
-        uses: microsoft/variable-substitution@v1
-        if: matrix.package != 'discovery-service'
-        with:
-          files: '${{ matrix.package }}/src/main/resources/application*.yml'
-        env:
-          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
-          ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
-          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
-          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+#      - name: set-yml
+#        uses: microsoft/variable-substitution@v1
+#        if: matrix.package != 'discovery-service'
+#        with:
+#          files: '${{ matrix.package }}/src/main/resources/application*.yml'
+#        env:
+#          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+#          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+#          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+#          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+#          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+#          KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+#          ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+#          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+#          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
 
       - name: build gradle
         run: |
