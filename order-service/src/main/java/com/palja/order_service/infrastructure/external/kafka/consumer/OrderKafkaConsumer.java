@@ -2,7 +2,6 @@ package com.palja.order_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palja.order_service.application.event.dto.request.SagaStartEventReq;
 import com.palja.order_service.application.event.dto.response.*;
 import com.palja.order_service.application.saga.OrderSagaOrchestrator;
 import com.palja.order_service.application.saga.model.OrderSagaStep;

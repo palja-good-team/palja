@@ -1,5 +1,6 @@
 package com.palja.order_service.application.event.dto.request;
 
+import com.palja.order_service.application.event.dto.OrderEvent;
 import com.palja.order_service.domain.entity.Order;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCanceledEventReq {
+public class OrderCanceledEventReq implements OrderEvent {
     private UUID orderId;
     private Long userId;
 

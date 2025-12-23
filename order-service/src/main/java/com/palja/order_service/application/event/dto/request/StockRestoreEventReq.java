@@ -1,6 +1,10 @@
 package com.palja.order_service.application.event.dto.request;
 
-import lombok.*;
+import com.palja.order_service.application.event.dto.SagaEvent;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.util.UUID;
 
@@ -10,7 +14,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class StockRestoreEventReq {
+public class StockRestoreEventReq implements SagaEvent {
 
     private final UUID sagaId;
     private final UUID orderId;
