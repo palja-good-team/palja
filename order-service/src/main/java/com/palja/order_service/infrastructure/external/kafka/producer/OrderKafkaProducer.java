@@ -25,14 +25,6 @@ public class OrderKafkaProducer implements OrderEventPublisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
-    public void publishSagaStart(SagaStartEventReq event) {
-        log.info("[KAFKA][ORDER][SAGA_START][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.SAGA_START_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.SAGA_START_REQUEST, event.getSagaId().toString(), event);
-    }
-
-    @Override
     public void publishStockDecrease(StockDecreaseEventReq event) {
         log.info("[KAFKA][ORDER][INVENTORY_DECREASE][PUBLISHED] topic={} orderId={} sagaId={}",
                 KafkaTopics.STOCK_DECREASE_REQUEST, event.getOrderId(), event.getSagaId());
