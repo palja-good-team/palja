@@ -68,7 +68,6 @@ jobs:
         with:
           files: '${{ matrix.package }}/src/main/resources/application*.yml'
         env:
-          spring.config.activate.on-profile: prod
           spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
           spring.datasource.username: ${{ secrets.RDS_USERNAME }}
           spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
