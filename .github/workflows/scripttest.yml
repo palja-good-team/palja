@@ -126,8 +126,10 @@ jobs:
             export REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY }}
             export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            export SPRING_PROFILES_ACTIVE=prod
             
             cd palja
             docker compose down ${{ env.SERVICE }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
             docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
             docker compose up -d ${{ env.SERVICE }}

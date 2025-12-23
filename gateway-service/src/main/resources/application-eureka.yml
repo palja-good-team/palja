@@ -14,6 +14,7 @@ spring:
   config:
     activate:
       on-profile: prod
+
 eureka:
   client:
     service-url:

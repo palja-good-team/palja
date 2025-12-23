@@ -19,6 +19,7 @@ spring:
         default_schema: palja_timedeal
 
 ---
+
 spring:
   config:
     activate:
