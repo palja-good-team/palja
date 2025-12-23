@@ -138,6 +138,16 @@ public class OrderSagaOrchestrator {
 
         // 다음 Step 실행
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
+
+        // 적용 대상이 아니면 성공 처리 후 다음 Step으로
+        if (!nextStep.isApplicable(saga, order)) {
+            log.info("[SAGA][ORDER][STEP][SKIPPED] sagaId={} orderId={} step={}",
+                    sagaId, saga.getOrderId(), nextStepEnum);
+
+            continueAfterStep(sagaId, nextStepEnum);
+            return;
+        }
+
         nextStep.execute(saga, order);
 
         log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepIndex={}",

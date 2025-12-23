@@ -30,4 +30,11 @@ public interface SagaStep {
      * 보상 트랜잭션 (이벤트 발행)
      */
     void compensate(OrderSaga saga, Order order);
+
+    /**
+     * 현재 Saga/Order 상황에서 이 Step이 적용 대상인지 판단
+     */
+    default boolean isApplicable(OrderSaga saga, Order order) {
+        return true; // 기본적으로 적용
+    }
 }
