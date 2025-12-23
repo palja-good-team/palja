@@ -5,17 +5,6 @@ on:
     branches:
       - release
 
-env:
-  RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-  RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-  RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-  REDIS_HOST: ${{ secrets.REDIS_HOST }}
-  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-  KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
-  ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
-  REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
-  TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
-
 jobs:
 
   change-detect:
@@ -127,9 +116,18 @@ jobs:
             echo ${#SERVICE}
             
             export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
+            export RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+            export RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+            export RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+            export REDIS_HOST: ${{ secrets.REDIS_HOST }}
+            export REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+            export KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+            export ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+            export REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+            export TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
             cd palja
-            docker compose down $SERVICE
-            docker rmi $DOCKER_USERNAME/$SERVICE:latest
-            docker compose up -d $SERVICE
+            docker compose down ${{ env.SERVICE }}
+            docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
+            docker compose up -d ${{ env.SERVICE }}
