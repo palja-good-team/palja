@@ -1,7 +1,7 @@
 package com.palja.product_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaRecordInterceptor;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderEventDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderDto;
 import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseTimeDealDto;
 import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreEventDto;
 import io.micrometer.tracing.Tracer;
@@ -50,7 +50,7 @@ public class KafkaConsumerConfig {
                         Pattern.compile(DECREASE_STOCK_TIMEDEAL),
                         new JsonDeserializer<>(StockDecreaseTimeDealDto.class, false),
                         Pattern.compile(SALE_STOCK_ORDER),
-                        new JsonDeserializer<>(StockDecreaseOrderEventDto.class, false),
+                        new JsonDeserializer<>(StockDecreaseOrderDto.class, false),
                         Pattern.compile(".*restore.*"),
                         new JsonDeserializer<>(StockRestoreEventDto.class, false),
                         Pattern.compile(ORDER_CANCEL),

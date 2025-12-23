@@ -1,9 +1,9 @@
 package com.palja.product_service.infrastructure.external.kafka.producer;
 
-import com.palja.product_service.application.event.ChangePriceEvent;
-import com.palja.product_service.application.event.DecreaseStockTimeDealErrorEvent;
-import com.palja.product_service.application.event.SaleProductErrorEvent;
-import com.palja.product_service.application.event.publisher.ProductEventPublisher;
+import com.palja.product_service.application.event.dto.request.ChangePriceEventReq;
+import com.palja.product_service.application.event.dto.request.DecreaseStockTimeDealErrorEventReq;
+import com.palja.product_service.application.event.dto.request.SaleProductErrorEventReq;
+import com.palja.product_service.application.port.ProductEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -36,19 +36,19 @@ public class ProductKafkaProducer implements ProductEventPublisher {
     }
 
     @Override
-    public void handleChangePriceEvent(ChangePriceEvent event) {
+    public void handleChangePriceEvent(ChangePriceEventReq event) {
 
         publish(CHANGE_PRODUCT_PRICE, event);
     }
 
     @Override
-    public void handleSaleProductErrorEvent(SaleProductErrorEvent event) {
+    public void handleSaleProductErrorEvent(SaleProductErrorEventReq event) {
 
         publish(SALE_STOCK_ORDER_ERROR, event);
     }
 
     @Override
-    public void handleDecreaseStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEvent event) {
+    public void handleDecreaseStockTimeDealErrorEvent(DecreaseStockTimeDealErrorEventReq event) {
 
         publish(DECREASE_STOCK_TIMEDEAL_ERROR, event);
     }

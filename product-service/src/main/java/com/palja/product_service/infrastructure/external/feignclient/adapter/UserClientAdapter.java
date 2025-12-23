@@ -1,4 +1,4 @@
-package com.palja.product_service.infrastructure.external.adapter;
+package com.palja.product_service.infrastructure.external.feignclient.adapter;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -6,7 +6,7 @@ import com.palja.common.response.ApiResponse;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;
-import com.palja.product_service.infrastructure.external.UserFeignClient;
+import com.palja.product_service.infrastructure.external.feignclient.UserFeignClient;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.palja.product_service.infrastructure.external;
+package com.palja.product_service.infrastructure.external.feignclient;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.product_service.infrastructure.dto.CompanyUserInfoDto;

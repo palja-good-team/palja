@@ -1,4 +1,4 @@
-package com.palja.product_service.application.event;
+package com.palja.product_service.application.event.dto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,12 +10,12 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SaleProductErrorEvent {
+public class SaleProductErrorEventReq {
 
     private UUID sagaId;
     private UUID orderId;
 
-    public static SaleProductErrorEvent create(UUID sagaId, UUID orderId) {
-        return new SaleProductErrorEvent(sagaId, orderId);
+    public static SaleProductErrorEventReq create(UUID sagaId, UUID orderId) {
+        return new SaleProductErrorEventReq(sagaId, orderId);
     }
 }
