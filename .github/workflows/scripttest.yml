@@ -116,15 +116,15 @@ jobs:
             echo ${#SERVICE}
             
             export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
-            export RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-            export RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-            export RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-            export REDIS_HOST: ${{ secrets.REDIS_HOST }}
-            export REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-            export KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
-            export ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
-            export REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
-            export TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+            export RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }}
+            export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+            export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+            export REDIS_HOST=${{ secrets.REDIS_HOST }}
+            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            export KAFKA_BOOTSTRAP_SERVER=${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+            export ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
+            export REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY }}
+            export TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
             cd palja
