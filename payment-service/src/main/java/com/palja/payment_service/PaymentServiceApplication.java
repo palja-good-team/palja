@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class PaymentServiceApplication {
 
 	public static void main(String[] args) {
-        System.out.println("ad");
+        System.out.println("add");
 		SpringApplication.run(PaymentServiceApplication.class, args);
 	}
 

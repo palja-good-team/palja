@@ -15,7 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class OrderServiceApplication {
 
 	public static void main(String[] args) {
-        System.out.println("a");
+        System.out.println("ad");
 		SpringApplication.run(OrderServiceApplication.class, args);
 	}
 }

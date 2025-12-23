@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ProductServiceApplication {
 
 	public static void main(String[] args) {
+        System.out.println("d");
 		SpringApplication.run(ProductServiceApplication.class, args);
 	}
 
