@@ -1,19 +1,17 @@
 server:
-  port: 8085
+  port: 8083
 
 spring:
   application:
-    name: order-service
-
-  config:
-    activate:
-      on-profile: local
+    name: user-service
 
   profiles:
     include:
       - datasource
       - zipkin
-      - swagger
+      - security
+      - redis
       - eureka
+      - swagger
       - monitor
       - kafka

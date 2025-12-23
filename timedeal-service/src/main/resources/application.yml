@@ -5,10 +5,6 @@ spring:
   application:
     name: timedeal-service
 
-  config:
-    activate:
-      on-profile: prod
-
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
     consumer:
