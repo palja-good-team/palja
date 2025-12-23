@@ -5,10 +5,6 @@ spring:
   application:
     name: coupon-service
 
-  config:
-    activate:
-      on-profile: prod
-
   profiles:
     include:
       - datasource
