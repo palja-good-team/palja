@@ -1,3 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
 eureka:
   client:
     service-url:

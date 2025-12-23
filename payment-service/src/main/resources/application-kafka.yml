@@ -1,4 +1,27 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+  kafka:
+    bootstrap-servers: localhost:9092
+
+payment:
+  saga:
+    consumer:
+      group-id: payment-service-saga
+      auto-offset-reset: earliest
+      max-retries: 3
+      retry-interval-ms: 1000
+
+app:
+  outbox:
+    publish-interval-ms: 30000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
   kafka:
     bootstrap-servers: localhost:9092
 
