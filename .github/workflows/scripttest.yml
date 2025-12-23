@@ -68,15 +68,15 @@ jobs:
         with:
           files: '${{ matrix.package }}/src/main/resources/application*.yml'
         env:
-          spring.datasource.url: ${{ secrets.RDS_ENDPOINT }}
-          spring.datasource.username: ${{ secrets.RDS_USERNAME }}
-          spring.datasource.password: ${{ secrets.RDS_PASSWORD }}
-          spring.data.redis.host: ${{ secrets.REDIS_HOST }}
-          spring.data.redis.password: ${{ secrets.REDIS_PASSWORD }}
-          spring.kafka.bootstrap-servers: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
-          jwt.access.secret: ${{ secrets.ACCESS_SECRET_KEY }}
-          jwt.refresh.secret: ${{ secrets.REFRESH_SECRET_KEY }}
-          toss.secret-key: ${{ secrets.TOSS_SECRET_KEY }}
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          KAFKA_BOOTSTRAP_SERVER: ${{ secrets.KAFKA_BOOTSTRAP_SERVER }}
+          ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
 
       - name: build gradle
         run: |
