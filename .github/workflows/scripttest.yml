@@ -124,12 +124,12 @@ jobs:
           key:  ${{ secrets.EC2_SSH_KEY }}
           envs: ${{ matrix.package }}
           script: |
-            echo ${{env.SERVICE}}
+            echo ${#SERVICE}
             
             export INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
             cd palja
-            docker compose down ${{ env.SERVICE }}
-#            docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE }}:latest
-            docker compose up -d ${{ env.SERVICE }}
+            docker compose down $SERVICE
+            docker rmi $DOCKER_USERNAME/$SERVICE:latest
+            docker compose up -d $SERVICE
