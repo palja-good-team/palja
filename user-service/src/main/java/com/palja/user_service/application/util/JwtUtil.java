@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.palja.common.exception.BusinessException;
+import com.palja.user_service.application.exception.AuthErrorCode;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -83,7 +86,7 @@ public class JwtUtil {
 		if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
 			return token.substring(BEARER_PREFIX.length());
 		} else {
-			throw new NullPointerException("토큰을 찾을 수 없습니다.");
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_TOKEN);
 		}
 	}
 
@@ -105,7 +108,7 @@ public class JwtUtil {
 			}
 			return sb.toString();
 		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.");
+			throw new BusinessException(AuthErrorCode.NOT_FOUND_SHA_256);
 		}
 	}
 
