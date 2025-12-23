@@ -1,0 +1,21 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: user-service
+
+  config:
+    activate:
+      on-profile: local
+
+  profiles:
+    include:
+      - datasource
+      - zipkin
+      - security
+      - redis
+      - eureka
+      - swagger
+      - monitor
+      - kafka

@@ -1,0 +1,19 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: order-service
+
+  config:
+    activate:
+      on-profile: local
+
+  profiles:
+    include:
+      - datasource
+      - zipkin
+      - swagger
+      - eureka
+      - monitor
+      - kafka

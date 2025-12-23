@@ -5,8 +5,12 @@ spring:
   application:
     name: timedeal-service
 
+  config:
+    activate:
+      on-profile: prod
+
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
     consumer:
       group-id: timedeal-service
 

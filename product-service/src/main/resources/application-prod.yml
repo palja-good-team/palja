@@ -1,19 +1,20 @@
 server:
-  port: 8081
+  port: 8084
 
 spring:
   application:
-    name: payment-service
+    name: product-service
+
+  config:
+    activate:
+      on-profile: prod
 
   profiles:
     include:
       - datasource
       - zipkin
       - eureka
+      - redis
       - swagger
       - monitor
       - kafka
-
-toss:
-  base-url: https://api.tosspayments.com
-  secret-key: ${TOSS_SECRET_KEY}

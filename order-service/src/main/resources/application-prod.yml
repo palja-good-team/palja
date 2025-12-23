@@ -1,16 +1,19 @@
 server:
-  port: 8084
+  port: 8085
 
 spring:
   application:
-    name: product-service
+    name: order-service
+
+  config:
+    activate:
+      on-profile: prod
 
   profiles:
     include:
       - datasource
       - zipkin
-      - eureka
-      - redis
       - swagger
+      - eureka
       - monitor
       - kafka
