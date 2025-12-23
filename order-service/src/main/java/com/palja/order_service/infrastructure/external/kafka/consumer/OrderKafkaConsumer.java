@@ -31,22 +31,6 @@ public class OrderKafkaConsumer {
     private final ObjectMapper objectMapper;
 
     /**
-     * Saga 시작 이벤트 수신
-     *  Topic: order.saga.start.request
-     */
-    @KafkaListener(topics = KafkaTopics.SAGA_START_REQUEST)
-    public void onSagaStart(ConsumerRecord<String, Object> record) {
-
-        SagaStartEventReq event = objectMapper.convertValue(record.value(), SagaStartEventReq.class);
-
-        log.info("[KAFKA][ORDER][SAGA_START][CONSUMED] topic={} partition={} offset={} sagaId={} orderId={}",
-                record.topic(), record.partition(), record.offset(),
-                event.getSagaId(), event.getOrderId());
-
-        orchestrator.startSaga(event.getSagaId());
-    }
-
-    /**
      * 재고 차감 성공 응답
      * Topic: order.stock.decrease.success
      */
