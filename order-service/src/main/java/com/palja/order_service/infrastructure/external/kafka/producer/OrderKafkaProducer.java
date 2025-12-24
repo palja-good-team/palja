@@ -26,7 +26,7 @@ public class OrderKafkaProducer implements OrderEventPublisher {
 
     @Override
     public void publishStockDecrease(StockDecreaseEventReq event) {
-        log.info("[KAFKA][ORDER][INVENTORY_DECREASE][PUBLISHED] topic={} orderId={} sagaId={}",
+        log.info("[KAFKA][ORDER][STOCK_DECREASE][PUBLISHED] topic={} orderId={} sagaId={}",
                 KafkaTopics.STOCK_DECREASE_REQUEST, event.getOrderId(), event.getSagaId());
 
         send(KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId().toString(), event);
@@ -34,7 +34,7 @@ public class OrderKafkaProducer implements OrderEventPublisher {
 
     @Override
     public void publishStockRestore(StockRestoreEventReq event) {
-        log.info("[KAFKA][ORDER][INVENTORY_RESTORE][PUBLISHED] topic={} orderId={} sagaId={}",
+        log.info("[KAFKA][ORDER][STOCK_RESTORE][PUBLISHED] topic={} orderId={} sagaId={}",
                 KafkaTopics.STOCK_RESTORE_REQUEST, event.getOrderId(), event.getSagaId());
 
         send(KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId().toString(), event);
