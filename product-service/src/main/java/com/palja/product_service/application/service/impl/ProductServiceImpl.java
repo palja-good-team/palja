@@ -8,9 +8,10 @@ import com.palja.product_service.application.command.FindProductListByConditionC
 import com.palja.product_service.application.command.UpdateProductInfoCommand;
 import com.palja.product_service.application.dto.external.CompanyUserInfoRes;
 import com.palja.product_service.application.dto.res.*;
-import com.palja.product_service.application.event.ChangePriceEvent;
-import com.palja.product_service.application.event.DecreaseStockTimeDealErrorEvent;
-import com.palja.product_service.application.event.SaleProductErrorEvent;
+import com.palja.product_service.application.event.dto.request.ChangePriceEventReq;
+import com.palja.product_service.application.event.dto.request.DecreaseStockTimeDealErrorEventReq;
+import com.palja.product_service.application.event.dto.request.SaleProductErrorEventReq;
+import com.palja.product_service.application.event.publisher.ProductDomainEventPublisher;
 import com.palja.product_service.application.port.UserClient;
 import com.palja.product_service.application.service.ProductService;
 import com.palja.product_service.domain.dto.req.FindListByConditionReq;
@@ -25,7 +26,6 @@ import com.palja.product_service.domain.service.ProductCategoryService;
 import com.palja.product_service.exception.CategoryErrorCode;
 import com.palja.product_service.exception.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final ProductCategoryService productCategoryService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ProductDomainEventPublisher productEventPublisher;
     private final UserClient userClient;
 
     @Override
@@ -132,7 +132,7 @@ public class ProductServiceImpl implements ProductService {
         Long afterPrice = updateProduct.getPrice().getAmount();
 
         if(!beforePrice.equals(afterPrice)) {
-            applicationEventPublisher.publishEvent(ChangePriceEvent.create(productId, afterPrice));
+            productEventPublisher.publishPriceChangeEvent(ChangePriceEventReq.create(productId, afterPrice));
         }
 
         return UpdateProductInfoRes.fromEntity(updateProduct);
@@ -170,8 +170,8 @@ public class ProductServiceImpl implements ProductService {
                 productId.toString(), stock.getQuantity(), quantity);
         validateRedisOperation(result);
 
-        applicationEventPublisher.publishEvent(
-                SaleProductErrorEvent.create(sagaId, orderId));
+        productEventPublisher.publishSaleEvent(
+                SaleProductErrorEventReq.create(sagaId, orderId));
     }
 
     @Override
@@ -197,8 +197,8 @@ public class ProductServiceImpl implements ProductService {
                 productId.toString(), restoredStock.getQuantity());
         validateRedisOperation(result);
 
-        applicationEventPublisher.publishEvent(
-                DecreaseStockTimeDealErrorEvent.create(
+        productEventPublisher.publishCreateTimeDealEvent(
+                DecreaseStockTimeDealErrorEventReq.create(
                         productId, ProductErrorCode.INVALID_STOCK.getMessage()
         ));
     }

@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StockDecreaseOrderEventDto {
+public class StockDecreaseOrderDto {
 
     private UUID sagaId;
     private UUID orderId;
