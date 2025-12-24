@@ -1,6 +1,7 @@
 package com.palja.product_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaProducerInterceptor;
+import com.palja.product_service.application.event.dto.ProductEvent;
 import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -21,7 +22,7 @@ public class KafkaProducerConfig {
     private String BOOTSTRAP_SERVERS;
 
     @Bean
-    public KafkaProducerInterceptor<Object> interceptor(Tracer tracer) {
+    public KafkaProducerInterceptor<ProductEvent> interceptor(Tracer tracer) {
         return new KafkaProducerInterceptor<>(tracer);
     }
 
@@ -32,20 +33,21 @@ public class KafkaProducerConfig {
                 //Producer가 처음으로 연결할 Kafka 브로커의 위치
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class,
+                JsonSerializer.ADD_TYPE_INFO_HEADERS, false
         );
     }
 
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    public ProducerFactory<String, ProductEvent> producerFactory() {
 
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(KafkaProducerInterceptor<Object> interceptor) {
+    public KafkaTemplate<String, ProductEvent> kafkaTemplate(KafkaProducerInterceptor<ProductEvent> interceptor) {
 
-        KafkaTemplate<String, Object> template = new KafkaTemplate<>(producerFactory());
+        KafkaTemplate<String, ProductEvent> template = new KafkaTemplate<>(producerFactory());
         template.setProducerInterceptor(interceptor);
 
         return template;
