@@ -33,7 +33,7 @@ public class KafkaConsumerConfig {
     private String groupId;
 
     @Bean
-    public KafkaRecordInterceptor<Object> consumerInterceptor(Tracer tracer) {
+    public KafkaRecordInterceptor<KafkaEvent> consumerInterceptor(Tracer tracer) {
         return new KafkaRecordInterceptor<>(tracer);
     }
 
@@ -50,22 +50,23 @@ public class KafkaConsumerConfig {
         config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
-        // JSON 설정
+        // JSON (payload의 "@type"으로 다형성 처리)
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.palja.*");
+        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        // KafkaEvent 인터페이스 기준으로 역직렬화 (Jackson이 @type 보고 서브타입 선택)
         config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
-        // JSON 본문에 Type이 있으니 헤더 의존 안 해도 됨
-        // config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory,
-            KafkaRecordInterceptor<Object> consumerInterceptor,
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> kafkaListenerContainerFactory(
+            ConsumerFactory<String, KafkaEvent> consumerFactory,
+            KafkaRecordInterceptor<KafkaEvent> consumerInterceptor,
             CommonErrorHandler errorHandler
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+        ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory);
