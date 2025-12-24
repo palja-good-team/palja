@@ -1,4 +1,4 @@
-package com.palja.payment_service.application.service.impl;
+package com.palja.payment_service.infrastructure.service;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.PaymentRetryAction;

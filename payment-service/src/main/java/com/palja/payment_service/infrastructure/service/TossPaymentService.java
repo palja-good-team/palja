@@ -27,14 +27,6 @@ public class TossPaymentService implements PGPaymentService {
 
     private final WebClient tossWebClient;
 
-    /**
-     * ✅ PG 조회(결제 확인) - "일시적 오류"에 대해서만 짧게 재시도
-     *
-     * - 재시도 대상: 네트워크 오류(WebClientRequestException), 5xx(WebClientResponseException의 5xx)
-     * - 비재시도: 4xx는 즉시 실패 응답 반환
-     *
-     * 중요: 여기서 retry는 "한 번의 요청" 내부에서만 발생.
-     */
     @Override
     @Retryable(
             retryFor = {TransientPgException.class},
@@ -43,7 +35,7 @@ public class TossPaymentService implements PGPaymentService {
     )
     public PGPaymentRes requestPayment(Payment payment) {
         String paymentKey = payment.getPaymentKey();
-        log.info("Toss getPayment request. paymentKey={}, orderId={}, amount={}",
+        log.info("T토스 결제 요청: paymentKey={}, orderId={}, amount={}",
                 paymentKey, payment.getOrderId(), payment.getAmount());
 
         try {
@@ -71,6 +63,9 @@ public class TossPaymentService implements PGPaymentService {
                 message = "토스 결제 성공";
             }
 
+            log.info("토스 결제 조회 응답: paymentKey={}, status={}, approvedAmount={}, success={}",
+                    res.getPaymentKey(), res.getStatus(), approvedAmount, success);
+
             return PGPaymentRes.builder()
                     .paymentKey(res.getPaymentKey())
                     .pgResponseCode(success ? "SUCCESS" : res.getStatus())
@@ -80,18 +75,16 @@ public class TossPaymentService implements PGPaymentService {
                     .build();
 
         } catch (WebClientRequestException e) {
-            // ✅ 네트워크 오류 => 재시도 대상
-            log.warn("Toss getPayment transient network error. paymentKey={}, msg={}", paymentKey, e.getMessage());
-            throw new TransientPgException("Transient network error while requesting Toss payment", e);
+            log.warn("토스 결제 조회 네트워크 오류(재시도): paymentKey={}, msg={}", paymentKey, e.getMessage());
+            throw new TransientPgException("토스 결제 조회 네트워크 오류", e);
 
         } catch (WebClientResponseException e) {
-            // ✅ 5xx만 재시도, 4xx는 즉시 실패 처리
             if (e.getStatusCode().is5xxServerError()) {
-                log.warn("Toss getPayment transient 5xx. status={}, body={}", e.getStatusCode(), safeBody(e));
-                throw new TransientPgException("Transient 5xx from Toss getPayment", e);
+                log.warn("토스 결제 조회 서버 오류(재시도): status={}, body={}", e.getStatusCode(), safeBody(e));
+                throw new TransientPgException("토스 결제 조회 서버 오류", e);
             }
 
-            log.error("Toss getPayment 4xx/other. status={}, body={}", e.getStatusCode(), safeBody(e), e);
+            log.error("토스 결제 조회 실패: status={}, body={}", e.getStatusCode(), safeBody(e), e);
             return PGPaymentRes.builder()
                     .paymentKey(paymentKey)
                     .pgResponseCode(String.valueOf(e.getStatusCode().value()))
@@ -102,9 +95,6 @@ public class TossPaymentService implements PGPaymentService {
         }
     }
 
-    /**
-     * ✅ PG 취소 - "일시적 오류"에 대해서만 짧게 재시도
-     */
     @Override
     @Retryable(
             retryFor = {TransientPgException.class},
@@ -121,6 +111,9 @@ public class TossPaymentService implements PGPaymentService {
         if (cancelAmount.compareTo(paymentAmount) < 0) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_PARTIAL_REFUND);
         }
+
+        log.info("토스 결제 취소 요청: paymentKey={}, orderId={}, cancelAmount={}, reason={}",
+                paymentKey, payment.getOrderId(), cancelAmount, cancelReason);
 
         try {
             TossPaymentCancelReq req = TossPaymentCancelReq.builder()
@@ -147,16 +140,18 @@ public class TossPaymentService implements PGPaymentService {
                     .build();
 
         } catch (WebClientRequestException e) {
-            log.warn("Toss cancel transient network error. paymentKey={}, msg={}", paymentKey, e.getMessage());
-            throw new TransientPgException("Transient network error while canceling Toss payment", e);
+            log.warn("토스 결제 취소 네트워크 오류(재시도): paymentKey={}, msg={}", paymentKey, e.getMessage());
+            throw new TransientPgException("토스 결제 취소 네트워크 오류", e);
 
         } catch (WebClientResponseException e) {
             if (e.getStatusCode().is5xxServerError()) {
-                log.warn("Toss cancel transient 5xx. status={}, body={}", e.getStatusCode(), safeBody(e));
-                throw new TransientPgException("Transient 5xx from Toss cancel", e);
+                log.warn("토스 결제 취소 서버 오류(재시도): status={}, body={}", e.getStatusCode(), safeBody(e));
+                throw new TransientPgException("토스 결제 취소 서버 오류", e);
             }
 
-            log.error("Toss cancel 4xx/other. status={}, body={}", e.getStatusCode(), safeBody(e), e);
+            log.error("토스 결제 취소 실패: paymentKey={}, statusCode={}, body={}",
+                    paymentKey, e.getStatusCode().value(), safeBody(e));
+
             return PGPaymentRes.builder()
                     .paymentKey(paymentKey)
                     .pgResponseCode(String.valueOf(e.getStatusCode().value()))
@@ -165,36 +160,6 @@ public class TossPaymentService implements PGPaymentService {
                     .approvedAmount(null)
                     .build();
         }
-    }
-
-    @Recover
-    public PGPaymentRes recover(TransientPgException ex, Payment payment) {
-        String paymentKey = payment.getPaymentKey();
-        log.error("Toss getPayment retry exhausted. paymentId={}, paymentKey={}, msg={}",
-                payment.getId(), paymentKey, ex.getMessage(), ex);
-
-        return PGPaymentRes.builder()
-                .paymentKey(paymentKey)
-                .pgResponseCode("RETRY_EXHAUSTED")
-                .pgResponseMessage("PG 일시 장애로 요청 재시도 실패: " + ex.getMessage())
-                .success(false)
-                .approvedAmount(null)
-                .build();
-    }
-
-    @Recover
-    public PGPaymentRes recover(TransientPgException ex, Payment payment, BigDecimal cancelAmount, String cancelReason) {
-        String paymentKey = payment.getPaymentKey();
-        log.error("Toss cancel retry exhausted. paymentId={}, paymentKey={}, msg={}",
-                payment.getId(), paymentKey, ex.getMessage(), ex);
-
-        return PGPaymentRes.builder()
-                .paymentKey(paymentKey)
-                .pgResponseCode("RETRY_EXHAUSTED")
-                .pgResponseMessage("PG 일시 장애로 취소 요청 재시도 실패: " + ex.getMessage())
-                .success(false)
-                .approvedAmount(null)
-                .build();
     }
 
     private String safeBody(WebClientResponseException e) {
