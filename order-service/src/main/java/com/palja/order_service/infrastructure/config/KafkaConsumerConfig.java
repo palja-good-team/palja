@@ -1,6 +1,7 @@
 package com.palja.order_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaRecordInterceptor;
+import com.palja.order_service.application.event.dto.KafkaEvent;
 import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -37,7 +38,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<String, KafkaEvent> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -51,7 +52,9 @@ public class KafkaConsumerConfig {
 
         // JSON 설정
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.palja.*");
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
+        // JSON 본문에 Type이 있으니 헤더 의존 안 해도 됨
+        // config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
