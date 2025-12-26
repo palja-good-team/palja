@@ -34,8 +34,7 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
-import com.palja.user_service.application.port.ProductClient;
-import com.palja.user_service.application.port.TimeDealClient;
+import com.palja.user_service.application.event.publisher.UserDomainEventPublisher;
 import com.palja.user_service.application.service.impl.CompanyUserServiceImpl;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.CompanyUser;
@@ -53,8 +52,7 @@ public class CompanyUserServiceImplTest {
 	@Mock private CompanyUserRepository companyUserRepository;
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
-	@Mock private TimeDealClient timeDealClient;
-	@Mock private ProductClient productClient;
+	@Mock private UserDomainEventPublisher userDomainEventPublisher;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 
@@ -671,8 +669,8 @@ public class CompanyUserServiceImplTest {
 			// then
 			assertThat(companyUser1.getUser().isDeleted()).isTrue();
 			then(companyUserRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
-			then(tokenRepository).should(times(1)).save(anyString(), anyString(), anyLong());
-			then(tokenRepository).should(times(1)).remove(anyString());
+			then(tokenRepository).should(times(1)).addAccessTokenToBlackList(anyString(), anyString(), anyLong());
+			then(tokenRepository).should(times(1)).deleteRefreshToken(anyString());
 		}
 
 		@Nested

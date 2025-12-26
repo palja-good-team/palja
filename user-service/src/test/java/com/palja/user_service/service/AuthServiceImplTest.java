@@ -3,6 +3,8 @@ package com.palja.user_service.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,10 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.palja.common.exception.BusinessException;
 import com.palja.common.vo.UserRole;
 import com.palja.user_service.application.command.LoginUserCommand;
-import com.palja.user_service.application.dto.response.TokenRes;
 import com.palja.user_service.application.service.impl.AuthServiceImpl;
 import com.palja.user_service.application.util.JwtUtil;
 import com.palja.user_service.domain.entity.User;
+import com.palja.user_service.domain.repository.LoginQueueRepository;
 import com.palja.user_service.domain.repository.TokenRepository;
 import com.palja.user_service.domain.repository.UserRepository;
 
@@ -34,6 +36,7 @@ public class AuthServiceImplTest {
 
 	@Mock private UserRepository userRepository;
 	@Mock private TokenRepository tokenRepository;
+	@Mock private LoginQueueRepository loginQueueRepository;
 	@Mock private PasswordEncoder passwordEncoder;
 	@Mock private JwtUtil jwtUtil;
 
@@ -68,20 +71,14 @@ public class AuthServiceImplTest {
 			// given
 			given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(customer));
 			given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-			given(jwtUtil.generateAccessToken(anyString(), anyString())).willReturn("accessToken");
-			given(jwtUtil.generateRefreshToken(anyString())).willReturn("refreshToken");
-			given(jwtUtil.substringToken(anyString())).willReturn("substringAccessToken");
-			given(jwtUtil.getRefreshKeyExpirationTime()).willReturn(3600L);
 
 			// when
-			TokenRes tokens = authService.login(command);
+			String queueToken = authService.login(command);
 
 			// then
-			assertThat(tokens.getAccessToken()).isEqualTo("accessToken");
-			assertThat(tokens.getRefreshToken()).isEqualTo("refreshToken");
-			assertThat(tokens.getRefreshKeyExpirationTime()).isEqualTo(3600L);
+			assertThat(new String(Base64.getDecoder().decode(queueToken), StandardCharsets.UTF_8).split(":")[1])
+				.isEqualTo("loginId");
 			then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
-			then(tokenRepository).should(times(1)).save(anyString(), anyString(), anyLong());
 		}
 
 		@Nested
@@ -148,7 +145,7 @@ public class AuthServiceImplTest {
 				given(jwtUtil.validateRefreshToken(anyString())).willReturn(true);
 				given(claims.getSubject()).willReturn("loginId");
 				given(jwtUtil.parseRefreshToken(anyString())).willReturn(claims);
-				given(tokenRepository.get(anyString())).willReturn("substringRefreshToken");
+				given(tokenRepository.getRefreshToken(anyString())).willReturn("substringRefreshToken");
 				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(customer));
 				given(jwtUtil.generateAccessToken(anyString(), anyString())).willReturn("newAccessToken");
 
@@ -158,8 +155,8 @@ public class AuthServiceImplTest {
 				// then
 				assertThat(token).isEqualTo("newAccessToken");
 				then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
-				then(tokenRepository).should(times(1)).get(anyString());
-				then(tokenRepository).should(times(1)).save(anyString(), anyString(), anyLong());
+				then(tokenRepository).should(times(1)).getRefreshToken(anyString());
+				then(tokenRepository).should(times(1)).addAccessTokenToBlackList(anyString(), anyString(), anyLong());
 			}
 
 			@Test
@@ -170,7 +167,7 @@ public class AuthServiceImplTest {
 				given(jwtUtil.validateRefreshToken(anyString())).willReturn(true);
 				given(claims.getSubject()).willReturn("loginId");
 				given(jwtUtil.parseRefreshToken(anyString())).willReturn(claims);
-				given(tokenRepository.get(anyString())).willReturn("substringRefreshToken");
+				given(tokenRepository.getRefreshToken(anyString())).willReturn("substringRefreshToken");
 				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.of(customer));
 				given(jwtUtil.generateAccessToken(anyString(), anyString())).willReturn("newAccessToken");
 
@@ -180,8 +177,8 @@ public class AuthServiceImplTest {
 				// then
 				assertThat(token).isEqualTo("newAccessToken");
 				then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
-				then(tokenRepository).should(times(1)).get(anyString());
-				then(tokenRepository).should(never()).save(anyString(), anyString(), anyLong());
+				then(tokenRepository).should(times(1)).getRefreshToken(anyString());
+				then(tokenRepository).should(never()).addAccessTokenToBlackList(anyString(), anyString(), anyLong());
 			}
 
 		}
@@ -210,7 +207,7 @@ public class AuthServiceImplTest {
 				given(jwtUtil.validateRefreshToken(anyString())).willReturn(true);
 				given(claims.getSubject()).willReturn("loginId");
 				given(jwtUtil.parseRefreshToken(anyString())).willReturn(claims);
-				given(tokenRepository.get(anyString())).willReturn("differentRefreshToken");
+				given(tokenRepository.getRefreshToken(anyString())).willReturn("differentRefreshToken");
 
 				// when & then
 				assertThatThrownBy(() -> authService.refreshAccessToken(accessToken, refreshToken))
@@ -225,7 +222,7 @@ public class AuthServiceImplTest {
 				given(jwtUtil.validateRefreshToken(anyString())).willReturn(true);
 				given(claims.getSubject()).willReturn("loginId");
 				given(jwtUtil.parseRefreshToken(anyString())).willReturn(claims);
-				given(tokenRepository.get(anyString())).willReturn("substringRefreshToken");
+				given(tokenRepository.getRefreshToken(anyString())).willReturn("substringRefreshToken");
 				given(userRepository.findByLoginIdAndDeletedAtIsNull(anyString())).willReturn(Optional.empty());
 
 				// when & then
@@ -257,8 +254,8 @@ public class AuthServiceImplTest {
 
 			// then
 			then(userRepository).should(times(1)).findByLoginIdAndDeletedAtIsNull(anyString());
-			then(tokenRepository).should(times(1)).save(anyString(), anyString(), anyLong());
-			then(tokenRepository).should(times(1)).remove(anyString());
+			then(tokenRepository).should(times(1)).addAccessTokenToBlackList(anyString(), anyString(), anyLong());
+			then(tokenRepository).should(times(1)).deleteRefreshToken(anyString());
 		}
 
 		@Nested

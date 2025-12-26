@@ -1,6 +1,6 @@
-package com.palja.user_service.infrastructure.external.kafka;
+package com.palja.user_service.infrastructure.external.kafka.producer;
 
-import static com.palja.user_service.infrastructure.util.KafkaTopics.*;
+import static com.palja.user_service.infrastructure.external.kafka.KafkaTopics.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -8,9 +8,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEventReq;
-import com.palja.user_service.application.event.dto.impl.DeleteCustomerEventReq;
-import com.palja.user_service.application.event.publisher.UserEventPublisher;
+import com.palja.user_service.application.event.dto.UserEvent;
+import com.palja.user_service.application.event.dto.request.DeleteCompanyUserEventReq;
+import com.palja.user_service.application.event.dto.request.DeleteCustomerEventReq;
+import com.palja.user_service.application.port.UserEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserKafkaProducer implements UserEventPublisher {
 
-	private final KafkaTemplate<String, Object> kafkaTemplate;
+	private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
 	/// 이벤트 발행
-	private void publish(String topic, Object event) {
-		CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, event);
+	private void publish(String topic, UserEvent event) {
+		CompletableFuture<SendResult<String, UserEvent>> future = kafkaTemplate.send(topic, event);
 
 		future.whenComplete((result, e) -> {
 			if (e == null) {

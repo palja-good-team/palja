@@ -2,7 +2,6 @@ package com.palja.user_service.application.service.impl;
 
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,8 @@ import com.palja.user_service.application.dto.response.CreateUserRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserDetailRes;
 import com.palja.user_service.application.dto.response.ReadCompanyUserSummaryRes;
 import com.palja.user_service.application.dto.response.UpdateCompanyUserDetailRes;
-import com.palja.user_service.application.event.dto.impl.DeleteCompanyUserEventReq;
+import com.palja.user_service.application.event.dto.request.DeleteCompanyUserEventReq;
+import com.palja.user_service.application.event.publisher.UserDomainEventPublisher;
 import com.palja.user_service.application.exception.AuthErrorCode;
 import com.palja.user_service.application.exception.UserErrorCode;
 import com.palja.user_service.application.service.CompanyUserService;
@@ -41,7 +41,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
 
-	private final ApplicationEventPublisher applicationEventPublisher;
+	private final UserDomainEventPublisher userDomainEventPublisher;
 
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
@@ -135,7 +135,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(loginId);
 		companyUser.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
+		userDomainEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 		CompanyUser companyUser = getCompanyUserByLoginId(currentUserLoginId);
 		companyUser.softDelete();
 
-		applicationEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
+		userDomainEventPublisher.publishEvent(DeleteCompanyUserEventReq.from(companyUser.getId()));
 
 		String substringAccessToken = jwtUtil.substringToken(accessToken);
 		String hashKey = jwtUtil.hashingTokenToSHA256(substringAccessToken);
