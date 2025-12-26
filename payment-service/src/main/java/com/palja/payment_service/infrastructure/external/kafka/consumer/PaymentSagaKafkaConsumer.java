@@ -1,6 +1,5 @@
 package com.palja.payment_service.infrastructure.external.kafka.consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.exception.BusinessException;
 import com.palja.payment_service.application.service.PaymentSagaService;
@@ -11,7 +10,6 @@ import com.palja.payment_service.infrastructure.external.kafka.KafkaTopics;
 import com.palja.payment_service.infrastructure.external.kafka.producer.PaymentSagaReplyProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
@@ -23,7 +21,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PaymentSagaKafkaConsumer {
 
-    private final ObjectMapper objectMapper;
     private final PaymentSagaService paymentSagaService;
     private final PaymentSagaReplyProducer replyProducer;
 
@@ -31,8 +28,7 @@ public class PaymentSagaKafkaConsumer {
             topics = KafkaTopics.PAYMENT_CREATE_REQUEST,
             containerFactory = "sagaKafkaListenerContainerFactory"
     )
-    public void onPaymentCreateRequest(ConsumerRecord<String, Object> record, Acknowledgment ack) {
-        PaymentCreateEventReq req = objectMapper.convertValue(record.value(), PaymentCreateEventReq.class);
+    public void onPaymentCreateRequest(PaymentCreateEventReq req, Acknowledgment ack) {
 
         log.info("saga 결제 생성 요청: sagaId={}, orderId={}, userId={}, amount={}",
                 req.getSagaId(), req.getOrderId(), req.getUserId(), req.getAmount());
@@ -68,8 +64,7 @@ public class PaymentSagaKafkaConsumer {
             topics = KafkaTopics.PAYMENT_CANCEL_REQUEST,
             containerFactory = "sagaKafkaListenerContainerFactory"
     )
-    public void onPaymentCancelRequest(ConsumerRecord<String, Object> record, Acknowledgment ack) {
-        PaymentCancelEventReq req = objectMapper.convertValue(record.value(), PaymentCancelEventReq.class);
+    public void onPaymentCancelRequest(PaymentCancelEventReq req, Acknowledgment ack) {
 
         log.info("saga 결제 취소 요청: sagaId={}, orderId={}, paymentId={}, amount={}",
                 req.getSagaId(), req.getOrderId(), req.getPaymentId(), req.getAmount());

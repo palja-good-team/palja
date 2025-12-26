@@ -1,5 +1,6 @@
 package com.palja.payment_service.application.event.dto.request;
 
+import com.palja.payment_service.application.event.dto.PaymentEvent;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -16,5 +17,5 @@ public record PaymentApprovedEventReq(
         String pgResponseCode,
         String pgResponseMessage,
         LocalDateTime approvedAt
-) {
+) implements PaymentEvent {
 }

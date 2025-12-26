@@ -2,6 +2,7 @@ package com.palja.payment_service.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.interceptor.KafkaRecordInterceptor;
+import com.palja.payment_service.application.event.dto.KafkaEvent;
 import com.palja.payment_service.infrastructure.external.kafka.consumer.PaymentSagaFailureRecoverer;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class KafkaConsumerConfig {
     private static final String TRUSTED_PACKAGES = "com.palja.*";
 
     @Bean
-    public ConsumerFactory<String, Object> sagaConsumerFactory(ObjectMapper objectMapper) {
+    public ConsumerFactory<String, KafkaEvent> sagaConsumerFactory(ObjectMapper objectMapper) {
         Map<String, Object> props = new HashMap<>();
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -62,10 +63,14 @@ public class KafkaConsumerConfig {
         props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
-        JsonDeserializer<Object> valueDeserializer =
-                new JsonDeserializer<>(Object.class, objectMapper, false);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES + ".*");
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
 
-        valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
+        JsonDeserializer<KafkaEvent> valueDeserializer =
+                new JsonDeserializer<>(KafkaEvent.class, objectMapper, false);
+
+        valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES + ".*");
         valueDeserializer.setUseTypeHeaders(false);
 
         return new DefaultKafkaConsumerFactory<>(
@@ -76,12 +81,12 @@ public class KafkaConsumerConfig {
     }
 
     @Bean(name = "sagaKafkaListenerContainerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, Object> sagaKafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> sagaConsumerFactory,
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> sagaKafkaListenerContainerFactory(
+            ConsumerFactory<String, KafkaEvent> sagaConsumerFactory,
             CommonErrorHandler sagaErrorHandler,
-            RecordInterceptor<String, Object> sagaRecordInterceptor
+            RecordInterceptor<String, KafkaEvent> sagaRecordInterceptor
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+        ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(sagaConsumerFactory);
@@ -94,7 +99,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public RecordInterceptor<String, Object> sagaRecordInterceptor(Tracer tracer) {
+    public RecordInterceptor<String, KafkaEvent> sagaRecordInterceptor(Tracer tracer) {
         return new KafkaRecordInterceptor<>(tracer);
     }
 
