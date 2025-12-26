@@ -1,10 +1,7 @@
 package com.palja.product_service.infrastructure.external.kafka.consumer;
 
 import com.palja.product_service.application.service.ProductService;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseOrderDto;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockDecreaseTimeDealDto;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreOrderEventDto;
-import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreTimeDealEventDto;
+import com.palja.product_service.infrastructure.external.kafka.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -44,5 +41,11 @@ public class ProductKafkaConsumer {
     public void handleIncreaseStockEvent(StockRestoreOrderEventDto dto) {
 
         productService.stockRestore(dto.getProductId(), dto.getQuantity());
+    }
+
+    @KafkaListener(topics = {RESTORE_STOCK_ORDER, ORDER_CANCEL})
+    public void handleIncreaseStockEvent(DeleteAllByUserDto dto) {
+
+        productService.deleteProductForUser(dto.getCompanyUserId());
     }
 }
