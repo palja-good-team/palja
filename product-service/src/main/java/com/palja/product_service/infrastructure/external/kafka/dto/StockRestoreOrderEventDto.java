@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StockDecreaseOrderDto implements OrderEvent {
+public class StockRestoreOrderEventDto implements OrderEvent {
 
     private UUID sagaId;
     private UUID orderId;
