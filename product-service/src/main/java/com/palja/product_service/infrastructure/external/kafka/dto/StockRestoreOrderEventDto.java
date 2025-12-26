@@ -1,5 +1,6 @@
 package com.palja.product_service.infrastructure.external.kafka.dto;
 
+import com.palja.product_service.application.event.dto.OrderEvent;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StockRestoreOrderEventDto {
+public class StockRestoreOrderEventDto implements OrderEvent {
 
     private UUID sagaId;
     private UUID orderId;
