@@ -1,6 +1,7 @@
 package com.palja.order_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaRecordInterceptor;
+import com.palja.order_service.application.event.dto.KafkaEvent;
 import io.micrometer.tracing.Tracer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -32,12 +33,12 @@ public class KafkaConsumerConfig {
     private String groupId;
 
     @Bean
-    public KafkaRecordInterceptor<Object> consumerInterceptor(Tracer tracer) {
+    public KafkaRecordInterceptor<KafkaEvent> consumerInterceptor(Tracer tracer) {
         return new KafkaRecordInterceptor<>(tracer);
     }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<String, KafkaEvent> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -49,20 +50,23 @@ public class KafkaConsumerConfig {
         config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
-        // JSON 설정
+        // JSON (payload의 "@type"으로 다형성 처리)
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.palja.*");
         config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        // KafkaEvent 인터페이스 기준으로 역직렬화 (Jackson이 @type 보고 서브타입 선택)
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory,
-            KafkaRecordInterceptor<Object> consumerInterceptor,
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> kafkaListenerContainerFactory(
+            ConsumerFactory<String, KafkaEvent> consumerFactory,
+            KafkaRecordInterceptor<KafkaEvent> consumerInterceptor,
             CommonErrorHandler errorHandler
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+        ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory);
