@@ -1,6 +1,7 @@
 package com.palja.timedeal_service.application.event.dto.response;
 
 
+import com.palja.timedeal_service.application.event.dto.TimeDealEvent;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TimeDealStockDecreaseEventRes {
+public class TimeDealStockDecreaseEventRes implements TimeDealEvent {
 
     private UUID sagaId;
     private UUID orderId;
