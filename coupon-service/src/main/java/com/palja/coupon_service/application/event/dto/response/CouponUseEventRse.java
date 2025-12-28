@@ -1,15 +1,15 @@
 package com.palja.coupon_service.application.event.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.palja.coupon_service.application.event.OrderEvent;
+import lombok.*;
 
 import java.util.UUID;
 
 @Getter
 @Builder
 @AllArgsConstructor
-public class CouponUseEventRse {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class CouponUseEventRse implements OrderEvent {
 
     private UUID sagaId;
     private UUID orderId;

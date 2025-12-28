@@ -1,5 +1,6 @@
 package com.palja.coupon_service.infrastructure.config;
 
+import com.palja.coupon_service.application.event.KafkaEvent;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -33,7 +34,7 @@ public class KafkaConsumerConfig {
     private String groupId;
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<String, KafkaEvent> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -45,16 +46,16 @@ public class KafkaConsumerConfig {
 
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Object.class.getName());
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            KafkaRecordInterceptor<Object> consumerInterceptor,
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> kafkaListenerContainerFactory(
+            KafkaRecordInterceptor<KafkaEvent> consumerInterceptor,
             CommonErrorHandler errorHandler
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory
+        ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> factory
                 = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setRecordInterceptor(consumerInterceptor);  // Interceptor 적용
@@ -63,12 +64,12 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public KafkaRecordInterceptor<Object> consumerInterceptor(Tracer tracer) {
+    public KafkaRecordInterceptor<KafkaEvent> consumerInterceptor(Tracer tracer) {
         return new KafkaRecordInterceptor<>(tracer);
     }
 
     @Bean
-    public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+    public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<String, KafkaEvent> kafkaTemplate) {
 
         // DLT(Dead Letter Topic)로 메시지 전송
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
