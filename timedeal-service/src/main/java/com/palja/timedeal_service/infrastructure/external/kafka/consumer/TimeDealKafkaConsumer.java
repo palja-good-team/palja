@@ -1,13 +1,14 @@
-package com.palja.timedeal_service.infrastructure.external.adapter.kafka;
+package com.palja.timedeal_service.infrastructure.external.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.RestoreRemainingQuantityCommand;
-import com.palja.timedeal_service.application.event.order.request.StockDecreaseEventReq;
-import com.palja.timedeal_service.application.event.order.request.StockRestoreEventReq;
-import com.palja.timedeal_service.application.event.order.response.StockDeductEventRes;
+import com.palja.timedeal_service.application.event.dto.KafkaEvent;
+import com.palja.timedeal_service.application.event.dto.request.in.TimeDealStockDecreaseEventReq;
+import com.palja.timedeal_service.application.event.dto.request.in.TimeDealStockRestoreEventReq;
+import com.palja.timedeal_service.application.event.dto.response.TimeDealStockDecreaseEventRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
-import com.palja.timedeal_service.infrastructure.config.kafka.KafkaTopics;
+import com.palja.timedeal_service.infrastructure.external.kafka.topic.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,15 +20,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderStockKafkaConsumer {
+public class TimeDealKafkaConsumer {
 
     private final TimeDealService timeDealService;
     private final ObjectMapper objectMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @KafkaListener(topics = KafkaTopics.ORDER_STOCK_DEDUCT_REQUEST)
-    public void deduct(ConsumerRecord<String, Object> record) {
-        StockDecreaseEventReq event = objectMapper.convertValue(record.value(), StockDecreaseEventReq.class);
+    @KafkaListener(topics = KafkaTopics.ORDER_STOCK_DECREASE_REQUEST)
+    public void timeDealStockDecrease(ConsumerRecord<String, Object> record) {
+        TimeDealStockDecreaseEventReq event = objectMapper.convertValue(record.value(), TimeDealStockDecreaseEventReq.class);
 
         if (!isValidTimeDealEvent(event.isTimeDeal())) {
             log.info("[Kafka] 재고 차감 요청 스킵. orderId={}, isTimeDeal={}", event.getOrderId(), event.isTimeDeal());
@@ -44,21 +45,21 @@ public class OrderStockKafkaConsumer {
 
             timeDealService.decreaseRemainingQuantity(command);
 
-            StockDeductEventRes res = StockDeductEventRes.success(event.getSagaId(), event.getOrderId());
-            kafkaTemplate.send(KafkaTopics.ORDER_STOCK_DEDUCT_SUCCESS, res);
+            TimeDealStockDecreaseEventRes res = TimeDealStockDecreaseEventRes.success(event.getSagaId(), event.getOrderId());
+            kafkaTemplate.send(KafkaTopics.ORDER_STOCK_DECREASE_SUCCESS, res);
 
             log.info("[Kafka] 주문 재고 차감 성공 응답 발행 sagaId={}, orderId={}", event.getSagaId(), event.getOrderId());
         } catch (Exception e) {
-            StockDeductEventRes res = StockDeductEventRes.failure(event.getSagaId(), event.getOrderId());
-            kafkaTemplate.send(KafkaTopics.ORDER_STOCK_DEDUCT_FAILURE, res);
+            TimeDealStockDecreaseEventRes res = TimeDealStockDecreaseEventRes.failure(event.getSagaId(), event.getOrderId());
+            kafkaTemplate.send(KafkaTopics.ORDER_STOCK_DECREASE_FAILURE, res);
 
             log.error("[Kafka] 주문 재고 차감 실패 응답 발행 sagaId={}, orderId={}", event.getSagaId(), event.getOrderId(),e);
         }
     }
 
     @KafkaListener(topics = KafkaTopics.ORDER_STOCK_RESTORE_REQUEST)
-    public void restore(ConsumerRecord<String, Object> record) {
-        StockRestoreEventReq event = objectMapper.convertValue(record.value(), StockRestoreEventReq.class);
+    public void timeDealStockRestore(ConsumerRecord<String, Object> record) {
+        TimeDealStockRestoreEventReq event = objectMapper.convertValue(record.value(), TimeDealStockRestoreEventReq.class);
 
         if (!isValidTimeDealEvent(event.isTimeDeal())) {
             log.info("[Kafka] 주문 재고 복구 요청 스킵 orderId={}, isTimeDeal={}", event.getOrderId(), event.isTimeDeal());

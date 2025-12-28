@@ -1,7 +1,7 @@
-package com.palja.timedeal_service.infrastructure.external.adapter.feign.client;
+package com.palja.timedeal_service.infrastructure.external.feign.client;
 
 import com.palja.common.response.ApiResponse;
-import com.palja.timedeal_service.infrastructure.external.adapter.feign.dto.CompanyUserDTO;
+import com.palja.timedeal_service.infrastructure.external.feign.dto.CompanyUserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
