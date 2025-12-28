@@ -19,6 +19,7 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.RecordInterceptor;
+import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -46,7 +47,7 @@ public class KafkaConsumerConfig {
     @Value("${payment.saga.consumer.retry-interval-ms:1000}")
     private long retryIntervalMs;
 
-    private static final String TRUSTED_PACKAGES = "com.palja.*";
+    private static final String TRUSTED_BASE_PACKAGE = "com.palja";
 
     @Bean
     public ConsumerFactory<String, KafkaEvent> sagaConsumerFactory(ObjectMapper objectMapper) {
@@ -54,30 +55,21 @@ public class KafkaConsumerConfig {
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
 
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES + ".*");
-        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEvent.class);
-
-        JsonDeserializer<KafkaEvent> valueDeserializer =
+        JsonDeserializer<KafkaEvent> jsonDeserializer =
                 new JsonDeserializer<>(KafkaEvent.class, objectMapper, false);
+        jsonDeserializer.setUseTypeHeaders(false);
+        jsonDeserializer.addTrustedPackages(TRUSTED_BASE_PACKAGE);
 
-        valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES + ".*");
-        valueDeserializer.setUseTypeHeaders(false);
+        ErrorHandlingDeserializer<KafkaEvent> valueDeserializer =
+                new ErrorHandlingDeserializer<>(jsonDeserializer);
 
-        return new DefaultKafkaConsumerFactory<>(
-                props,
-                new StringDeserializer(),
-                valueDeserializer
-        );
+        ErrorHandlingDeserializer<String> keyDeserializer =
+                new ErrorHandlingDeserializer<>(new StringDeserializer());
+
+        return new DefaultKafkaConsumerFactory<>(props, keyDeserializer, valueDeserializer);
     }
 
     @Bean(name = "sagaKafkaListenerContainerFactory")
@@ -111,7 +103,7 @@ public class KafkaConsumerConfig {
 
         handler.addNotRetryableExceptions(
                 IllegalArgumentException.class,
-                org.springframework.kafka.support.serializer.DeserializationException.class
+                DeserializationException.class
         );
 
         return handler;
