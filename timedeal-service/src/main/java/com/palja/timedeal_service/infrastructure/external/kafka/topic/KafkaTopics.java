@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.config.kafka;
+package com.palja.timedeal_service.infrastructure.external.kafka.topic;
 
 public class KafkaTopics {
     private KafkaTopics() {}
@@ -6,10 +6,10 @@ public class KafkaTopics {
     // publish
     public static final String PRODUCT_STOCK_DECREASE = "time-deal.product.stock.decrease.request";
     public static final String PRODUCT_STOCK_RESTORE = "time-deal.product.stock.restore.request";
-    public static final String ORDER_STOCK_DEDUCT_SUCCESS = "order.stock.deduct.success";
-    public static final String ORDER_STOCK_DEDUCT_FAILURE = "order.stock.deduct.failure";
+    public static final String ORDER_STOCK_DECREASE_SUCCESS = "order.stock.decrease.success";
+    public static final String ORDER_STOCK_DECREASE_FAILURE = "order.stock.decrease.failure";
 
     // subscribe
-    public static final String ORDER_STOCK_DEDUCT_REQUEST = "order.stock.deduct.request";
+    public static final String ORDER_STOCK_DECREASE_REQUEST = "order.stock.decrease.request";
     public static final String ORDER_STOCK_RESTORE_REQUEST = "order.stock.restore.request";
 }

@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.application.event.order.request;
+package com.palja.timedeal_service.application.event.dto.request.in;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class StockRestoreEventReq {
+public class TimeDealStockRestoreEventReq {
 
     private UUID sagaId;
     private UUID orderId;

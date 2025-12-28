@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.external.adapter.feign;
+package com.palja.timedeal_service.infrastructure.external.feign;
 
 import com.palja.common.exception.BusinessException;
 import com.palja.common.exception.CommonErrorCode;
@@ -6,8 +6,8 @@ import com.palja.common.response.ApiResponse;
 import com.palja.timedeal_service.application.dto.external.CompanyUserInfo;
 import com.palja.timedeal_service.application.port.UserClient;
 import com.palja.timedeal_service.common.TimeDealErrorCode;
-import com.palja.timedeal_service.infrastructure.external.adapter.feign.client.UserFeignClient;
-import com.palja.timedeal_service.infrastructure.external.adapter.feign.dto.CompanyUserDTO;
+import com.palja.timedeal_service.infrastructure.external.feign.client.UserFeignClient;
+import com.palja.timedeal_service.infrastructure.external.feign.dto.CompanyUserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

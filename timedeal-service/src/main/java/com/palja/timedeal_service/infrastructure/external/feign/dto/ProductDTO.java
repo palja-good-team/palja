@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.external.adapter.feign.dto;
+package com.palja.timedeal_service.infrastructure.external.feign.dto;
 
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
 

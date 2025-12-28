@@ -1,4 +1,4 @@
-package com.palja.timedeal_service.infrastructure.config.kafka;
+package com.palja.timedeal_service.infrastructure.external.kafka.topic;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;

@@ -10,14 +10,13 @@ import com.palja.timedeal_service.application.dto.TimeDealDetailRes;
 import com.palja.timedeal_service.application.dto.TimeDealStatusChangeRes;
 import com.palja.timedeal_service.application.dto.TimeDealUpdateRes;
 import com.palja.timedeal_service.application.dto.external.ProductInfo;
+import com.palja.timedeal_service.application.event.publisher.TimeDealInternalEventPublisher;
 import com.palja.timedeal_service.application.port.ProductClient;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
-import com.palja.timedeal_service.application.event.internal.TimeDealStockDecreaseEventReq;
-import com.palja.timedeal_service.application.event.internal.TimeDealStockIncreaseEventReq;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -25,7 +24,6 @@ import com.palja.timedeal_service.domain.vo.Quantity;
 import com.palja.timedeal_service.domain.vo.TimeDealStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,7 +42,7 @@ public class TimeDealServiceImpl implements TimeDealService {
     private final TimeDealRepository timeDealRepository;
     private final ProductClient productClient;
     private final TimeDealValidator timeDealValidator;
-    private final ApplicationEventPublisher eventPublisher;
+    private final TimeDealInternalEventPublisher internalEventPublisher;
 
     @Override
     @Transactional
@@ -73,11 +71,11 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDeal savedTimeDeal = timeDealRepository.save(timeDeal);
 
-        eventPublisher.publishEvent(new TimeDealStockIncreaseEventReq(
+        internalEventPublisher.publishProductStockDecrease(
                 savedTimeDeal.getTimeDealId(),
                 savedTimeDeal.getProductId(),
                 savedTimeDeal.getRemainingQuantity()
-        ));
+        );
 
         log.info("타임딜 생성 완료: timeDealId = {}", savedTimeDeal.getTimeDealId());
         return TimeDealCreateRes.from(savedTimeDeal);
@@ -118,17 +116,17 @@ public class TimeDealServiceImpl implements TimeDealService {
         long delta = newTotal - oldTotal;
 
         if (delta > 0) {
-            eventPublisher.publishEvent(new TimeDealStockIncreaseEventReq(
+            internalEventPublisher.publishProductStockDecrease(
                     timeDeal.getTimeDealId(),
                     timeDeal.getProductId(),
                     delta
-            ));
+            );
         } else if (delta < 0) {
-            eventPublisher.publishEvent(new TimeDealStockDecreaseEventReq(
+            internalEventPublisher.publishProductStockRestore(
                     timeDeal.getTimeDealId(),
                     timeDeal.getProductId(),
                     -delta
-            ));
+            );
         }
 
         log.info("타임딜 수정 완료");
@@ -149,11 +147,11 @@ public class TimeDealServiceImpl implements TimeDealService {
         TimeDealStatusHistory timeDealStatusHistory = timeDeal.changeStatusBy(newStatus, command.reason());
 
         if (newStatus == TimeDealStatus.CLOSED) {
-            eventPublisher.publishEvent(new TimeDealStockDecreaseEventReq(
+            internalEventPublisher.publishProductStockRestore(
                     timeDeal.getTimeDealId(),
                     timeDeal.getProductId(),
                     timeDeal.getRemainingQuantity()
-            ));
+            );
         }
 
         log.info("타임딜 상태 수정 완료");
@@ -174,11 +172,11 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         timeDeal.softDelete();
 
-        eventPublisher.publishEvent(new TimeDealStockDecreaseEventReq(
+        internalEventPublisher.publishProductStockRestore(
                 timeDeal.getTimeDealId(),
                 timeDeal.getProductId(),
                 timeDeal.getRemainingQuantity()
-        ));
+        );
 
         log.info("타임딜 삭제 완료");
     }
@@ -203,11 +201,11 @@ public class TimeDealServiceImpl implements TimeDealService {
         TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
 
         if (timeDeal.isClosed()) {
-            eventPublisher.publishEvent(new TimeDealStockDecreaseEventReq(
+            internalEventPublisher.publishProductStockRestore(
                     timeDeal.getTimeDealId(),
                     timeDeal.getProductId(),
                     timeDeal.getRemainingQuantity()
-            ));
+            );
         } else {
             timeDeal.restoreRemainingQuantity(command.restoreQuantity());
         }
@@ -231,11 +229,11 @@ public class TimeDealServiceImpl implements TimeDealService {
 
             timeDeal.softDelete();
 
-            eventPublisher.publishEvent(new TimeDealStockDecreaseEventReq(
+            internalEventPublisher.publishProductStockRestore(
                     timeDeal.getTimeDealId(),
                     timeDeal.getProductId(),
                     timeDeal.getRemainingQuantity()
-            ));
+            );
         }
 
         log.info("업체 판매자 관련 타임딜 삭제 완료");

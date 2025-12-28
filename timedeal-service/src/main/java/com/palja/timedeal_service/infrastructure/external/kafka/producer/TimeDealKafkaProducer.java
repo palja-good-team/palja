@@ -1,9 +1,9 @@
-package com.palja.timedeal_service.infrastructure.external.adapter.kafka;
+package com.palja.timedeal_service.infrastructure.external.kafka.producer;
 
-import com.palja.timedeal_service.application.port.ProductEventPublisher;
-import com.palja.timedeal_service.application.event.internal.TimeDealStockDecreaseEventReq;
-import com.palja.timedeal_service.application.event.internal.TimeDealStockIncreaseEventReq;
-import com.palja.timedeal_service.infrastructure.config.kafka.KafkaTopics;
+import com.palja.timedeal_service.application.port.TimeDealEventPublisher;
+import com.palja.timedeal_service.application.event.dto.request.out.ProductStockRestoreEventReq;
+import com.palja.timedeal_service.application.event.dto.request.out.ProductStockDecreaseEventReq;
+import com.palja.timedeal_service.infrastructure.external.kafka.topic.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductKafkaProducer implements ProductEventPublisher {
+public class TimeDealKafkaProducer implements TimeDealEventPublisher {
 
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
     @Override
-    public void publishDecrease(TimeDealStockIncreaseEventReq event) {
+    public void publishProductStockDecrease(ProductStockDecreaseEventReq event) {
         String key = event.getProductId().toString();
 
         kafkaTemplate.send(
@@ -35,7 +35,7 @@ public class ProductKafkaProducer implements ProductEventPublisher {
     }
 
     @Override
-    public void publishRestore(TimeDealStockDecreaseEventReq event) {
+    public void publishProductStockRestore(ProductStockRestoreEventReq event) {
         String key = event.getProductId().toString();
 
         kafkaTemplate.send(
