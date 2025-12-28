@@ -5,6 +5,7 @@ import com.palja.coupon_service.application.command.UseCouponCommand;
 import com.palja.coupon_service.application.event.KafkaEvent;
 import com.palja.coupon_service.application.event.dto.request.CouponCancelEventReq;
 import com.palja.coupon_service.application.event.dto.request.CouponUseEventReq;
+import com.palja.coupon_service.application.event.dto.request.DeleteCustomerEventReq;
 import com.palja.coupon_service.application.event.dto.response.CouponCancelEventRes;
 import com.palja.coupon_service.application.event.dto.response.CouponUseEventRse;
 import com.palja.coupon_service.application.service.CouponService;
@@ -64,18 +65,27 @@ public class CouponKafkaConsumer {
 
             CouponCancelEventRes response = CouponCancelEventRes.of(event.getSagaId(), event.getOrderId());
 
-            kafkaTemplate.send(KafkaTopics.COUPON_CANCEL_SUCCESS, response);
             log.info("쿠폰 취소 성공 - sagaId: {}, orderId: {}, couponUserId: {}",
                     event.getSagaId(), event.getOrderId(), event.getCouponUserId());
 
         } catch (Exception e) {
             CouponCancelEventRes response = CouponCancelEventRes.of(event.getSagaId(), event.getOrderId());
 
-            kafkaTemplate.send(KafkaTopics.COUPON_CANCEL_FAILURE, response);
-
             log.error("쿠폰 취소 실패 - sagaId: {}, orderId: {}, couponUserId: {}",
                     event.getSagaId(), event.getOrderId(), event.getCouponUserId(), e);
         }
+    }
 
+    @KafkaListener(topics = KafkaTopics.CUSTOMER_DELETE_REQUEST_TOPIC)
+    public void deleteAllCoupons(DeleteCustomerEventReq event) {
+        log.info("사용자 쿠폰 삭제 요청 이벤트 수신 - userId: {}", event.getUserId());
+
+        //try {
+        //    couponService.deleteAllCoupons("");
+        //    log.info("사용자 쿠폰 삭제 성공 - userId: {}", event.getUserId());
+        //
+        //} catch (Exception e) {
+        //    log.error("사용자 쿠폰 삭제 실패 - userId: {}", event.getUserId());
+        //}
     }
 }
