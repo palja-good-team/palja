@@ -1,8 +1,7 @@
 package com.palja.coupon_service.application.event.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.palja.coupon_service.application.event.OrderEvent;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -10,12 +9,13 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-public class CouponUseEventReq {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class CouponUseEventReq implements OrderEvent {
 
-    private final UUID sagaId;
-    private final UUID orderId;
-    private final UUID couponUserId;
-    private final BigDecimal discountAmount;
+    private UUID sagaId;
+    private UUID orderId;
+    private UUID couponUserId;
+    private BigDecimal discountAmount;
 
     public static CouponUseEventReq of(UUID sagaId, UUID orderId, UUID couponUserId, BigDecimal discountAmount) {
         return CouponUseEventReq.builder()

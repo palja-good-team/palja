@@ -1,8 +1,8 @@
 package com.palja.coupon_service.infrastructure.external.kafka.consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.coupon_service.application.command.UseCouponCommand;
+import com.palja.coupon_service.application.event.KafkaEvent;
 import com.palja.coupon_service.application.event.dto.request.CouponCancelEventReq;
 import com.palja.coupon_service.application.event.dto.request.CouponUseEventReq;
 import com.palja.coupon_service.application.event.dto.response.CouponCancelEventRes;
@@ -11,7 +11,6 @@ import com.palja.coupon_service.application.service.CouponService;
 import com.palja.coupon_service.infrastructure.external.kafka.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -22,13 +21,10 @@ import org.springframework.stereotype.Component;
 public class CouponKafkaConsumer {
 
     private final CouponService couponService;
-    private final ObjectMapper objectMapper;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, KafkaEvent> kafkaTemplate;
 
     @KafkaListener(topics = KafkaTopics.COUPON_USE_REQUEST)
-    public void useCoupon(ConsumerRecord<String, Object> record) {
-        CouponUseEventReq event = objectMapper.convertValue(record.value(), CouponUseEventReq.class);
-
+    public void useCoupon(CouponUseEventReq event) {
         log.info("쿠폰 사용 요청 이벤트 수신 - sagaId: {}, orderId: {}, couponUserId: {}",
                 event.getSagaId(), event.getOrderId(), event.getCouponUserId());
 
@@ -59,9 +55,7 @@ public class CouponKafkaConsumer {
     }
 
     @KafkaListener(topics = KafkaTopics.COUPON_CANCEL_REQUEST)
-    public void cancelCoupon(ConsumerRecord<String, Object> record) {
-        CouponCancelEventReq event = objectMapper.convertValue(record.value(), CouponCancelEventReq.class);
-
+    public void cancelCoupon(CouponCancelEventReq event) {
         log.info("쿠폰 취소 요청 이벤트 수신 - sagaId: {}, orderId: {}, couponUserId: {}",
                 event.getSagaId(), event.getOrderId(), event.getCouponUserId());
 

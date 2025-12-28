@@ -1,19 +1,19 @@
 package com.palja.coupon_service.application.event.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.palja.coupon_service.application.event.OrderEvent;
+import lombok.*;
 
 import java.util.UUID;
 
 @Getter
 @Builder
 @AllArgsConstructor
-public class CouponCancelEventReq {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class CouponCancelEventReq implements OrderEvent {
 
-    private final UUID sagaId;
-    private final UUID orderId;
-    private final UUID couponUserId;
+    private UUID sagaId;
+    private UUID orderId;
+    private UUID couponUserId;
 
     public CouponCancelEventReq of(UUID sagaId, UUID orderId, UUID couponUserId) {
         return CouponCancelEventReq.builder()
