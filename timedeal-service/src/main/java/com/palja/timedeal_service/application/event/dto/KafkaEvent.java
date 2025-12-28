@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "@type"                   // Type 필드로 구분
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ProductEvent.class, name = "productEvent")
+        @JsonSubTypes.Type(value = OrderEvent.class, name = "OrderEvent"),
+        @JsonSubTypes.Type(value = UserEvent.class, name = "UserEvent"),
 })
 public interface KafkaEvent {
 }

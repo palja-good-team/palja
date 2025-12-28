@@ -1,5 +1,6 @@
 package com.palja.timedeal_service.infrastructure.external.kafka.producer;
 
+import com.palja.timedeal_service.application.event.dto.TimeDealEvent;
 import com.palja.timedeal_service.application.port.TimeDealEventPublisher;
 import com.palja.timedeal_service.application.event.dto.request.out.ProductStockRestoreEventReq;
 import com.palja.timedeal_service.application.event.dto.request.out.ProductStockDecreaseEventReq;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TimeDealKafkaProducer implements TimeDealEventPublisher {
 
-    private final KafkaTemplate<String,Object> kafkaTemplate;
+    private final KafkaTemplate<String, TimeDealEvent> kafkaTemplate;
 
     @Override
     public void publishProductStockDecrease(ProductStockDecreaseEventReq event) {
