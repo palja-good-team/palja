@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * Saga Step 진행 단계
  *
  * [순서]
- * STARTED(0) → STOCK_DECREASED(10) → COUPON_APPLIED(20) → PAYMENT_CREATED(30) → COMPLETED(90)
+ * STARTED(0) → STOCK_DECREASED(10) → COUPON_USED(20) → PAYMENT_CREATED(30) → COMPLETED(100)
  *
  *  [code 사용]
  * - 명시적인 순서 관리
@@ -40,8 +40,8 @@ public enum OrderSagaStep {
     STOCK_DECREASED(10) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
+            return next == COUPON_USED || next == PAYMENT_CREATED || next == FAILED;
             // 쿠폰 없으면 바로 결제로 갈 수 있음
-            return next == COUPON_APPLIED || next == PAYMENT_CREATED || next == FAILED;
         }
 
         @Override
@@ -55,7 +55,7 @@ public enum OrderSagaStep {
         }
     },
 
-    COUPON_APPLIED(20) {
+    COUPON_USED(20) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
             return next == PAYMENT_CREATED || next == FAILED;

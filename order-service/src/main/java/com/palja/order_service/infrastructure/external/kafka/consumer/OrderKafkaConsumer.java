@@ -68,7 +68,7 @@ public class OrderKafkaConsumer {
         log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} sagaId={} orderId={}",
                 KafkaTopics.COUPON_USE_SUCCESS, event.getSagaId(), event.getOrderId());
 
-        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.COUPON_APPLIED);
+        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.COUPON_USED);
     }
 
     /**
@@ -81,10 +81,10 @@ public class OrderKafkaConsumer {
         log.info("[KAFKA][ORDER][COUPON_USE][CONSUMED] topic={} sagaId={} orderId={}",
                 KafkaTopics.COUPON_USE_FAILURE, event.getSagaId(), event.getOrderId());
 
-        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.COUPON_APPLIED, "쿠폰 사용 실패");
+        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.COUPON_USED, "쿠폰 사용 실패");
 
         log.warn("[SAGA][ORDER][COUPON_USE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
-                OrderSagaStep.COUPON_APPLIED, event.getSagaId(), event.getOrderId());
+                OrderSagaStep.COUPON_USED, event.getSagaId(), event.getOrderId());
     }
 
     /**

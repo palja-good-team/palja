@@ -28,7 +28,7 @@ public class SagaConfig {
     public Map<OrderSagaStep, SagaStep> stepMap() {
         Map<OrderSagaStep, SagaStep> map = Map.of(
                 OrderSagaStep.STOCK_DECREASED, decreaseStockStep,
-                OrderSagaStep.COUPON_APPLIED, applyCouponStep,
+                OrderSagaStep.COUPON_USED, applyCouponStep,
                 OrderSagaStep.PAYMENT_CREATED, createPaymentStep
         );
 

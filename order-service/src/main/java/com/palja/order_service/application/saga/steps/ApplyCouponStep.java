@@ -34,7 +34,7 @@ public class ApplyCouponStep implements SagaStep {
 
     @Override
     public OrderSagaStep getStepType() {
-        return OrderSagaStep.COUPON_APPLIED;
+        return OrderSagaStep.COUPON_USED;
     }
 
     @Override
