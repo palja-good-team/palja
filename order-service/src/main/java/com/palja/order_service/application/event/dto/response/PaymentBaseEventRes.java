@@ -1,5 +1,6 @@
 package com.palja.order_service.application.event.dto.response;
 
+import com.palja.order_service.application.event.dto.PaymentEvent;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentBaseEventRes {
+public class PaymentBaseEventRes implements PaymentEvent {
 
     private String type;
     private UUID eventId;

@@ -40,6 +40,8 @@ public class KafkaProducerConfig {
         // 멱등성 (중복 전송 방지) 활성화
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
         return new DefaultKafkaProducerFactory<>(config);
     }
 

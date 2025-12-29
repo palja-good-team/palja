@@ -1,23 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <springProperty name="SERVICE_NAME" source="spring.application.name"/>
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
 
-    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-        <http>
-            <url>http://0.0.0.0:3100/loki/api/v1/push</url>
-        </http>
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){magenta} %clr(%-4level) [${SERVICE_NAME}] [%thread] [%X{traceId}] %clr(%logger){cyan} %msg%n</pattern>
+            </encoder>
+        </appender>
 
-        <labels>
-            app=${SERVICE_NAME}
-            host=${HOSTNAME}
-        </labels>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
 
-        <message>
-            <pattern>[%thread] [%X{traceId}] [%X{spanId}] [%logger{36}] %msg%n</pattern>
-        </message>
-    </appender>
+    <springProfile name="prod">
+        <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+            <http>
+                <url>http://0.0.0.0:3100/loki/api/v1/push</url>
+            </http>
 
-    <root level="INFO">
-        <appender-ref ref="LOKI"/>
-    </root>
+            <labels>
+                app=${SERVICE_NAME}
+                host=${HOSTNAME}
+            </labels>
+
+            <message>
+                <pattern>[%thread] [%X{traceId}] [%X{spanId}] %clr(%logger){cyan} %msg%n</pattern>
+            </message>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="LOKI"/>
+        </root>
+    </springProfile>
 </configuration>

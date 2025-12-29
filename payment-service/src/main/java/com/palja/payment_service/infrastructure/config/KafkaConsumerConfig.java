@@ -2,6 +2,7 @@ package com.palja.payment_service.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palja.common.interceptor.KafkaRecordInterceptor;
+import com.palja.payment_service.application.event.dto.KafkaEvent;
 import com.palja.payment_service.infrastructure.external.kafka.consumer.PaymentSagaFailureRecoverer;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.RecordInterceptor;
+import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -45,43 +47,38 @@ public class KafkaConsumerConfig {
     @Value("${payment.saga.consumer.retry-interval-ms:1000}")
     private long retryIntervalMs;
 
-    private static final String TRUSTED_PACKAGES = "com.palja.*";
+    private static final String TRUSTED_BASE_PACKAGE = "com.palja";
 
     @Bean
-    public ConsumerFactory<String, Object> sagaConsumerFactory(ObjectMapper objectMapper) {
+    public ConsumerFactory<String, KafkaEvent> sagaConsumerFactory(ObjectMapper objectMapper) {
         Map<String, Object> props = new HashMap<>();
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
 
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        JsonDeserializer<KafkaEvent> jsonDeserializer =
+                new JsonDeserializer<>(KafkaEvent.class, objectMapper, false);
+        jsonDeserializer.setUseTypeHeaders(false);
+        jsonDeserializer.addTrustedPackages(TRUSTED_BASE_PACKAGE);
 
-        JsonDeserializer<Object> valueDeserializer =
-                new JsonDeserializer<>(Object.class, objectMapper, false);
+        ErrorHandlingDeserializer<KafkaEvent> valueDeserializer =
+                new ErrorHandlingDeserializer<>(jsonDeserializer);
 
-        valueDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
-        valueDeserializer.setUseTypeHeaders(false);
+        ErrorHandlingDeserializer<String> keyDeserializer =
+                new ErrorHandlingDeserializer<>(new StringDeserializer());
 
-        return new DefaultKafkaConsumerFactory<>(
-                props,
-                new StringDeserializer(),
-                valueDeserializer
-        );
+        return new DefaultKafkaConsumerFactory<>(props, keyDeserializer, valueDeserializer);
     }
 
     @Bean(name = "sagaKafkaListenerContainerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, Object> sagaKafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> sagaConsumerFactory,
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> sagaKafkaListenerContainerFactory(
+            ConsumerFactory<String, KafkaEvent> sagaConsumerFactory,
             CommonErrorHandler sagaErrorHandler,
-            RecordInterceptor<String, Object> sagaRecordInterceptor
+            RecordInterceptor<String, KafkaEvent> sagaRecordInterceptor
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+        ConcurrentKafkaListenerContainerFactory<String, KafkaEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(sagaConsumerFactory);
@@ -94,7 +91,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public RecordInterceptor<String, Object> sagaRecordInterceptor(Tracer tracer) {
+    public RecordInterceptor<String, KafkaEvent> sagaRecordInterceptor(Tracer tracer) {
         return new KafkaRecordInterceptor<>(tracer);
     }
 
@@ -106,7 +103,7 @@ public class KafkaConsumerConfig {
 
         handler.addNotRetryableExceptions(
                 IllegalArgumentException.class,
-                org.springframework.kafka.support.serializer.DeserializationException.class
+                DeserializationException.class
         );
 
         return handler;

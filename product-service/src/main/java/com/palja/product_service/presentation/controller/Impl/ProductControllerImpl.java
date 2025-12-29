@@ -104,12 +104,4 @@ public class ProductControllerImpl implements ProductController {
         service.deleteProduct(productId);
         return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
     }
-
-    @RequiredInternal
-    @DeleteMapping("/user/{companyUserId}")
-    public ResponseEntity<ApiResponse<String>> deleteProductForUser(@PathVariable UUID companyUserId) {
-
-        service.deleteProductForUser(companyUserId);
-        return new ResponseEntity<>(ApiResponse.success("상품 삭제 성공"), HttpStatus.OK);
-    }
 }

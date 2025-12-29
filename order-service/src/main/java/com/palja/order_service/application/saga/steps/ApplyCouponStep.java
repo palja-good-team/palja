@@ -41,13 +41,6 @@ public class ApplyCouponStep implements SagaStep {
     public void execute(OrderSaga saga, Order order) {
         UUID couponUserId = order.getCouponUserId();
 
-        // 쿠폰이 없으면 스킵
-        if (couponUserId == null) {
-            log.info("[SAGA][ORDER][COUPON_USE][SKIP] sagaId={} orderId={} reason=NO_COUPON",
-                    saga.getSagaId(), order.getOrderId());
-            return;
-        }
-
         log.info("[SAGA][ORDER][COUPON_USE][READY] sagaId={} orderId={} couponUserId={}",
                 saga.getSagaId(), order.getOrderId(), couponUserId);
 
@@ -106,5 +99,10 @@ public class ApplyCouponStep implements SagaStep {
             log.error("[SAGA][ORDER][COUPON_CANCEL][FAILED] sagaId={} orderId={} reason={}",
                     saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
+    }
+
+    @Override
+    public boolean isApplicable(OrderSaga saga, Order order) {
+        return order.getCouponUserId() != null;
     }
 }

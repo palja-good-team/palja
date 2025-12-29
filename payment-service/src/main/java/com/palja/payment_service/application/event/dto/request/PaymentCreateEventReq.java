@@ -1,5 +1,6 @@
 package com.palja.payment_service.application.event.dto.request;
 
+import com.palja.payment_service.application.event.dto.OrderEvent;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentCreateEventReq {
+public class PaymentCreateEventReq implements OrderEvent {
     private UUID sagaId;
     private UUID orderId;
 

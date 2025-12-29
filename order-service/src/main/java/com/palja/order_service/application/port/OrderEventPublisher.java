@@ -9,9 +9,6 @@ import com.palja.order_service.application.event.dto.request.*;
  */
 public interface OrderEventPublisher {
 
-    // Saga 시작 요청
-    void publishSagaStart(SagaStartEventReq event);
-
     // 재고 차감 요청
     void publishStockDecrease(StockDecreaseEventReq event);
 
@@ -31,5 +28,4 @@ public interface OrderEventPublisher {
     void publishPaymentCancel(PaymentCancelEventReq event);
 
     void publishOrderCanceled(OrderCanceledEventReq event);
-
 }

@@ -59,6 +59,8 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.ACKS_CONFIG, "all");
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
         return new DefaultKafkaProducerFactory<>(config);
     }
 

@@ -1,6 +1,7 @@
 package com.palja.coupon_service.infrastructure.config;
 
 import com.palja.common.interceptor.KafkaProducerInterceptor;
+import com.palja.coupon_service.application.event.KafkaEvent;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -26,12 +27,12 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public KafkaProducerInterceptor<Object> kafkaEventProducerInterceptor(Tracer tracer) {
+    public KafkaProducerInterceptor<KafkaEvent> kafkaEventProducerInterceptor(Tracer tracer) {
         return new KafkaProducerInterceptor<>(tracer);
     }
 
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    public ProducerFactory<String, KafkaEvent> producerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -43,8 +44,8 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(KafkaProducerInterceptor<Object> kafkaProducerInterceptor) {
-        KafkaTemplate<String, Object> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, KafkaEvent> kafkaTemplate(KafkaProducerInterceptor<KafkaEvent> kafkaProducerInterceptor) {
+        KafkaTemplate<String, KafkaEvent> kafkaTemplate = new KafkaTemplate<>(producerFactory());
         kafkaTemplate.setProducerInterceptor(kafkaProducerInterceptor);
 
         return kafkaTemplate;
