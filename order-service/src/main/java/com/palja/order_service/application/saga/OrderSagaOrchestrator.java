@@ -60,7 +60,7 @@ public class OrderSagaOrchestrator {
         }
 
         Order order = orderService.findOrderWithDetails(saga.getOrderId());
-        // 첫 번째 Step 실행 (재고 예약)
+        // 첫 번째 Step 실행 (재고차감)
         OrderSagaStep firstStepEnum = executableSteps.get(0);
         SagaStep firstStep = stepMap.get(firstStepEnum);
 

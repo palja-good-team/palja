@@ -4,7 +4,7 @@ import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
 import com.palja.order_service.application.saga.steps.ApplyCouponStep;
 import com.palja.order_service.application.saga.steps.CreatePaymentStep;
-import com.palja.order_service.application.saga.steps.ReserveStockStep;
+import com.palja.order_service.application.saga.steps.DecreaseStockStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -20,14 +20,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SagaConfiguration {
 
-    private final ReserveStockStep reserveStockStep;
+    private final DecreaseStockStep decreaseStockStep;
     private final ApplyCouponStep applyCouponStep;
     private final CreatePaymentStep createPaymentStep;
 
     @Bean
     public Map<OrderSagaStep, SagaStep> stepMap() {
         Map<OrderSagaStep, SagaStep> map = Map.of(
-                OrderSagaStep.STOCK_RESERVED, reserveStockStep,
+                OrderSagaStep.STOCK_RESERVED, decreaseStockStep,
                 OrderSagaStep.COUPON_APPLIED, applyCouponStep,
                 OrderSagaStep.PAYMENT_CREATED, createPaymentStep
         );

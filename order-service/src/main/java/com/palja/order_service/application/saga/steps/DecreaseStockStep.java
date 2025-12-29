@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Step 1: 재고 예약
+ * Step 1: 재고 차감
  *
  * 정방향: 재고 차감 요청 이벤트 발행
  * 보상: 재고 복구 요청 이벤트 발행
@@ -24,13 +24,13 @@ import java.util.UUID;
 @org.springframework.core.annotation.Order(1)
 @Component
 @RequiredArgsConstructor
-public class ReserveStockStep implements SagaStep {
+public class DecreaseStockStep implements SagaStep {
 
     private final OrderEventPublisher eventPublisher;
 
     @Override
     public String getName() {
-        return "재고예약";
+        return "재고차감";
     }
 
     @Override
