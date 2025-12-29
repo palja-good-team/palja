@@ -6,7 +6,6 @@ package com.palja.order_service.infrastructure.external.kafka;
 public class KafkaTopics {
 
     // ====== Request Topics ======
-    public static final String SAGA_START_REQUEST = "order.saga.start.request";
     public static final String STOCK_DECREASE_REQUEST = "order.stock.decrease.request";
     public static final String STOCK_RESTORE_REQUEST = "order.stock.restore.request";
     public static final String COUPON_USE_REQUEST = "order.coupon.use.request";
