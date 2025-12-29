@@ -20,5 +20,5 @@ public class TimeDealStockDecreaseEventReq implements OrderEvent {
     private UUID timeDealId;
     private Long quantity;
 
-    private boolean isTimeDeal;
+    private boolean timeDeal;
 }

@@ -11,7 +11,7 @@ import com.palja.coupon_service.application.event.dto.response.CouponUseEventRse
         @JsonSubTypes.Type(value = CouponUseEventReq.class, name = "CouponUseEventReq"),
 
         @JsonSubTypes.Type(value = CouponCancelEventRes.class, name = "CouponCancelEventRes"),
-        @JsonSubTypes.Type(value = CouponUseEventRse.class, name = "CouponUseEventRse"),
+        @JsonSubTypes.Type(value = CouponUseEventRse.class, name = "SagaStepEventRes"),
 })
 public interface OrderEvent extends KafkaEvent {
 }
