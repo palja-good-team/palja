@@ -18,7 +18,7 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class SagaConfiguration {
+public class SagaConfig {
 
     private final DecreaseStockStep decreaseStockStep;
     private final ApplyCouponStep applyCouponStep;
