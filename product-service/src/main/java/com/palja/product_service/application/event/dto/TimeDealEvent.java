@@ -5,8 +5,8 @@ import com.palja.product_service.infrastructure.external.kafka.dto.StockDecrease
 import com.palja.product_service.infrastructure.external.kafka.dto.StockRestoreTimeDealEventDto;
 
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = StockDecreaseTimeDealDto.class, name = "StockDecreaseTimeDealDto"),
-        @JsonSubTypes.Type(value = StockRestoreTimeDealEventDto.class, name = "StockRestoreEventDto"),
+        @JsonSubTypes.Type(value = StockDecreaseTimeDealDto.class, name = "ProductStockDecreaseEventReq"),
+        @JsonSubTypes.Type(value = StockRestoreTimeDealEventDto.class, name = "ProductStockRestoreEventReq"),
 })
 public interface TimeDealEvent extends KafkaEvent {
 }
