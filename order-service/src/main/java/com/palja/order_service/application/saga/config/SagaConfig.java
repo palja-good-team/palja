@@ -2,7 +2,7 @@ package com.palja.order_service.application.saga.config;
 
 import com.palja.order_service.application.saga.SagaStep;
 import com.palja.order_service.application.saga.model.OrderSagaStep;
-import com.palja.order_service.application.saga.steps.ApplyCouponStep;
+import com.palja.order_service.application.saga.steps.UseCouponStep;
 import com.palja.order_service.application.saga.steps.CreatePaymentStep;
 import com.palja.order_service.application.saga.steps.DecreaseStockStep;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +21,14 @@ import java.util.Map;
 public class SagaConfig {
 
     private final DecreaseStockStep decreaseStockStep;
-    private final ApplyCouponStep applyCouponStep;
+    private final UseCouponStep useCouponStep;
     private final CreatePaymentStep createPaymentStep;
 
     @Bean
     public Map<OrderSagaStep, SagaStep> stepMap() {
         Map<OrderSagaStep, SagaStep> map = Map.of(
                 OrderSagaStep.STOCK_DECREASED, decreaseStockStep,
-                OrderSagaStep.COUPON_USED, applyCouponStep,
+                OrderSagaStep.COUPON_USED, useCouponStep,
                 OrderSagaStep.PAYMENT_CREATED, createPaymentStep
         );
 

@@ -23,13 +23,13 @@ import java.util.UUID;
 @org.springframework.core.annotation.Order(2)
 @Component
 @RequiredArgsConstructor
-public class ApplyCouponStep implements SagaStep {
+public class UseCouponStep implements SagaStep {
 
     private final OrderEventPublisher eventPublisher;
 
     @Override
     public String getName() {
-        return "쿠폰적용";
+        return "쿠폰사용";
     }
 
     @Override
