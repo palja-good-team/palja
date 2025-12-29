@@ -16,4 +16,4 @@ spring:
 
 toss:
   base-url: https://api.tosspayments.com
-  secret-key: ${TOSS_SECRET_KEY}
+  secret-key: test_sk_Ba5PzR0ArnEZe4PE06MvVvmYnNeD
