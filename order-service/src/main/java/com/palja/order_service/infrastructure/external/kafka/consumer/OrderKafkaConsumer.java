@@ -38,7 +38,7 @@ public class OrderKafkaConsumer {
         log.info("[KAFKA][ORDER][STOCK_DECREASE][CONSUMED] topic={} sagaId={} orderId={}",
                 KafkaTopics.STOCK_DECREASE_SUCCESS, event.getSagaId(), event.getOrderId());
 
-        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_RESERVED);
+        orchestrator.continueAfterStep(event.getSagaId(), OrderSagaStep.STOCK_DECREASED);
     }
 
     /**
@@ -51,11 +51,11 @@ public class OrderKafkaConsumer {
         log.info("[KAFKA][ORDER][STOCK_DECREASE][CONSUMED] topic={} sagaId={} orderId={}",
                 KafkaTopics.STOCK_DECREASE_FAILURE, event.getSagaId(), event.getOrderId());
 
-        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_RESERVED, "재고 차감 실패");
+        orchestrator.failSaga(event.getSagaId(), OrderSagaStep.STOCK_DECREASED, "재고 차감 실패");
 
         // 비즈니스 실패 응답 처리 결과를 남기는 로그
         log.warn("[SAGA][ORDER][STOCK_DECREASE][FAILED] step={} sagaId={} orderId={} reason=BUSINESS_FAILURE",
-                OrderSagaStep.STOCK_RESERVED, event.getSagaId(), event.getOrderId());
+                OrderSagaStep.STOCK_DECREASED, event.getSagaId(), event.getOrderId());
     }
 
     /**

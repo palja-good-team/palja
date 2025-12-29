@@ -35,7 +35,7 @@ public class DecreaseStockStep implements SagaStep {
 
     @Override
     public OrderSagaStep getStepType() {
-        return OrderSagaStep.STOCK_RESERVED;
+        return OrderSagaStep.STOCK_DECREASED;
     }
 
     @Override
@@ -62,9 +62,9 @@ public class DecreaseStockStep implements SagaStep {
 
         try {
             // Kafka 발행: Kafka Producer가 메시지 전송
-            // - Topic: order.decrease.req
+            // - Topic: order.stock.decrease.request
             // - Key: sagaId
-            // - Value: StockDecreaseRequest
+            // - Value: StockDecreaseEventReq
             eventPublisher.publishStockDecrease(event);
 
             // Producer에서 [KAFKA][ORDER][STOCK_DECREASE][PUBLISHED]가 있음

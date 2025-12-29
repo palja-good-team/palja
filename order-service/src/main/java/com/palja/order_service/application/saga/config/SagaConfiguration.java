@@ -27,7 +27,7 @@ public class SagaConfiguration {
     @Bean
     public Map<OrderSagaStep, SagaStep> stepMap() {
         Map<OrderSagaStep, SagaStep> map = Map.of(
-                OrderSagaStep.STOCK_RESERVED, decreaseStockStep,
+                OrderSagaStep.STOCK_DECREASED, decreaseStockStep,
                 OrderSagaStep.COUPON_APPLIED, applyCouponStep,
                 OrderSagaStep.PAYMENT_CREATED, createPaymentStep
         );
