@@ -95,8 +95,7 @@ public class OrderServiceImpl implements OrderService {
         // OrderSaga 생성
         OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
 
-        // Spring ApplicationEvent 발행
-        // 실제 Kafka 발행은 트랜잭션 커밋 후 처리
+        // Saga 시작 이벤트 발행 (트랜잭션 커밋 후 처리)
         internalEventPublisher.publishOrderCreated(order.getOrderId(), saga.getSagaId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
