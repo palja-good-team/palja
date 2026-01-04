@@ -32,40 +32,46 @@ public class OrderSagaOrchestrator {
     private final Map<OrderSagaStep, SagaStep> stepMap;
 
     /**
-     * Saga 시작
-     * - 첫 번째 Step 실행
+     * Saga 시작 - 첫 번째 Step 실행 요청 발행
      */
     @Transactional
     public void startSaga(UUID sagaId) {
-        log.info("[SAGA][ORDER][SAGA_START][STARTED] sagaId={}", sagaId);
-
         OrderSaga saga = sagaService.findBySagaId(sagaId);
+        UUID orderId = saga.getOrderId();
 
-        // 멱등성 검증: 이미 종료된 Saga면 스킵
+        log.info("Saga 시작 요청 (saga start requested): sagaId={} orderId={} currentStep={}",
+                sagaId, orderId, saga.getCurrentStep());
+
+        // 멱등성: 이미 종료된 Saga면 스킵 (중복 메시지/재처리 케이스)
         if (saga.isTerminated()) {
-            log.warn("[SAGA][ORDER][SAGA_START][SKIP_DUPLICATE] sagaId={} reason=ALREADY_TERMINATED", sagaId);
+            log.warn("Saga 시작 무시 (ignore): sagaId={} orderId={} reason=ALREADY_TERMINATED currentStep={}",
+                    sagaId, orderId, saga.getCurrentStep());
             return;
         }
 
         // 실행 가능한 Step 리스트
-        List<OrderSagaStep> executableSteps = OrderSagaStep.getExecutableSteps();
-
-        // 설정 오류(등록된 Step 없음): 주문이 이미 존재할 수 있어 상태를 정리
-        if (executableSteps.isEmpty()) {
-            String msg = "No SagaStep registered";
-            log.error("[SAGA][ORDER][START][CONFIG_ERROR] sagaId={} msg={}", sagaId, msg);
-            // Saga 실패 처리 + 주문 취소로 정리
-            failSaga(sagaId, saga.getCurrentStep(), msg);
+        List<OrderSagaStep> steps = OrderSagaStep.getExecutableSteps();
+        // 설정 오류 (등록된 Step 없음)
+        if (steps.isEmpty()) {
+            failSaga(sagaId, saga.getCurrentStep(), "CONFIG_ERROR: executable steps is empty");
             return;
         }
 
-        Order order = orderService.findOrderWithDetails(saga.getOrderId());
-        // 첫 번째 Step 실행 (재고차감)
-        OrderSagaStep firstStepEnum = executableSteps.get(0);
-        SagaStep firstStep = stepMap.get(firstStepEnum);
+        Order order = orderService.findOrderWithDetails(orderId);
 
-        // Step 실행 (이벤트만 발행하고 즉시 리턴)
+        // 첫 번째 Step 실행 (재고차감)
+        OrderSagaStep firstStepEnum = steps.get(0);
+        SagaStep firstStep = stepMap.get(firstStepEnum);
+        if (firstStep == null) {
+            failSaga(sagaId, saga.getCurrentStep(), "CONFIG_ERROR: step bean not found. step=" + firstStepEnum);
+            return;
+        }
+
+        // Step 실행 (이벤트 발행)
         firstStep.execute(saga, order);
+
+        log.info("Saga Step 실행 요청 발행 (step execution requested): sagaId={} orderId={} step={}",
+                sagaId, orderId, firstStepEnum);
 
         // ====== 실행 결과 ======
         // 1. Kafka에 StockDecreaseEventReq 발행됨
@@ -74,12 +80,10 @@ public class OrderSagaOrchestrator {
         //    - Value: {sagaId, orderId, productId, quantity, ...}
         // 2. OrderSaga 상태는 아직 STARTED
         //    - currentStep = STARTED (변경 안 됨)
-        //    - 응답이 오면 그때 STOCK_RESERVED로 변경
+        //    - 응답이 오면 그때 STOCK_DECREASE로 변경
         // 3. 이 메서드는 즉시 종료
         //    - 트랜잭션 커밋
         //    - Kafka Listener는 다음 메시지 대기
-        log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepCode={}",
-                sagaId, saga.getOrderId(), firstStepEnum, firstStepEnum.getCode());
     }
 
     /**
@@ -87,46 +91,45 @@ public class OrderSagaOrchestrator {
      */
     @Transactional
     public void continueAfterStep(UUID sagaId, OrderSagaStep completedStep) {
-        log.info("[SAGA][ORDER][STEP][PROCEED] sagaId={} completedStep={}", sagaId, completedStep);
-
         OrderSaga saga = sagaService.findBySagaId(sagaId);
+        UUID orderId = saga.getOrderId();
 
         // 멱등성: 이미 종료된 Saga
         if (saga.isTerminated()) {
-            log.warn("[SAGA][ORDER][STEP][SKIP_DUPLICATE] sagaId={} reason=ALREADY_TERMINATED", sagaId);
+            log.warn("Saga 진행 무시 (ignore): sagaId={} orderId={} reason=ALREADY_TERMINATED currentStep={}",
+                    sagaId, orderId, saga.getCurrentStep());
             return;
         }
 
-        // 실행 가능한 Step 리스트: [STOCK_RESERVED, COUPON_APPLIED, PAYMENT_CREATED]
+        // 실행 가능한 Step 리스트
         List<OrderSagaStep> steps = OrderSagaStep.getExecutableSteps();
-        // 현재 Step의 인덱스: STARTED는 실행 목록에 없으므로 인덱스를 -1
+
+        // 현재 Step 인덱스 (STARTED는 -1)
         int currentIdx = (saga.getCurrentStep() == OrderSagaStep.STARTED)
                 ? -1 : steps.indexOf(saga.getCurrentStep());
 
-        // STARTED가 아닌데 리스트에 없으면 이상 상태
         if (currentIdx == -1 && saga.getCurrentStep() != OrderSagaStep.STARTED) {
-            failSaga(sagaId, saga.getCurrentStep(), "현재 Step이 실행 목록에 없습니다.");
+            failSaga(sagaId, saga.getCurrentStep(), "INVALID_STATE: currentStep not in executable steps");
             return;
         }
 
-        // Out-of-order 검증: 현재 Step 다음이 completedStep이어야 함
+        // out-of-order 방지: "현재 다음 step"만 인정
         int expectedIdx = currentIdx + 1;
-        if (expectedIdx >= steps.size() || steps.get(expectedIdx) != completedStep) {
-            log.warn("[SAGA][ORDER][STEP][IGNORE_OUT_OF_ORDER] sagaId={} completedStep={} expectedStep={} currentStep={}",
-                    sagaId, completedStep,
-                    expectedIdx < steps.size() ? steps.get(expectedIdx) : null,
-                    saga.getCurrentStep());
+        OrderSagaStep expectedStep = expectedIdx < steps.size() ? steps.get(expectedIdx) : null;
+        if (expectedStep != completedStep) {
+            log.warn("Saga Step 순서 불일치로 무시 (out-of-order ignored): sagaId={} orderId={} completedStep={} expectedStep={} currentStep={}",
+                    sagaId, orderId, completedStep, expectedStep, saga.getCurrentStep());
             return;
         }
 
-        // Saga 상태 전이 (검증 포함)
+        // Saga Step 상태 전이: 완료된 SAGA 상태
         saga.proceedToNextStep(completedStep);
         sagaService.save(saga);
 
-        log.info("[SAGA][ORDER][STEP][COMPLETED] sagaId={} orderId={} step={} newStep={}",
-                sagaId, saga.getOrderId(), completedStep, saga.getCurrentStep());
+        log.info("Saga Step 완료 반영 (step completed): sagaId={} orderId={} completedStep={} newCurrentStep={}",
+                sagaId, orderId, completedStep, saga.getCurrentStep());
 
-        // 다음 Step 실행
+        // 다음 Step 결정
         int nextIdx = expectedIdx + 1;
         if (nextIdx >= steps.size()) {
             completeSaga(saga);
@@ -135,14 +138,17 @@ public class OrderSagaOrchestrator {
 
         OrderSagaStep nextStepEnum = steps.get(nextIdx);
         SagaStep nextStep = stepMap.get(nextStepEnum);
+        if (nextStep == null) {
+            failSaga(sagaId, saga.getCurrentStep(), "CONFIG_ERROR: step bean not found. step=" + nextStepEnum);
+            return;
+        }
 
-        // 다음 Step 실행
-        Order order = orderService.findOrderWithDetails(saga.getOrderId());
+        Order order = orderService.findOrderWithDetails(orderId);
 
-        // 적용 대상이 아니면 성공 처리 후 다음 Step으로
+        // 적용 대상 아니면 스킵, 다음 step으로 진행 (재귀)
         if (!nextStep.isApplicable(saga, order)) {
-            log.info("[SAGA][ORDER][STEP][SKIPPED] sagaId={} orderId={} step={}",
-                    sagaId, saga.getOrderId(), nextStepEnum);
+            log.info("Saga Step 스킵 (step skipped): sagaId={} orderId={} step={} reason=NOT_APPLICABLE",
+                    sagaId, orderId, nextStepEnum);
 
             continueAfterStep(sagaId, nextStepEnum);
             return;
@@ -150,18 +156,19 @@ public class OrderSagaOrchestrator {
 
         nextStep.execute(saga, order);
 
-        log.info("[SAGA][ORDER][STEP][EXECUTED] sagaId={} orderId={} step={} stepIndex={}",
-                sagaId, saga.getOrderId(), nextStep.getName(), nextIdx);
+        log.info("Saga Step 실행 요청 발행 (step execution requested): sagaId={} orderId={} step={}",
+                sagaId, orderId, nextStepEnum);
     }
 
     /**
      * Saga 완료
      */
     private void completeSaga(OrderSaga saga) {
+        // Saga 및 Saga Step 상태 전이: 완료
         saga.complete();
         sagaService.save(saga);
 
-        log.info("[SAGA][ORDER][SAGA][COMPLETED] sagaId={} orderId={}",
+        log.info("Saga 완료 (saga completed): sagaId={} orderId={}",
                 saga.getSagaId(), saga.getOrderId());
     }
 
@@ -170,54 +177,56 @@ public class OrderSagaOrchestrator {
      */
     @Transactional
     public void failSaga(UUID sagaId, OrderSagaStep failedStep, String errorMessage) {
-        log.warn("[SAGA][ORDER][SAGA][FAILED] sagaId={} failedStep={} reason=BUSINESS_FAILURE msg={}",
-                sagaId, failedStep, errorMessage);
-
         OrderSaga saga = sagaService.findBySagaId(sagaId);
+        UUID orderId = saga.getOrderId();
 
         // 멱등성: 이미 종료된 Saga
         if (saga.isTerminated()) {
-            log.warn("[SAGA][ORDER][SAGA][SKIP_DUPLICATE] sagaId={} reason=ALREADY_TERMINATED", sagaId);
+            log.warn("Saga 실패 처리 무시 (ignore): sagaId={} orderId={} reason=ALREADY_TERMINATED currentStep={}",
+                    sagaId, orderId, saga.getCurrentStep());
             return;
         }
 
-        Order order = orderService.findOrderWithDetails(saga.getOrderId());
+        log.warn("Saga 실패 처리 시작 (saga failed): sagaId={} orderId={} failedStep={} msg={}",
+                sagaId, orderId, failedStep, errorMessage);
 
-        // 보상 시작
+        Order order = orderService.findOrderWithDetails(orderId);
+
+        // Saga 상태 전이: 보상
         saga.startCompensation();
         sagaService.save(saga);
 
-        log.warn("[SAGA][ORDER][COMPENSATE][START] sagaId={} orderId={} failedStep={}",
-                sagaId, saga.getOrderId(), failedStep);
+        log.warn("Saga 보상 시작 (compensation started): sagaId={} orderId={} fromStep={}",
+                sagaId, orderId, saga.getCurrentStep());
 
-        // 보상 실행
+        // 보상 시작
         compensate(saga, order);
 
         // 주문 취소
-        orderService.cancelOrderBySaga(order.getOrderId(), errorMessage);
-        log.info("[SAGA][ORDER_CANCELLED] sagaId={} orderId={}", sagaId, order.getOrderId());
+        orderService.cancelOrderBySaga(orderId, errorMessage);
+        log.info("주문 취소 완료 (order cancelled): sagaId={} orderId={}", sagaId, orderId);
 
-        // Saga 실패 확정
+        // Saga 실패 확정 (Saga 상태 전이: 실패)
         saga.fail(errorMessage);
         sagaService.save(saga);
 
-        log.warn("[SAGA][ORDER][SAGA][FAILED_FINAL] sagaId={} orderId={} msg={}",
-                sagaId, saga.getOrderId(), errorMessage);
+        log.warn("Saga 실패 확정 (saga failed finalized): sagaId={} orderId={} msg={}",
+                sagaId, orderId, errorMessage);
     }
 
     /**
-     * 보상 트랜잭션 실행
-     * - 현재 Step까지 역순으로 보상 (Best Effort)
+     * 보상 트랜잭션 실행 (Best Effort)
      */
     private void compensate(OrderSaga saga, Order order) {
-        // 실행 가능한 Step 리스트
+        // 실행 가능한 Saga Step 리스트
         List<OrderSagaStep> executableSteps = OrderSagaStep.getExecutableSteps();
-        // 현재 Step의 인덱스 (마지막으로 성공한 Step)
+        // 현재 Saga Step의 인덱스: 마지막으로 성공한 Step
         int lastSuccessIdx = executableSteps.indexOf(saga.getCurrentStep());
 
         if (lastSuccessIdx == -1) {
-            log.info("[SAGA][ORDER][COMPENSATE][SKIP] sagaId={} currentStep={} reason=STEP_NOT_IN_EXECUTABLE_LIST",
-                    saga.getSagaId(), saga.getCurrentStep());
+            // 보상 대상 자체가 없으면 조용히 종료(필요 시 INFO 1줄)
+            log.info("Saga 보상 스킵 (compensation skipped): sagaId={} orderId={} currentStep={} reason=STEP_NOT_IN_EXECUTABLE_LIST",
+                    saga.getSagaId(), saga.getOrderId(), saga.getCurrentStep());
             return;
         }
 
@@ -226,19 +235,25 @@ public class OrderSagaOrchestrator {
             OrderSagaStep stepEnum = executableSteps.get(i);
             SagaStep step = stepMap.get(stepEnum);
 
+            if (step == null) {
+                // 설정 오류지만 Best Effort: 다음 보상으로 진행
+                log.error("Saga 보상 Step 누락 (missing step): sagaId={} orderId={} step={}",
+                        saga.getSagaId(), saga.getOrderId(), stepEnum);
+                continue;
+            }
+
             try {
                 step.compensate(saga, order);
-                log.info("[SAGA][ORDER][COMPENSATE][DONE] sagaId={} orderId={} step={} stepIndex={}",
-                        saga.getSagaId(), saga.getOrderId(), stepEnum, i);
+                log.info("Saga 보상 완료 (compensated): sagaId={} orderId={} step={}",
+                        saga.getSagaId(), saga.getOrderId(), stepEnum);
 
             } catch (Exception e) {
-                log.error("[SAGA][ORDER][COMPENSATE][ERROR] sagaId={} orderId={} step={} stepIndex={} reason={}",
-                        saga.getSagaId(), saga.getOrderId(), stepEnum, i, e.getClass().getSimpleName(), e);
-                // Best Effort - 계속 진행
+                log.error("Saga 보상 실패 (compensation failed): sagaId={} orderId={} step={} errorType={}",
+                        saga.getSagaId(), saga.getOrderId(), stepEnum, e.getClass().getSimpleName(), e);
             }
         }
 
-        log.warn("[SAGA][ORDER][COMPENSATE][END] sagaId={} orderId={}",
+        log.warn("Saga 보상 종료 (compensation ended): sagaId={} orderId={}",
                 saga.getSagaId(), saga.getOrderId());
     }
 }
