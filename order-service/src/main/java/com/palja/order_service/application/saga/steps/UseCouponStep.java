@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Step 2: 쿠폰 적용
+ * Step 2: 쿠폰 사용
  *
  * 정방향: 쿠폰 사용 요청 이벤트 발행
- * 보상: 쿠폰 취소 요청 이벤트 발행
+ * 보상: 쿠폰 취소 요청 이벤트 발행 (Best Effort)
  */
 @Slf4j
 @org.springframework.core.annotation.Order(2)
@@ -41,9 +41,6 @@ public class UseCouponStep implements SagaStep {
     public void execute(OrderSaga saga, Order order) {
         UUID couponUserId = order.getCouponUserId();
 
-        log.info("[SAGA][ORDER][COUPON_USE][READY] sagaId={} orderId={} couponUserId={}",
-                saga.getSagaId(), order.getOrderId(), couponUserId);
-
         // 쿠폰 사용 요청 이벤트 발행
         CouponUseEventReq event = CouponUseEventReq.of(
                 saga.getSagaId(),
@@ -52,19 +49,16 @@ public class UseCouponStep implements SagaStep {
                 order.getOrderAmount().getCouponDiscountAmount()
         );
 
+        log.info("쿠폰 사용 요청 발행 (coupon use requested): sagaId={} orderId={} couponUserId={} discountAmount={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId, order.getOrderAmount().getCouponDiscountAmount());
+
         try {
             // Kafka 발행: Kafka Producer가 메시지 전송
             eventPublisher.publishCouponUse(event);
-
-            // Producer에서 [KAFKA][ORDER][COUPON_USE][PUBLISHED] 찍고 있음
-            // "사가 단계가 발행 요청을 완료했다" 정도만 남김
-            log.info("[SAGA][ORDER][COUPON_USE][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
-
         } catch (Exception e) {
-            // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][ORDER][COUPON_USE][FAILED] sagaId={} orderId={} reason={}",
-                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
+            // 발행 실패는 ERROR
+            log.error("쿠폰 사용 요청 발행 실패 (coupon use publish failed): sagaId={} orderId={} couponUserId={} errorType={}",
+                    saga.getSagaId(), order.getOrderId(), couponUserId, e.getClass().getSimpleName(), e);
             throw e;
         }
     }
@@ -78,9 +72,6 @@ public class UseCouponStep implements SagaStep {
             return;
         }
 
-        log.warn("[SAGA][ORDER][COUPON_CANCEL][START] sagaId={} orderId={} couponUserId={}",
-                saga.getSagaId(), order.getOrderId(), couponUserId);
-
         // 쿠폰 취소 요청 이벤트 발행
         CouponCancelEventReq event = CouponCancelEventReq.of(
                 saga.getSagaId(),
@@ -88,16 +79,20 @@ public class UseCouponStep implements SagaStep {
                 couponUserId
         );
 
+        log.warn("쿠폰 취소 보상 시작 (coupon cancel compensation started): sagaId={} orderId={} couponUserId={}",
+                saga.getSagaId(), order.getOrderId(), couponUserId);
+
         try {
+            // Kafka 발행
             eventPublisher.publishCouponCancel(event);
 
-            log.info("[SAGA][ORDER][COUPON_CANCEL][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
+            log.info("쿠폰 취소 요청 발행 (coupon cancel requested): sagaId={} orderId={} couponUserId={}",
+                    saga.getSagaId(), order.getOrderId(), couponUserId);
 
         } catch (Exception e) {
-            // 보상은 Best Effort: 실패해도 계속 진행
-            log.error("[SAGA][ORDER][COUPON_CANCEL][FAILED] sagaId={} orderId={} reason={}",
-                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
+            // 보상 실패는 ERROR, Best Effort
+            log.error("쿠폰 취소 요청 발행 실패 (coupon cancel publish failed): sagaId={} orderId={} couponUserId={} errorType={}",
+                    saga.getSagaId(), order.getOrderId(), couponUserId, e.getClass().getSimpleName(), e);
         }
     }
 
