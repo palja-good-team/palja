@@ -17,7 +17,7 @@ import java.util.UUID;
  * Step 3: 결제 생성
  *
  * 정방향: 결제 생성 요청 이벤트 발행
- * 보상: 결제 취소 요청 이벤트 발행
+ * 보상: 결제 취소 요청 이벤트 발행 (Best Effort)
  */
 @Slf4j
 @org.springframework.core.annotation.Order(3)
@@ -39,12 +39,6 @@ public class CreatePaymentStep implements SagaStep {
 
     @Override
     public void execute(OrderSaga saga, Order order) {
-
-        log.info("[SAGA][ORDER][PAYMENT_CREATE][READY] sagaId={} orderId={} amount={}",
-                saga.getSagaId(),
-                order.getOrderId(),
-                order.getOrderAmount().getFinalAmount());
-
         // 결제 생성 요청 이벤트 발행
         PaymentCreateEventReq event = PaymentCreateEventReq.of(
                 saga.getSagaId(),
@@ -54,18 +48,16 @@ public class CreatePaymentStep implements SagaStep {
                 order.getStatus().name()
         );
 
+        log.info("결제 생성 요청 발행 (payment create requested): sagaId={} orderId={} userId={} amount={} orderStatus={}",
+                saga.getSagaId(), order.getOrderId(), order.getUserId(),
+                order.getOrderAmount().getFinalAmount(),order.getStatus().name());
+
         try {
-            // Kafka 발행: Kafka Producer가 메시지 전송
+            // Kafka 발행
             eventPublisher.publishPaymentCreate(event);
-
-            // Producer에서 Kafka 발행 로그 있음
-            // 여기서는 Saga 단계 기준으로 발행 완료만 표시
-            log.info("[SAGA][ORDER][PAYMENT_CREATE][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
-
         } catch (Exception e) {
-            // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][ORDER][PAYMENT_CREATE][FAILED] sagaId={} orderId={} reason={}",
+            // 발행 실패는 ERROR (사가 실패)
+            log.error("결제 생성 요청 발행 실패 (payment create publish failed): sagaId={} orderId={} errorType={}",
                     saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
             throw e;
         }
@@ -80,9 +72,6 @@ public class CreatePaymentStep implements SagaStep {
             return;
         }
 
-        log.warn("[SAGA][ORDER][PAYMENT_CANCEL][START] sagaId={} orderId={} paymentId={}",
-                saga.getSagaId(), order.getOrderId(), paymentId);
-
         // 결제 취소 요청 이벤트 발행
         PaymentCancelEventReq event = PaymentCancelEventReq.of(
                 saga.getSagaId(),
@@ -92,16 +81,20 @@ public class CreatePaymentStep implements SagaStep {
                 "SAGA_ROLLBACK: 주문 생성 실패"
         );
 
+        log.warn("결제 취소 보상 시작 (payment cancel compensation started): sagaId={} orderId={} paymentId={} amount={}",
+                saga.getSagaId(), order.getOrderId(), paymentId, order.getOrderAmount().getFinalAmount());
+
         try {
+            // Kafka 발행
             eventPublisher.publishPaymentCancel(event);
 
-            log.info("[SAGA][ORDER][PAYMENT_CANCEL][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
+            log.info("결제 취소 요청 발행 (payment cancel requested): sagaId={} orderId={} paymentId={} amount={}",
+                    saga.getSagaId(), order.getOrderId(), paymentId, order.getOrderAmount().getFinalAmount());
 
         } catch (Exception e) {
-            // 보상은 Best Effort
-            log.error("[SAGA][ORDER][PAYMENT_CANCEL][FAILED] sagaId={} orderId={} reason={}",
-                    saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
+            // 보상 실패는 ERROR, Best Effort
+            log.error("결제 취소 요청 발행 실패 (payment cancel publish failed): sagaId={} orderId={} paymentId={} errorType={}",
+                    saga.getSagaId(), order.getOrderId(), paymentId, e.getClass().getSimpleName(), e);
         }
     }
 }
