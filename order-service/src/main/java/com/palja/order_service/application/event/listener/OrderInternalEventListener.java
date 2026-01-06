@@ -19,25 +19,30 @@ public class OrderInternalEventListener {
     private final OrderEventPublisher orderEventPublisher;
     private final OrderSagaOrchestrator orchestrator;
 
-
-    // 주문 생성 후 Saga 시작
+    /**
+     * 주문 생성 AFTER_COMMIT 이후 Saga 시작 트리거
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreated(OrderCreatedEventReq event) {
-        log.info("[AFTER_COMMIT][ORDER][SAGA_START][READY] orderId={} sagaId={}",
+        // TX 커밋 이후 이벤트 핸들링 시작
+        log.info("AFTER_COMMIT 이벤트 처리 (handled): event=ORDER_CREATED orderId={} sagaId={}",
                 event.getOrderId(), event.getSagaId());
 
+        // Saga 시작
         orchestrator.startSaga(event.getSagaId());
     }
 
-    // 주문 취소 후 보상 이벤트 발행 (Kafka)
+    /**
+     * 주문 취소 AFTER_COMMIT 이후 Kafka 취소 이벤트 발행 트리거
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCanceled(OrderCanceledEventReq event) {
-        log.info("[AFTER_COMMIT][ORDER][ORDER_CANCEL][READY] orderId={}", event.getOrderId());
+        log.info("AFTER_COMMIT 이벤트 처리 (handled): event=ORDER_CANCELED orderId={}",
+                event.getOrderId());
 
-        // 단일 토픽으로 발행
+        // 단일 토픽 발행 요청 (실제 Kafka 전송/실패 로그는 Producer가 담당)
         orderEventPublisher.publishOrderCanceled(event);
 
-        log.info("[AFTER_COMMIT][ORDER][ORDER_CANCEL][PUBLISHED] orderId={}", event.getOrderId());
 //        // 재고 복구 이벤트 발행
 //        orderEventPublisher.publishStockRestore(StockRestoreEventReq.from(event));
 //        // 쿠폰 복구 이벤트 발행 (쿠폰 사용했을 경우만)
