@@ -154,7 +154,7 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Override
     @GetMapping("/manager/{paymentId}/retry-status")
-    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
+    @RequiredRole({UserRole.MANAGER})
     public ResponseEntity<ApiResponse<PaymentRetryStatusRes>> getRetryStatus(
             @PathVariable UUID paymentId,
             @RequestParam PaymentRetryAction action
