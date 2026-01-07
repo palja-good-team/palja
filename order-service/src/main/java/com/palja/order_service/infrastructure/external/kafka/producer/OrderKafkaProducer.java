@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Kafka Saga Event Publisher (Adapter)
- * - SagaEventPublisher 인터페이스 구현
+ * - OrderEventPublisher 구현
  * - Kafka로 이벤트 발행
  * - sagaId를 Key로 사용 (파티셔닝)
  */
@@ -26,78 +26,60 @@ public class OrderKafkaProducer implements OrderEventPublisher {
 
     @Override
     public void publishStockDecrease(StockDecreaseEventReq event) {
-        log.info("[KAFKA][ORDER][STOCK_DECREASE][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.STOCK_DECREASE_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.STOCK_DECREASE_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishStockRestore(StockRestoreEventReq event) {
-        log.info("[KAFKA][ORDER][STOCK_RESTORE][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.STOCK_RESTORE_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.STOCK_RESTORE_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishCouponUse(CouponUseEventReq event) {
-        log.info("[KAFKA][ORDER][COUPON_USE][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.COUPON_USE_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.COUPON_USE_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.COUPON_USE_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishCouponCancel(CouponCancelEventReq event) {
-        log.info("[KAFKA][ORDER][COUPON_CANCEL][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.COUPON_CANCEL_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.COUPON_CANCEL_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishPaymentCreate(PaymentCreateEventReq event) {
-        log.info("[KAFKA][ORDER][PAYMENT_CREATE][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.PAYMENT_CREATE_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.PAYMENT_CREATE_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishPaymentCancel(PaymentCancelEventReq event) {
-        log.info("[KAFKA][ORDER][PAYMENT_CANCEL][PUBLISHED] topic={} orderId={} sagaId={}",
-                KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getOrderId(), event.getSagaId());
-
-        send(KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId().toString(), event);
+        send(KafkaTopics.PAYMENT_CANCEL_REQUEST, event.getSagaId().toString(), event, event.getOrderId().toString());
     }
 
     @Override
     public void publishOrderCanceled(OrderCanceledEventReq event) {
-        log.info("[KAFKA][ORDER][ORDER_CANCEL][PUBLISHED] topic={} orderId={}",
-                KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId());
-
-        send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId().toString(), event);
+        // 주문 취소는 sagaId가 없을 수 있으니 orderId 기반 key
+        send(KafkaTopics.ORDER_CANCEL_REQUEST, event.getOrderId().toString(), event, event.getOrderId().toString());
     }
 
     /**
      * Kafka 전송 (공통 로직)
-     * - 실패 로그만 기록
      */
-    private void send(String topic, String key, Object payload) {
+    private void send(String topic, String key, Object payload, String orderId) {
+
+        String safeOrderId = (orderId == null ? "N/A" : orderId);
 
         Message<Object> message = MessageBuilder
                 .withPayload(payload)
                 .setHeader(KafkaHeaders.TOPIC, topic)
-                .setHeader(KafkaHeaders.KEY, key) // 키 기반 파티셔닝/순서 보장 용도
+                .setHeader(KafkaHeaders.KEY, key) // 키 기반 파티셔닝/순서 보장
                 .build();
+
+        log.info("Kafka 전송 요청 수락 (kafka publish accepted): topic={} key={} orderId={}", topic, key, safeOrderId);
 
         kafkaTemplate.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        // 실패만 기록
-                        log.error("[KAFKA][ORDER][PUBLISH][FAILED] topic={} key={} reason={}",
-                                topic, key, ex.getClass().getSimpleName(), ex);
+                        log.error("Kafka 전송 실패 (kafka publish failed): topic={} key={} orderId={} errorType={}",
+                                topic, key, safeOrderId, ex.getClass().getSimpleName(), ex);
                     }
                 });
     }

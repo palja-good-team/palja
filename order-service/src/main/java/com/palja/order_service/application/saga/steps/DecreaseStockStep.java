@@ -15,27 +15,27 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Step 1: 재고 예약
+ * Step 1: 재고 차감
  *
  * 정방향: 재고 차감 요청 이벤트 발행
- * 보상: 재고 복구 요청 이벤트 발행
+ * 보상: 재고 복구 요청 이벤트 발행 (Best Effort)
  */
 @Slf4j
 @org.springframework.core.annotation.Order(1)
 @Component
 @RequiredArgsConstructor
-public class ReserveStockStep implements SagaStep {
+public class DecreaseStockStep implements SagaStep {
 
     private final OrderEventPublisher eventPublisher;
 
     @Override
     public String getName() {
-        return "재고예약";
+        return "재고차감";
     }
 
     @Override
     public OrderSagaStep getStepType() {
-        return OrderSagaStep.STOCK_RESERVED;
+        return OrderSagaStep.STOCK_DECREASED;
     }
 
     @Override
@@ -45,10 +45,6 @@ public class ReserveStockStep implements SagaStep {
         // 타임딜 여부 확인
         boolean isTimeDeal = order.isTimeDealOrder();
         UUID timeDealId = isTimeDeal ? item.getTimeDealId() : null;
-
-        // Step 1: 재고 차감 요청 준비
-        log.info("[SAGA][ORDER][STOCK_DECREASE][READY] sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
-                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
 
         // 재고 차감 요청 이벤트 발행
         StockDecreaseEventReq event = StockDecreaseEventReq.of(
@@ -60,21 +56,16 @@ public class ReserveStockStep implements SagaStep {
                 isTimeDeal
         );
 
+        log.info("재고 차감 요청 발행 (stock decrease requested): sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
+                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
+
         try {
             // Kafka 발행: Kafka Producer가 메시지 전송
-            // - Topic: order.decrease.req
-            // - Key: sagaId
-            // - Value: StockDecreaseRequest
+            // - Topic: order.stock.decrease.request
             eventPublisher.publishStockDecrease(event);
-
-            // Producer에서 [KAFKA][ORDER][STOCK_DECREASE][PUBLISHED]가 있음
-            // Saga Step 기준으로 “발행 요청 완료”만 남김
-            log.info("[SAGA][ORDER][STOCK_DECREASE][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
-
         } catch (Exception e) {
-            // Kafka 전송 실패 (네트워크 오류 등)
-            log.error("[SAGA][ORDER][STOCK_DECREASE][FAILED] sagaId={} orderId={} reason={}",
+            // 발행 실패는 즉시 ERROR (SAGA 실패로 이어질 수 있음)
+            log.error("재고 차감 요청 발행 실패 (stock decrease publish failed): sagaId={} orderId={} errorType={}",
                     saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
             throw e;
         }
@@ -87,9 +78,6 @@ public class ReserveStockStep implements SagaStep {
         boolean isTimeDeal = order.isTimeDealOrder();
         UUID timeDealId = isTimeDeal ? item.getTimeDealId() : null;
 
-        log.warn("[SAGA][ORDER][STOCK_RESTORE][START] sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
-                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
-
         // 재고 복구 요청 이벤트 발행
         StockRestoreEventReq event = StockRestoreEventReq.of(
                 saga.getSagaId(),
@@ -100,15 +88,19 @@ public class ReserveStockStep implements SagaStep {
                 isTimeDeal
         );
 
+        log.warn("재고 복구 보상 시작 (stock restore compensation started): sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
+                saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
+
         try {
+            // Kafka 발행
             eventPublisher.publishStockRestore(event);
 
-            log.info("[SAGA][ORDER][STOCK_RESTORE][PUBLISHED] sagaId={} orderId={}",
-                    saga.getSagaId(), order.getOrderId());
+            log.info("재고 복구 요청 발행 (stock restore requested): sagaId={} orderId={} productId={} qty={} isTimeDeal={} timeDealId={}",
+                    saga.getSagaId(), order.getOrderId(), item.getProductId(), item.getQuantity(), isTimeDeal, timeDealId);
 
         } catch (Exception e) {
-            // 보상은 Best Effort
-            log.error("[SAGA][ORDER][STOCK_RESTORE][FAILED] sagaId={} orderId={} reason={}",
+            // 보상 실패는 ERROR로 남기되, Best Effort로 계속 진행
+            log.error("재고 복구 요청 발행 실패 (stock restore publish failed): sagaId={} orderId={} errorType={}",
                     saga.getSagaId(), order.getOrderId(), e.getClass().getSimpleName(), e);
         }
     }

@@ -11,10 +11,11 @@ import java.util.stream.Collectors;
  * Saga Step 진행 단계
  *
  * [순서]
- * STARTED(0) → STOCK_RESERVED(10) → COUPON_APPLIED(20) → PAYMENT_CREATED(30) → COMPLETED(90)
+ * STARTED(0) → STOCK_DECREASED(10) → COUPON_USED(20) → PAYMENT_CREATED(30) → COMPLETED(100)
  *
  *  [code 사용]
  * - 명시적인 순서 관리
+ * - 10 단위 증가로 중간 단계 추가 가능
  */
 @Getter
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public enum OrderSagaStep {
     STARTED(0) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
-            return next == STOCK_RESERVED || next == FAILED;
+            return next == STOCK_DECREASED || next == FAILED;
         }
 
         @Override
@@ -37,11 +38,11 @@ public enum OrderSagaStep {
         }
     },
 
-    STOCK_RESERVED(10) {
+    STOCK_DECREASED(10) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
-            // 쿠폰 없으면 바로 결제로 갈 수 있음
-            return next == COUPON_APPLIED || next == PAYMENT_CREATED || next == FAILED;
+            // 쿠폰 없으면 결제로 스킵 가능
+            return next == COUPON_USED || next == PAYMENT_CREATED || next == FAILED;
         }
 
         @Override
@@ -55,7 +56,7 @@ public enum OrderSagaStep {
         }
     },
 
-    COUPON_APPLIED(20) {
+    COUPON_USED(20) {
         @Override
         public boolean canTransitionTo(OrderSagaStep next) {
             return next == PAYMENT_CREATED || next == FAILED;
@@ -127,27 +128,26 @@ public enum OrderSagaStep {
      * Saga 단계 비교용 코드
      * - ordinal() 대신 사용
      * - 중간 단계 추가/순서 변경에도 안전
-     * - 10 단위로 증가 (중간 단계 추가 여유)
      */
     private final int code;
 
     /**
-     * 상태 전이 가능 여부
+     * 다음 단계로 전이 가능한지 검증
      */
     public abstract boolean canTransitionTo(OrderSagaStep next);
 
     /**
-     * 종료 상태 여부
+     * 종료 상태인지 확인 (COMPLETED, FAILED)
      */
     public abstract boolean isTerminal();
 
     /**
-     * 실행 가능한 Step인지
+     * 실행 가능한 Step인지 확인
      */
     public abstract boolean isExecutable();
 
     /**
-     * 실행 가능한 Step들만 code 순서대로 반환
+     * 실행 가능한 Step 목록을 순서대로 반환 (code 순서)
      */
     public static List<OrderSagaStep> getExecutableSteps() {
         return Arrays.stream(values())
@@ -157,7 +157,7 @@ public enum OrderSagaStep {
     }
 
     /**
-     * 특정 Step에 도달했는지
+     * 특정 Step 이상인지 확인
      */
     public boolean isAtLeast(OrderSagaStep step) {
         return this.code >= step.code;

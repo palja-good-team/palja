@@ -95,8 +95,7 @@ public class OrderServiceImpl implements OrderService {
         // OrderSaga 생성
         OrderSaga saga = orderSagaService.findOrCreateByOrderId(order.getOrderId());
 
-        // Spring ApplicationEvent 발행
-        // 실제 Kafka 발행은 트랜잭션 커밋 후 처리
+        // Saga 시작 이벤트 발행 (트랜잭션 커밋 후 처리)
         internalEventPublisher.publishOrderCreated(order.getOrderId(), saga.getSagaId());
 
         log.info("주문 생성 완료: orderId={}, status={}, finalAmount={}",
@@ -284,26 +283,30 @@ public class OrderServiceImpl implements OrderService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cancelOrderBySaga(UUID orderId, String reason) {
-        log.info("[SAGA][ORDER][CANCEL][START] orderId={}, reason={}", orderId, reason);
+        final String canceledBy = "SAGA";
+
+        log.info("Saga로 주문 취소 시작 (saga cancel started): orderId={} reason={}", orderId, reason);
 
         Order order = findByOrderIdAndDeletedAtIsNull(orderId);
+        OrderStatus status = order.getStatus();
 
-        // 멱등성: 이미 취소/종료 상태면 스킵
-        if (order.getStatus().isCanceled()) {
-            log.warn("[SAGA][[ORDER][CANCEL][ALREADY_CANCELED] orderId={}", orderId);
-            return;
-        }
-        if (order.getStatus().isFinalState()) {
-            log.warn("[SAGA][ORDER][CANCEL][SKIP_TERMINAL] orderId={}, status={}",
-                    orderId, order.getStatus());
+        // 멱등성: 이미 취소 상태면 스킵
+        if (status.isCanceled()) {
+            log.info("Saga로 주문 취소 스킵 (already canceled): orderId={} status={}", orderId, status);
             return;
         }
 
-        // 주문 상태 변경
-        order.cancel(reason, SAGA);
+        // 멱등성: 종료 상태면 스킵 (정책 유지)
+        if (status.isFinalState()) {
+            log.warn("Saga로 주문 취소 스킵 (terminal state): orderId={} status={}", orderId, status);
+            return;
+        }
+
+        // 도메인 검증 + 상태 전이 + cancellation 생성
+        order.cancel(reason, canceledBy);
         orderRepository.save(order);
 
-        log.info("[SAGA][ORDER][CANCEL][COMPLETED] orderId={}", orderId);
+        log.info("Saga로 주문 취소 완료 (saga cancel completed): orderId={} status={}", orderId, order.getStatus());
     }
 
     // ====== Order Read Workflow ======
