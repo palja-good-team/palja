@@ -1,5 +1,7 @@
 package com.palja.payment_service.application.service.impl;
 
+import com.palja.payment_service.application.type.PaymentRetryAction;
+import com.palja.payment_service.application.service.PaymentRetryService;
 import com.palja.payment_service.domain.event.vo.PaymentEventType;
 import io.micrometer.tracing.Tracer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PGPaymentService pgPaymentService;
     private final PaymentValidator paymentValidator;
+    private final PaymentRetryService paymentRetryService;
 
     private final OrderClient orderClient;
     private final UserClient userClient;
@@ -126,47 +129,40 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(PaymentErrorCode.PAYMENT_ALREADY_PROCESSED);
         }
 
+        paymentRetryService.assertNotBlocked(payment.getId(), PaymentRetryAction.COMPLETE);
+
         payment.updatePaymentKey(command.paymentKey());
 
         PGPaymentRes pgRes;
         try {
-            log.info("Toss 결제 확인 요청: paymentId={}, orderId={}, amount={}",
-                    payment.getId(), payment.getOrderId(), payment.getAmount());
-
             pgRes = pgPaymentService.requestPayment(payment);
-
-            log.info("Toss 결제 확인 응답: paymentId={}, success={}, pgMessage={}",
-                    payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Toss 결제 확인 API 호출 실패: paymentId={}, paymentKey={}",
-                    payment.getId(), command.paymentKey(), e);
+            paymentRetryService.recordFailure(payment.getId(), PaymentRetryAction.COMPLETE);
+            log.error("Toss 결제 확인 호출 실패(예외): paymentId={}", payment.getId(), e);
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
 
-        if (pgRes.isSuccess()) {
-            payment.approve(resolvePaymentKey(pgRes, payment));
-            log.info("결제 완료 성공: paymentId={}, orderId={}", payment.getId(), payment.getOrderId());
-        } else {
-            payment.fail(pgRes.getPgResponseMessage());
-            log.warn("결제 완료 실패: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
-        }
+        if (pgRes == null || !pgRes.isSuccess()) {
+            paymentRetryService.recordFailure(payment.getId(), PaymentRetryAction.COMPLETE);
 
-        paymentRepository.save(payment);
+            payment.fail(pgRes != null ? pgRes.getPgResponseMessage() : "PG_RESPONSE_NULL");
+            paymentRepository.save(payment);
 
-        PaymentLog resultLog = pgRes.isSuccess()
-                ? PaymentLog.createApprovedLog(payment, pgRes)
-                : PaymentLog.createFailedLog(payment, pgRes);
-        paymentLogRepository.save(resultLog);
-
-        if (pgRes.isSuccess()) {
-            enqueueOutboxApproved(payment, pgRes);
-        } else {
+            paymentLogRepository.save(PaymentLog.createFailedLog(payment, pgRes));
             enqueueOutboxFailed(payment, pgRes);
-        }
 
-        if (!pgRes.isSuccess()) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_FAILED);
         }
+
+        paymentRetryService.clear(payment.getId(), PaymentRetryAction.COMPLETE);
+
+        payment.approve(resolvePaymentKey(pgRes, payment));
+        paymentRepository.save(payment);
+
+        paymentLogRepository.save(PaymentLog.createApprovedLog(payment, pgRes));
+        enqueueOutboxApproved(payment, pgRes);
 
         log.info("결제 완료 처리 종료: paymentId={}, userId={}", payment.getId(), payment.getUserId());
         return CreatePaymentRes.from(payment);
@@ -185,42 +181,45 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
+        paymentRetryService.assertNotBlocked(payment.getId(), PaymentRetryAction.CANCEL);
+
         UserRes user = userClient.getUserByLoginId(command.loginId());
         paymentValidator.validateCancelPayment(payment, command, user);
 
         PGPaymentRes pgRes;
         try {
-            log.info("Toss 결제 취소 요청: paymentId={}, cancelAmount={}, reason={}",
-                    payment.getId(), command.cancelAmount(), command.cancelReason());
-
             pgRes = pgPaymentService.cancelPayment(payment, command.cancelAmount(), command.cancelReason());
-
-            log.info("Toss 결제 취소 응답: paymentId={}, success={}, pgMessage={}",
-                    payment.getId(), pgRes.isSuccess(), pgRes.getPgResponseMessage());
 
         } catch (BusinessException e) {
             throw e;
+
         } catch (Exception e) {
-            log.error("Toss 결제 취소 API 호출 실패: paymentId={}", payment.getId(), e);
+            paymentRetryService.recordFailure(payment.getId(), PaymentRetryAction.CANCEL);
+            log.error("Toss 결제 취소 호출 실패(예외): paymentId={}", payment.getId(), e);
             throw new BusinessException(CommonErrorCode.FEIGN_ERROR);
         }
 
-        if (pgRes.isSuccess()) {
-            payment.cancel(command.cancelReason());
-            paymentRepository.save(payment);
+        if (pgRes == null || !pgRes.isSuccess()) {
+            paymentRetryService.recordFailure(payment.getId(), PaymentRetryAction.CANCEL);
 
-            paymentLogRepository.save(PaymentLog.createCanceledLog(payment, pgRes));
-            enqueueOutboxCanceled(payment, command, pgRes);
+            paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
+            enqueueOutboxCancelFailed(payment, command, pgRes);
 
-            log.info("결제 취소 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
-            return CancelPaymentRes.from(payment);
+            log.warn("결제 취소 실패: paymentId={}, reason={}", payment.getId(),
+                    pgRes != null ? pgRes.getPgResponseMessage() : "null");
+            throw new BusinessException(PaymentErrorCode.PAYMENT_CANCEL_FAILED);
         }
 
-        paymentLogRepository.save(PaymentLog.createCancelFailedLog(payment, pgRes));
-        enqueueOutboxCancelFailed(payment, command, pgRes);
+        paymentRetryService.clear(payment.getId(), PaymentRetryAction.CANCEL);
 
-        log.warn("결제 취소 실패: paymentId={}, reason={}", payment.getId(), pgRes.getPgResponseMessage());
-        throw new BusinessException(PaymentErrorCode.PAYMENT_CANCEL_FAILED);
+        payment.cancel(command.cancelReason());
+        paymentRepository.save(payment);
+
+        paymentLogRepository.save(PaymentLog.createCanceledLog(payment, pgRes));
+        enqueueOutboxCanceled(payment, command, pgRes);
+
+        log.info("결제 취소 완료: paymentId={}, status={}", payment.getId(), payment.getStatus());
+        return CancelPaymentRes.from(payment);
     }
 
     @Override

@@ -2,8 +2,10 @@ package com.palja.payment_service.presentation.controller;
 
 import com.palja.common.response.ApiResponse;
 import com.palja.common.response.PageResponse;
+import com.palja.payment_service.application.type.PaymentRetryAction;
 import com.palja.payment_service.application.dto.response.CancelPaymentRes;
 import com.palja.payment_service.application.dto.response.CreatePaymentRes;
+import com.palja.payment_service.application.dto.response.PaymentRetryStatusRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
@@ -109,5 +111,16 @@ public interface PaymentController {
     ResponseEntity<ApiResponse<String>> deletePayment(
             @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
             @PathVariable UUID paymentId
+    );
+
+    @Operation(
+            summary = "결제 재시도 상태 조회",
+            description = "특정 결제의 재시도 상태(실패 횟수, 제한 여부, 남은 TTL)를 조회합니다."
+    )
+    ResponseEntity<ApiResponse<PaymentRetryStatusRes>> getRetryStatus(
+            @Parameter(description = "결제 ID", example = "660e8400-e29b-41d4-a716-446655440001")
+            @PathVariable UUID paymentId,
+            @Parameter(description = "재시도 액션 (COMPLETE, CANCEL)", example = "COMPLETE")
+            @RequestParam PaymentRetryAction action
     );
 }
