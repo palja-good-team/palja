@@ -1,5 +1,6 @@
 package com.palja.payment_service.application.service;
 
+import com.palja.payment_service.application.dto.response.PaymentRetryStatusRes;
 import com.palja.payment_service.application.type.PaymentRetryAction;
 
 import java.time.Duration;
@@ -18,4 +19,6 @@ public interface PaymentRetryService {
     Duration ttl();
 
     int maxFailures();
+
+    PaymentRetryStatusRes getRetryStatus(UUID paymentId, PaymentRetryAction action);
 }

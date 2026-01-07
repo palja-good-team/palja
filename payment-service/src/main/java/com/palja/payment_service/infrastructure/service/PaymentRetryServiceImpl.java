@@ -1,6 +1,7 @@
 package com.palja.payment_service.infrastructure.service;
 
 import com.palja.common.exception.BusinessException;
+import com.palja.payment_service.application.dto.response.PaymentRetryStatusRes;
 import com.palja.payment_service.application.type.PaymentRetryAction;
 import com.palja.payment_service.application.service.PaymentRetryService;
 import com.palja.payment_service.exception.PaymentErrorCode;
@@ -70,6 +71,22 @@ public class PaymentRetryServiceImpl implements PaymentRetryService {
     @Override
     public int maxFailures() {
         return MAX_FAILURES;
+    }
+
+    @Override
+    public PaymentRetryStatusRes getRetryStatus(UUID paymentId, PaymentRetryAction action) {
+        int count = getFailureCount(paymentId, action);
+        Long ttlSeconds = redis.getExpire(key(paymentId, action));
+        Duration remainingTtl = (ttlSeconds != null && ttlSeconds > 0)
+                ? Duration.ofSeconds(ttlSeconds)
+                : Duration.ZERO;
+
+        return PaymentRetryStatusRes.of(
+                count,
+                MAX_FAILURES,
+                count >= MAX_FAILURES,
+                remainingTtl
+        );
     }
 
     private String key(UUID paymentId, PaymentRetryAction action) {

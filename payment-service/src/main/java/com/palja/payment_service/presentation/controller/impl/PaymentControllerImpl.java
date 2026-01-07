@@ -1,6 +1,5 @@
 package com.palja.payment_service.presentation.controller.impl;
 
-import com.palja.common.annotation.RequiredInternal;
 import com.palja.common.annotation.RequiredRole;
 import com.palja.common.auditor.CurrentUser;
 import com.palja.common.response.ApiResponse;
@@ -9,9 +8,12 @@ import com.palja.common.vo.UserRole;
 import com.palja.payment_service.application.command.FindPaymentListByConditionCommand;
 import com.palja.payment_service.application.dto.response.CancelPaymentRes;
 import com.palja.payment_service.application.dto.response.CreatePaymentRes;
+import com.palja.payment_service.application.dto.response.PaymentRetryStatusRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentDetailRes;
 import com.palja.payment_service.application.dto.response.ReadPaymentSummaryRes;
+import com.palja.payment_service.application.service.PaymentRetryService;
 import com.palja.payment_service.application.service.PaymentService;
+import com.palja.payment_service.application.type.PaymentRetryAction;
 import com.palja.payment_service.presentation.controller.PaymentController;
 import com.palja.payment_service.presentation.dto.request.CancelPaymentReq;
 import com.palja.payment_service.presentation.dto.request.CompletePaymentReq;
@@ -33,6 +35,7 @@ import java.util.UUID;
 public class PaymentControllerImpl implements PaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentRetryService paymentRetryService;
 
     @Override
     @PostMapping
@@ -147,5 +150,17 @@ public class PaymentControllerImpl implements PaymentController {
     ){
         paymentService.deletePayment(paymentId);
         return new ResponseEntity<>(ApiResponse.success("결제가 삭제되었습니다."),HttpStatus.OK);
+    }
+
+    @Override
+    @GetMapping("/manager/{paymentId}/retry-status")
+    @RequiredRole({UserRole.MANAGER, UserRole.CUSTOMER})
+    public ResponseEntity<ApiResponse<PaymentRetryStatusRes>> getRetryStatus(
+            @PathVariable UUID paymentId,
+            @RequestParam PaymentRetryAction action
+    ) {
+        PaymentRetryStatusRes status = paymentRetryService.getRetryStatus(paymentId, action);
+        return ResponseEntity
+                .ok(ApiResponse.success(status, "결제 재시도 상태 조회에 성공했습니다."));
     }
 }
