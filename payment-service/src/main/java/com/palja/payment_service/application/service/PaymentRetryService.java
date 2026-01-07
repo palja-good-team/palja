@@ -1,6 +1,6 @@
 package com.palja.payment_service.application.service;
 
-import com.palja.payment_service.application.PaymentRetryAction;
+import com.palja.payment_service.application.type.PaymentRetryAction;
 
 import java.time.Duration;
 import java.util.UUID;

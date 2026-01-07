@@ -1,7 +1,7 @@
 package com.palja.payment_service.infrastructure.service;
 
 import com.palja.common.exception.BusinessException;
-import com.palja.payment_service.application.PaymentRetryAction;
+import com.palja.payment_service.application.type.PaymentRetryAction;
 import com.palja.payment_service.application.service.PaymentRetryService;
 import com.palja.payment_service.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;

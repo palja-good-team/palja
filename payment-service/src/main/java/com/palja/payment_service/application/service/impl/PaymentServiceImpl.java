@@ -1,6 +1,6 @@
 package com.palja.payment_service.application.service.impl;
 
-import com.palja.payment_service.application.PaymentRetryAction;
+import com.palja.payment_service.application.type.PaymentRetryAction;
 import com.palja.payment_service.application.service.PaymentRetryService;
 import com.palja.payment_service.domain.event.vo.PaymentEventType;
 import io.micrometer.tracing.Tracer;
