@@ -16,7 +16,7 @@ import java.util.UUID;
 
 
 @Tag(name = "Delivery", description = "배송 관리 API")
-@RequestMapping("/api/v1/orders/{orderId}/delivery")
+@RequestMapping("/api/v1/orders")
 public interface OrderDeliveryController {
 
     @Operation(
