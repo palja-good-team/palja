@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.UUID;
 
-@Tag(name = "Orders", description = "주문 API")
+@Tag(name = "Order", description = "주문 API")
 @RequestMapping("/api/v1/orders")
 public interface OrderController {
 
