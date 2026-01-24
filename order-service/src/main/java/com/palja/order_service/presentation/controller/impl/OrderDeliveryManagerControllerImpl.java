@@ -4,7 +4,7 @@ import com.palja.common.annotation.RequiredRole;
 import com.palja.common.response.ApiResponse;
 import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.dto.response.DeliveryStatusRes;
-import com.palja.order_service.application.service.OrderDeliveryManagerService;
+import com.palja.order_service.application.service.OrderDeliveryService;
 import com.palja.order_service.presentation.controller.OrderDeliveryManagerController;
 import com.palja.order_service.presentation.dto.request.UpdateDeliveryStatusReq;
 import jakarta.validation.Valid;
@@ -19,8 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderDeliveryManagerControllerImpl implements OrderDeliveryManagerController {
 
-    private final OrderDeliveryManagerService orderDeliveryManagerService;
-
+    private final OrderDeliveryService orderDeliveryService;
     @Override
     @PutMapping("/{orderId}/delivery/status")
     @RequiredRole(value = {UserRole.MANAGER})
@@ -28,7 +27,7 @@ public class OrderDeliveryManagerControllerImpl implements OrderDeliveryManagerC
             @PathVariable UUID orderId,
             @Valid @RequestBody UpdateDeliveryStatusReq request
     ) {
-        DeliveryStatusRes response = orderDeliveryManagerService.updateDeliveryStatus(
+        DeliveryStatusRes response = orderDeliveryService.updateDeliveryStatus(
                 request.toCommand(orderId)
         );
 

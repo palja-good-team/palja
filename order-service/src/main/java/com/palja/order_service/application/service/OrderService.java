@@ -5,6 +5,7 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
+import com.palja.order_service.application.command.OrderStatusChangeCommand;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.domain.entity.Order;
 import com.palja.order_service.presentation.dto.request.CustomerOrderSearchReq;
@@ -29,4 +30,7 @@ public interface OrderService {
     );
 
     OrderPaymentCompleteRes completeOrderPayment(CompleteOrderPaymentCommand command);
+
+    // 관리자용
+    OrderStatusChangeRes changeOrderStatus(OrderStatusChangeCommand command);
 }
