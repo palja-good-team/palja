@@ -20,6 +20,7 @@ import java.util.UUID;
 public class OrderDeliveryManagerControllerImpl implements OrderDeliveryManagerController {
 
     private final OrderDeliveryService orderDeliveryService;
+
     @Override
     @PutMapping("/{orderId}/delivery/status")
     @RequiredRole(value = {UserRole.MANAGER})
