@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/orders/{orderId}/delivery")
+@RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 public class OrderDeliveryControllerImpl implements OrderDeliveryController {
 
     private final OrderDeliveryService orderDeliveryService;
 
     @Override
-    @PutMapping
+    @PutMapping("/{orderId}/delivery")
     @RequiredRole(value = {UserRole.COMPANY_USER, UserRole.MANAGER})
     public ResponseEntity<ApiResponse<DeliveryRegisterRes>> registerDelivery(
             @PathVariable UUID orderId,

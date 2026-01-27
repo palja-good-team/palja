@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.UUID;
 
-@Tag(name = "Orders (Manager)", description = "주문 관리자 API")
+@Tag(name = "Order (Manager)", description = "주문 관리자 API")
 @RequestMapping("/api/v1/orders/manager")
 public interface OrderManagerController {
 
     @Operation(
-            summary = "주문 상태 변경(관리자)",
+            summary = "주문 상태 변경 (관리자)",
             description = """
                     관리자가 주문 상태를 변경합니다.
                     - 권한: MANAGER

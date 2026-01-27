@@ -6,6 +6,7 @@ import com.palja.common.vo.UserRole;
 import com.palja.order_service.application.command.CancelOrderCommand;
 import com.palja.order_service.application.command.CompleteOrderPaymentCommand;
 import com.palja.order_service.application.command.CreateOrderCommand;
+import com.palja.order_service.application.command.OrderStatusChangeCommand;
 import com.palja.order_service.application.dto.external.*;
 import com.palja.order_service.application.dto.response.*;
 import com.palja.order_service.application.event.publisher.OrderInternalEventPublisher;
@@ -496,4 +497,37 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal couponDiscount,
             BigDecimal deliveryFee
     ) {}
+
+    // 관리자용
+    /**
+     * 주문 상태 변경 (관리자)
+     * - 주문 조회
+     * - 상태값 검증 및 파싱
+     * - 관리자 전용 상태 전환 규칙 검증
+     * - 상태 변경 (도메인)
+     * - 영속화
+     */
+    @Override
+    @Transactional
+    public OrderStatusChangeRes changeOrderStatus(OrderStatusChangeCommand command) {
+        log.info("주문 상태 변경 (관리자): orderId={}, targetStatus={}, manager={}",
+                command.orderId(), command.status(), command.managerLoginId());
+
+        orderValidator.validateManager(command.managerLoginId());
+
+        Order order = findOrderWithDetails(command.orderId());
+        OrderStatus currentStatus = order.getStatus();
+        String previousStatus = currentStatus.name();
+
+        OrderStatus targetStatus = orderValidator.validateAndParseOrderStatus(command.status());
+
+        orderValidator.validateManagerTransition(currentStatus, targetStatus);
+
+        order.changeStatusByManager(targetStatus);
+        orderRepository.save(order);
+
+        log.info("주문 상태 변경 완료: orderId={}, {} → {}", command.orderId(), previousStatus, targetStatus);
+
+        return OrderStatusChangeRes.from(order, previousStatus, command.reason(), command.managerLoginId());
+    }
 }
