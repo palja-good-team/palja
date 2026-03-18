@@ -19,7 +19,7 @@ public class ProductKafkaConsumer {
     @KafkaListener(topics = DECREASE_STOCK_TIMEDEAL)
     public void handleDecreaseStockTimeDealEvent(StockDecreaseTimeDealDto dto) {
 
-        productService.decreaseStockForTimeDeal(dto.getProductId(), dto.getQuantity());
+        productService.decreaseStockForTimeDeal(dto.getTimeDealId(), dto.getProductId(), dto.getQuantity());
     }
 
     @KafkaListener(topics = SALE_STOCK_ORDER)

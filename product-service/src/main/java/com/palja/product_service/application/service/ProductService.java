@@ -7,7 +7,6 @@ import com.palja.product_service.application.dto.res.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductService {
@@ -28,7 +27,7 @@ public interface ProductService {
 
     void saleProduct(UUID sagaId, UUID productId, UUID orderId, Long quantity);
 
-    void decreaseStockForTimeDeal(UUID productId, Long quantity);
+    void decreaseStockForTimeDeal(UUID timeDealId, UUID productId, Long quantity);
 
     void stockRestore(UUID productId, Long quantity);
 

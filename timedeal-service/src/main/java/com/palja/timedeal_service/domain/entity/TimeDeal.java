@@ -156,6 +156,11 @@ public class TimeDeal extends BaseEntity {
         return changeStatus(TimeDealStatus.CLOSED, reason);
     }
 
+    public boolean changeStatusFailed(String reason) {
+        changeStatus(TimeDealStatus.FAILED, reason);
+        return true;
+    }
+
     // ========== 재고 ==========
     public void decreaseRemainingQuantity(long decreaseQuantity) {
         ensureDecreasableStock();

@@ -1,5 +1,6 @@
 package com.palja.product_service.infrastructure.external.kafka.producer;
 
+import com.palja.product_service.application.event.dto.ProductEvent;
 import com.palja.product_service.application.event.dto.request.ChangePriceEventReq;
 import com.palja.product_service.application.event.dto.request.DecreaseStockTimeDealErrorEventReq;
 import com.palja.product_service.application.event.dto.request.SaleProductErrorEventReq;
@@ -19,11 +20,11 @@ import static com.palja.product_service.infrastructure.external.kafka.ProductKaf
 @RequiredArgsConstructor
 public class ProductKafkaProducer implements ProductEventPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, ProductEvent> kafkaTemplate;
 
-    private void publish(String topic, Object productEvent) {
+    private void publish(String topic, ProductEvent productEvent) {
 
-        CompletableFuture<SendResult<String, Object>> send = kafkaTemplate.send(topic, productEvent);
+        CompletableFuture<SendResult<String, ProductEvent>> send = kafkaTemplate.send(topic, productEvent);
         send.whenComplete((result, exception) -> {
 
             if(result != null) {

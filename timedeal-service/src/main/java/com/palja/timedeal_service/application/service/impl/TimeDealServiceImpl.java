@@ -17,6 +17,7 @@ import com.palja.timedeal_service.application.validator.TimeDealValidator;
 import com.palja.timedeal_service.common.TimeDealEditableField;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.entity.TimeDealStatusHistory;
+import com.palja.timedeal_service.domain.reason.TimeDealStatusReason;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
 import com.palja.timedeal_service.domain.vo.Amount;
 import com.palja.timedeal_service.domain.vo.Period;
@@ -237,6 +238,19 @@ public class TimeDealServiceImpl implements TimeDealService {
         }
 
         log.info("업체 판매자 관련 타임딜 삭제 완료");
+    }
+
+    @Override
+    @Transactional
+    public void changeTimeDealStatusFailed(ChangeTimeDealStatusFailedCommand command) {
+        log.info("타임딜 실패 처리 시작");
+
+        TimeDeal timeDeal = getActiveTimeDeal(command.timeDealId());
+        log.info("타임딜 실패 처리 아이디 timeDealId = {}", timeDeal.getTimeDealId());
+
+        timeDeal.changeStatusFailed(command.reason() != null ? command.reason() : TimeDealStatusReason.PRODUCT_STOCK_DECREASE_FAILED);
+
+        log.info("타임딜 실패 처리 완료");
     }
 
     // TODO. 로직 수정 필요

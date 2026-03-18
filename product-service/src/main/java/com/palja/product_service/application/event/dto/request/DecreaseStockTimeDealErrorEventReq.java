@@ -13,10 +13,11 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DecreaseStockTimeDealErrorEventReq implements ProductEvent {
 
+    private UUID timeDealId;
     private UUID productId;
     private String message;
 
-    public static DecreaseStockTimeDealErrorEventReq create(UUID productId, String message) {
-        return new DecreaseStockTimeDealErrorEventReq(productId, message);
+    public static DecreaseStockTimeDealErrorEventReq create(UUID timeDealId, UUID productId, String message) {
+        return new DecreaseStockTimeDealErrorEventReq(timeDealId, productId, message);
     }
 }

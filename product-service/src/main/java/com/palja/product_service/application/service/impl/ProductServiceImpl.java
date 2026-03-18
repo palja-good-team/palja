@@ -189,7 +189,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void decreaseStockForTimeDeal(UUID productId, Long quantity) {
+    public void decreaseStockForTimeDeal(UUID timeDealId, UUID productId, Long quantity) {
 
         ProductStock restoredStock = repository.findProduct(productId).decreaseStock(quantity);
 
@@ -199,7 +199,7 @@ public class ProductServiceImpl implements ProductService {
 
         productEventPublisher.publishCreateTimeDealEvent(
                 DecreaseStockTimeDealErrorEventReq.create(
-                        productId, ProductErrorCode.INVALID_STOCK.getMessage()
+                        timeDealId, productId, ProductErrorCode.INVALID_STOCK.getMessage()
         ));
     }
 
