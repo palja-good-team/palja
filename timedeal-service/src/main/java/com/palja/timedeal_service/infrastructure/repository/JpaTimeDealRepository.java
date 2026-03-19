@@ -38,8 +38,17 @@ public interface JpaTimeDealRepository extends JpaRepository<TimeDeal, UUID> {
     join fetch td.timeDealStock
     where td.companyUserId = :companyUserId
       and td.timeDealStatus = :status
-      and td.period.startAt > :now
       and td.deletedAt is null
 """)
     List<TimeDeal> findAllByCompanyUserId(UUID companyUserId, TimeDealStatus status, LocalDateTime now);
+
+    @Query("""
+    select td
+    from TimeDeal td
+    join fetch td.timeDealStock ts
+    where td.productId = :productId
+      and td.timeDealStatus = :status
+      and td.deletedAt is null
+""")
+    List<TimeDeal> findAllPendingByProductId(UUID productId, TimeDealStatus status);
 }

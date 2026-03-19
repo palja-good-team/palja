@@ -9,5 +9,4 @@ public record ChangeTimeDealStatusFailedCommand(
         UUID timeDealId,
         UUID productId,
         String reason
-) {
-}
+) {}

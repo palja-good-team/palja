@@ -116,6 +116,10 @@ public class TimeDeal extends BaseEntity {
         this.amount = this.amount.updateTimeDealPrice(newTimeDealPrice);
     }
 
+    public void changeProductPrice(long newOriginalPrice) {
+        this.amount = this.amount.updateOriginalPrice(newOriginalPrice);
+    }
+
     public void changeTotalQuantity(long newTotalQuantity) {
         this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }

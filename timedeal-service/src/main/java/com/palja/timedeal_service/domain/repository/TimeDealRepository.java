@@ -15,4 +15,5 @@ public interface TimeDealRepository {
     Optional<TimeDeal> findByTimeDealId(UUID timeDealId);
     Page<TimeDeal> searchTimeDeals(Pageable pageable);
     List<TimeDeal> findAllByCompanyUserId(UUID companyUserId, TimeDealStatus status, LocalDateTime now);
+    List<TimeDeal> findAllPendingByProductId(UUID productId, TimeDealStatus status);
 }

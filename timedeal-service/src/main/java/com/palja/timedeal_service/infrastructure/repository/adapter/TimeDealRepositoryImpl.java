@@ -37,4 +37,9 @@ public class TimeDealRepositoryImpl implements TimeDealRepository {
     public List<TimeDeal> findAllByCompanyUserId(UUID companyUserId, TimeDealStatus status, LocalDateTime now) {
         return jpaTimeDealRepository.findAllByCompanyUserId(companyUserId, status, now);
     }
+
+    @Override
+    public List<TimeDeal> findAllPendingByProductId(UUID productId, TimeDealStatus status) {
+        return jpaTimeDealRepository.findAllPendingByProductId(productId, status);
+    }
 }

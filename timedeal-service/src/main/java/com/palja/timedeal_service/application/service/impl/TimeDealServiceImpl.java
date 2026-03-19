@@ -253,6 +253,20 @@ public class TimeDealServiceImpl implements TimeDealService {
         log.info("타임딜 실패 처리 완료");
     }
 
+    @Override
+    @Transactional
+    public void updateProductPrice(UpdateProductPriceCommand command) {
+        log.info("상품 가격 동기화 시작");
+
+        List<TimeDeal> timeDeals = timeDealRepository.findAllPendingByProductId(command.productId(), TimeDealStatus.PENDING);
+
+        for (TimeDeal timeDeal : timeDeals) {
+            timeDeal.changeProductPrice(command.newPrice());
+        }
+
+        log.info("상품 가격 동기화 완료");
+    }
+
     // TODO. 로직 수정 필요
     private void updateTimeDealFields(TimeDeal timeDeal, UpdateTimeDealCommand command) {
         TimeDealStatus status = timeDeal.getTimeDealStatus();

@@ -3,11 +3,9 @@ package com.palja.timedeal_service.infrastructure.external.kafka.consumer;
 import com.palja.timedeal_service.application.command.ChangeTimeDealStatusFailedCommand;
 import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.RestoreRemainingQuantityCommand;
+import com.palja.timedeal_service.application.command.UpdateProductPriceCommand;
 import com.palja.timedeal_service.application.event.dto.TimeDealEvent;
-import com.palja.timedeal_service.application.event.dto.request.in.ProductStockDecreaseFailureEventReq;
-import com.palja.timedeal_service.application.event.dto.request.in.TimeDealDeleteByCompanyUserEventReq;
-import com.palja.timedeal_service.application.event.dto.request.in.TimeDealStockDecreaseEventReq;
-import com.palja.timedeal_service.application.event.dto.request.in.TimeDealStockRestoreEventReq;
+import com.palja.timedeal_service.application.event.dto.request.in.*;
 import com.palja.timedeal_service.application.event.dto.response.TimeDealStockDecreaseEventRes;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.infrastructure.external.kafka.topic.KafkaTopics;
@@ -102,5 +100,19 @@ public class TimeDealKafkaConsumer {
         timeDealService.changeTimeDealStatusFailed(command);
 
         log.info("[Kafka] 타임딜 실패 보상 처리 완료 timeDealId={}", event.getTimeDealId());
+    }
+
+    @KafkaListener(topics = KafkaTopics.PRODUCT_PRICE_UPDATE_REQUEST)
+    public void updateProductPrice(ProductPriceUpdateEventReq event) {
+        log.info("[Kafka] 상품 가격 업데이트 요청 수신 productId={}, newPrice={}", event.getProductId(), event.getPrice());
+
+        UpdateProductPriceCommand command = UpdateProductPriceCommand.builder()
+                .productId(event.getProductId())
+                .newPrice(event.getPrice())
+                .build();
+
+        timeDealService.updateProductPrice(command);
+
+        log.info("[Kafka] 상품 가격 업데이트 처리 완료 productId={}, newPrice={}", event.getProductId(), event.getPrice());
     }
 }
