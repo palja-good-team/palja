@@ -40,6 +40,10 @@ public class Amount {
         return new Amount(this.originalPrice, newTimeDealPrice);
     }
 
+    public Amount updateOriginalPrice(long newOriginalPrice) {
+        return new Amount(newOriginalPrice, this.timeDealPrice);
+    }
+
     // ========== 계산 ==========
     private int calculateDiscount(long originalPrice, long timeDealPrice) {
         return (int) (((double) (originalPrice - timeDealPrice) / originalPrice) * 100);

@@ -116,6 +116,10 @@ public class TimeDeal extends BaseEntity {
         this.amount = this.amount.updateTimeDealPrice(newTimeDealPrice);
     }
 
+    public void changeProductPrice(long newOriginalPrice) {
+        this.amount = this.amount.updateOriginalPrice(newOriginalPrice);
+    }
+
     public void changeTotalQuantity(long newTotalQuantity) {
         this.timeDealStock.changeTotalQuantity(newTotalQuantity);
     }
@@ -154,6 +158,11 @@ public class TimeDeal extends BaseEntity {
         this.period = this.period.updateEndAt(LocalDateTime.now());
 
         return changeStatus(TimeDealStatus.CLOSED, reason);
+    }
+
+    public boolean changeStatusFailed(String reason) {
+        changeStatus(TimeDealStatus.FAILED, reason);
+        return true;
     }
 
     // ========== 재고 ==========

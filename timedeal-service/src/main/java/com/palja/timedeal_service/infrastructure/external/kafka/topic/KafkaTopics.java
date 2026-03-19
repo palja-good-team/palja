@@ -13,4 +13,6 @@ public class KafkaTopics {
     public static final String ORDER_STOCK_DECREASE_REQUEST = "order.stock.decrease.request";
     public static final String ORDER_STOCK_RESTORE_REQUEST = "order.stock.restore.request";
     public static final String USER_COMPANY_USER_DELETE_REQUEST = "user.company-user.delete.request";
+    public static final String PRODUCT_STOCK_DECREASE_FAILURE = "product.stock.timedeal.decrease.failure";
+    public static final String PRODUCT_PRICE_UPDATE_REQUEST = "product.timedeal.price-update.request";
 }

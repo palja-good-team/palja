@@ -5,7 +5,8 @@ import lombok.Builder;
 import java.util.UUID;
 
 @Builder
-public record DecreaseRemainingQuantityCommand(
+public record ChangeTimeDealStatusFailedCommand(
         UUID timeDealId,
-        long decreaseQuantity
+        UUID productId,
+        String reason
 ) {}

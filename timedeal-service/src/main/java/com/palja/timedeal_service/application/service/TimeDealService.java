@@ -20,4 +20,6 @@ public interface TimeDealService {
     void decreaseRemainingQuantity(DecreaseRemainingQuantityCommand command);
     void restoreRemainingQuantity(RestoreRemainingQuantityCommand command);
     void deleteByCompanyUser(UUID companyUserId);
+    void changeTimeDealStatusFailed(ChangeTimeDealStatusFailedCommand command);
+    void updateProductPrice(UpdateProductPriceCommand command);
 }

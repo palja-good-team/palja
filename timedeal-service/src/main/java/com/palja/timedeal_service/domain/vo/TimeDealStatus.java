@@ -13,7 +13,7 @@ public enum TimeDealStatus {
 
         @Override
         public boolean canTransitTo(TimeDealStatus newStatus) {
-            return newStatus == OPEN || newStatus == CLOSED;
+            return newStatus == OPEN || newStatus == CLOSED || newStatus == FAILED;
         }
     },
 
@@ -42,6 +42,18 @@ public enum TimeDealStatus {
     },
 
     CLOSED("종료") {
+        @Override
+        public boolean canEditField(TimeDealEditableField field) {
+            return false;
+        }
+
+        @Override
+        public boolean canTransitTo(TimeDealStatus newStatus) {
+            return false;
+        }
+    },
+
+    FAILED("실패") {
         @Override
         public boolean canEditField(TimeDealEditableField field) {
             return false;
