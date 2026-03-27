@@ -50,7 +50,11 @@ public enum TimeDealErrorCode implements ErrorCode {
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     COMPANY_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "업체 판매자를 찾을 수 없습니다."),
     TIME_DEAL_NOT_OPEN(HttpStatus.BAD_REQUEST, "OPEN 상태의 타임딜만 재고 차감이 가능합니다."),
-    TIME_DEAL_NOT_IN_PERIOD(HttpStatus.BAD_REQUEST, "현재 시간에 재고 차감을 수행할 수 없는 타임딜입니다.");
+    TIME_DEAL_NOT_IN_PERIOD(HttpStatus.BAD_REQUEST, "현재 시간에 재고 차감을 수행할 수 없는 타임딜입니다."),
+
+    // Redisson 관련
+    LOCK_ACQUIRE_FAILED(HttpStatus.TOO_MANY_REQUESTS, "현재 접속자가 많아 잠시 후 다시 시도해주세요."),
+    LOCK_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "요청 처리 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

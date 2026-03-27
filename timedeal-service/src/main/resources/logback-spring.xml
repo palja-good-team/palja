@@ -3,7 +3,7 @@
     <springProperty name="SERVICE_NAME" source="spring.application.name"/>
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
 
-    <springProfile name="local">
+    <springProfile name="local | test">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
                 <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){magenta} %clr(%-4level) [${SERVICE_NAME}] [%thread] [%X{traceId}] %clr(%logger){cyan} %msg%n</pattern>

@@ -5,11 +5,6 @@ spring:
   application:
     name: timedeal-service
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: timedeal-service
-
   profiles:
     include:
       - datasource
@@ -17,3 +12,5 @@ spring:
       - eureka
       - swagger
       - monitor
+      - kafka
+      - redis
