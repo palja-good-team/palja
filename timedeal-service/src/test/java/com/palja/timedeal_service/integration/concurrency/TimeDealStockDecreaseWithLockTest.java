@@ -3,6 +3,7 @@ package com.palja.timedeal_service.integration.concurrency;
 import com.palja.common.auditor.AuditorContext;
 import com.palja.common.vo.UserRole;
 import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
+import com.palja.timedeal_service.application.facade.TimeDealLockFacade;
 import com.palja.timedeal_service.application.service.TimeDealService;
 import com.palja.timedeal_service.domain.entity.TimeDeal;
 import com.palja.timedeal_service.domain.repository.TimeDealRepository;
@@ -30,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-class TimeDealStockDecreaseTest {
+class TimeDealStockDecreaseWithLockTest {
 
     private static final String TEST_LOGIN_ID = "test-user";
     private static final int THREAD_COUNT = 100;
@@ -38,7 +39,7 @@ class TimeDealStockDecreaseTest {
     private static final long DECREASE_QUANTITY = 1L;
 
     @Autowired
-    private TimeDealService timeDealService;
+    private TimeDealLockFacade timeDealLock;
 
     @Autowired
     private TimeDealRepository timeDealRepository;
@@ -74,12 +75,12 @@ class TimeDealStockDecreaseTest {
     }
 
     /**
-     * Redisson 락 및 원자적 update 적용 전
+     * Redisson 락 적용 후
      * 동시성 상황에서 성공/실패 수와 잔여 재고를 관찰하기 위한 테스트
      * 상황에 따라 flaky 할 수 있으므로 정합성 불일치를 강하게 assert 하지 않음
      */
     @Test
-    @DisplayName("타임딜 재고 차감 동시 요청 시 성공, 실패 수와 잔여 재고 테스트")
+    @DisplayName("락 전용 후 타임딜 재고 차감 동시 요청 시 성공, 실패 수와 잔여 재고 테스트")
     void concurrentTimeDealStockDecreaseTest() throws InterruptedException {
         log.info("테스트 시작");
 
@@ -94,9 +95,13 @@ class TimeDealStockDecreaseTest {
                 try {
                     AuditorContext.set("test-user", UserRole.MASTER);
 
-                    timeDealService.decreaseRemainingQuantity(
-                            new DecreaseRemainingQuantityCommand(timeDeal.getTimeDealId(), DECREASE_QUANTITY)
-                    );
+                    DecreaseRemainingQuantityCommand command = DecreaseRemainingQuantityCommand.builder()
+                            .timeDealId(timeDeal.getTimeDealId())
+                            .decreaseQuantity(DECREASE_QUANTITY)
+                            .build();
+
+                    timeDealLock.decreaseRemainingQuantityWithLock(command);
+
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
