@@ -4,6 +4,7 @@ import com.palja.timedeal_service.application.command.ChangeTimeDealStatusFailed
 import com.palja.timedeal_service.application.command.DecreaseRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.RestoreRemainingQuantityCommand;
 import com.palja.timedeal_service.application.command.UpdateProductPriceCommand;
+import com.palja.timedeal_service.application.facade.TimeDealLockFacade;
 import com.palja.timedeal_service.application.event.dto.TimeDealEvent;
 import com.palja.timedeal_service.application.event.dto.request.in.*;
 import com.palja.timedeal_service.application.event.dto.response.TimeDealStockDecreaseEventRes;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 public class TimeDealKafkaConsumer {
 
     private final TimeDealService timeDealService;
+    private final TimeDealLockFacade timeDealLock;
     private final KafkaTemplate<String, TimeDealEvent> kafkaTemplate;
 
     @KafkaListener(topics = KafkaTopics.ORDER_STOCK_DECREASE_REQUEST)
@@ -39,7 +41,8 @@ public class TimeDealKafkaConsumer {
                     .decreaseQuantity(event.getQuantity())
                     .build();
 
-            timeDealService.decreaseRemainingQuantity(command);
+//            timeDealService.decreaseRemainingQuantity(command);
+            timeDealLock.decreaseRemainingQuantityWithLock(command);
 
             TimeDealStockDecreaseEventRes res = TimeDealStockDecreaseEventRes.success(event.getSagaId(), event.getOrderId());
             kafkaTemplate.send(KafkaTopics.ORDER_STOCK_DECREASE_SUCCESS, res);
