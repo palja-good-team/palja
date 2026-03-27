@@ -24,7 +24,7 @@ public class TimeDealLockFacade {
 
         distributedLockExecutor.execute(
                 lockKey,
-                1,
+                2,
                 TimeUnit.SECONDS,
                 () -> {
                     log.info("타임딜 재고 차감 락 획득 성공. timeDealId={}", command.timeDealId());
